@@ -55,11 +55,10 @@ import {
   type OptimizerSearchResult,
 } from "./optimizer";
 import {
-  addNeutralObjectiveWeight,
-  OBJECTIVE_WEIGHT_TOTAL,
-  rebalanceObjectiveWeights,
-  removeObjectiveWeight,
-} from "./objective-weights";
+  NEUTRAL_OBJECTIVE_WEIGHT,
+  OBJECTIVE_PRIORITIES,
+  objectiveWeightPercentage,
+} from "./objective-priorities";
 import type {
   ArtifactConfig,
   ArtifactData,
@@ -80,8 +79,8 @@ const CATEGORY_ORDER = [
 ];
 const OPTIMIZER_COMBINATION_LIMIT = 10_000_000;
 const DEFAULT_OPTIMIZER_OBJECTIVES: OptimizerObjective[] = [
-  { key: "stalker.artefact_properties.factor.speed_modifier", weight: 70 },
-  { key: "stalker.artefact_properties.factor.stamina_regeneration_bonus", weight: 30 },
+  { key: "stalker.artefact_properties.factor.speed_modifier", weight: NEUTRAL_OBJECTIVE_WEIGHT },
+  { key: "stalker.artefact_properties.factor.stamina_regeneration_bonus", weight: NEUTRAL_OBJECTIVE_WEIGHT },
 ];
 
 type PickerState =
@@ -752,29 +751,10 @@ function OptimizerPanel({
 
   const addObjective = () => {
     const option = OPTIMIZER_STAT_OPTIONS.find(([key]) => !objectives.some((objective) => objective.key === key));
-    if (option) setObjectives((current) => {
-      const weights = addNeutralObjectiveWeight(current.map((objective) => objective.weight));
-      return [...current.map((objective, index) => ({ ...objective, weight: weights[index] })), {
-        key: option[0],
-        weight: weights[weights.length - 1],
-      }];
-    });
-  };
-
-  const updateObjectiveWeight = (changedIndex: number, requestedWeight: number) => {
-    setObjectives((current) => {
-      const weights = rebalanceObjectiveWeights(current.map((objective) => objective.weight), changedIndex, requestedWeight);
-      return current.map((objective, index) => ({ ...objective, weight: weights[index] }));
-    });
-  };
-
-  const removeObjective = (removedIndex: number) => {
-    setObjectives((current) => {
-      const weights = removeObjectiveWeight(current.map((objective) => objective.weight), removedIndex);
-      return current
-        .filter((_, index) => index !== removedIndex)
-        .map((objective, index) => ({ ...objective, weight: weights[index] }));
-    });
+    if (option) setObjectives((current) => [...current, {
+      key: option[0],
+      weight: NEUTRAL_OBJECTIVE_WEIGHT,
+    }]);
   };
 
   const applyResult = (resultIndex: number) => {
@@ -820,15 +800,20 @@ function OptimizerPanel({
             </div>
 
             <div className="optimizer-block">
-              <div className="section-label"><span>Weighted objectives</span><span>{OBJECTIVE_WEIGHT_TOTAL}% total</span></div>
+              <div className="section-label"><span>Weighted objectives</span><span>Relative priority</span></div>
               <div className="objective-list">
                 {objectives.map((objective, index) => (
                   <div className="objective-row" key={`${objective.key}-${index}`}>
-                    <select aria-label={`Objective ${index + 1}`} value={objective.key} onChange={(event) => setObjectives((current) => current.map((item, itemIndex) => itemIndex === index ? { ...item, key: event.target.value } : item))}>
-                      {OPTIMIZER_STAT_OPTIONS.map(([key, name]) => <option key={key} value={key} disabled={objectives.some((item, itemIndex) => itemIndex !== index && item.key === key)}>{name}</option>)}
-                    </select>
-                    <label className="objective-weight"><input aria-label={`Objective ${index + 1} weight`} type="range" min="1" max={OBJECTIVE_WEIGHT_TOTAL - objectives.length + 1} step="1" value={objective.weight} onChange={(event) => updateObjectiveWeight(index, Number(event.target.value))} /><strong>{objective.weight}%</strong></label>
-                    <button className="icon-button" aria-label={`Remove objective ${index + 1}`} disabled={objectives.length === 1} onClick={() => removeObjective(index)}><X size={15} /></button>
+                    <div className="objective-row__top">
+                      <select aria-label={`Objective ${index + 1}`} value={objective.key} onChange={(event) => setObjectives((current) => current.map((item, itemIndex) => itemIndex === index ? { ...item, key: event.target.value } : item))}>
+                        {OPTIMIZER_STAT_OPTIONS.map(([key, name]) => <option key={key} value={key} disabled={objectives.some((item, itemIndex) => itemIndex !== index && item.key === key)}>{name}</option>)}
+                      </select>
+                      <strong className="objective-share">{objectiveWeightPercentage(objective.weight, objectives.map((item) => item.weight)).toFixed(1).replace(".0", "")}%</strong>
+                      <button className="icon-button" aria-label={`Remove objective ${index + 1}`} disabled={objectives.length === 1} onClick={() => setObjectives((current) => current.filter((_, itemIndex) => itemIndex !== index))}><X size={15} /></button>
+                    </div>
+                    <div className="objective-priority" role="group" aria-label={`Objective ${index + 1} importance`}>
+                      {OBJECTIVE_PRIORITIES.map((priority) => <button type="button" className={objective.weight === priority.weight ? "active" : ""} aria-pressed={objective.weight === priority.weight} title={`${priority.label}: ${priority.factor} scoring influence`} key={priority.weight} onClick={() => setObjectives((current) => current.map((item, itemIndex) => itemIndex === index ? { ...item, weight: priority.weight } : item))}><span>{priority.label}</span><small>{priority.factor}</small></button>)}
+                    </div>
                   </div>
                 ))}
                 <button className="add-bonus optimizer-add" disabled={objectives.length >= OPTIMIZER_STAT_OPTIONS.length} onClick={addObjective}><Plus size={15} /> Add objective</button>

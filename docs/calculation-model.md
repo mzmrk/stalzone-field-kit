@@ -110,14 +110,14 @@ objective as:
 ```
 
 A zero-width range receives normalized value `1`. The final score is the weighted
-average of normalized objectives. The UI represents weights as integer
-percentages totaling `100`, with a minimum of `1%` per objective. Moving a slider
-redistributes the remaining share proportionally. Adding an objective assigns it
-a neutral equal share and scales existing shares without changing their relative
-preference; removing one distributes its share proportionally. Independent
-objective maxima need not be simultaneously achievable, so even the best
-compromise may score below `100%`. The engine retains the ten highest-scoring
-builds and breaks equal-score ties by canonical artifact order.
+average of normalized objectives. The UI expresses each independent weight as
+one of five importance levels: Minor (`0.25×`), Low (`0.5×`), Neutral (`1×`),
+Important (`2×`), or Essential (`4×`). Every initial or newly added objective
+starts Neutral. Changing one priority leaves every other priority unchanged; the
+UI derives and displays their resulting percentage shares. Independent objective
+maxima need not be simultaneously achievable, so even the best compromise may
+score below `100%`. The engine retains the ten highest-scoring builds and breaks
+equal-score ties by canonical artifact order.
 
 ## Verification expectations
 
@@ -132,5 +132,5 @@ Optimizer coverage checks combination counts, weight-sensitive ranking,
 search-size rejection, feasible-range normalization, and safe-only filtering.
 It also covers the zero boundary for fully countered harmful properties,
 positive-value filtering when every objective is required, and exclusion of
-carrier stats from that requirement. Percentage-control coverage checks exact
-totals, the `1%` floor, neutral objective addition, and proportional removal.
+carrier stats from that requirement. Priority-control coverage checks exact
+normalized shares, neutral defaults, and the doubling between importance levels.
