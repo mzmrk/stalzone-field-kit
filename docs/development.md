@@ -1,0 +1,74 @@
+# Development and operation
+
+## Local setup
+
+Use a current Node.js release compatible with the versions locked in
+[`package-lock.json`](../package-lock.json). Node.js 22 is the verified local
+environment.
+
+```bash
+cd /home/node/Documents/stalzone-artifact-calculator-web
+npm install
+npm run dev
+```
+
+Vite normally serves the application at `http://localhost:5173`. The browser must
+be able to reach `raw.githubusercontent.com` because catalog JSON, selected-item
+JSON, and icons are loaded directly at runtime.
+
+For a development server inside Docker, bind Vite to every container interface:
+
+```bash
+npm run dev -- --host 0.0.0.0 --port 5173
+```
+
+Publish container port `5173` to the desired host port. This is development
+operation only; Vite's dev server is not a production server.
+
+## Verification
+
+Run calculation unit tests after domain or parsing work:
+
+```bash
+npm test
+```
+
+Run the live browser workflow after UI, loading, persistence, or responsive-layout
+changes:
+
+```bash
+npx playwright install chromium
+npm run test:e2e
+```
+
+On a minimal Linux container, Chromium may also require system packages installed
+by `npx playwright install-deps chromium`; that command modifies the container and
+may require root privileges. The Playwright suite starts its own Vite server on
+port `4173`, selects a live EXBO-backed Berloga-6 and Bracelet build, verifies
+persistence after reload, and checks phone-width overflow.
+
+Type-check and produce the static artifact with:
+
+```bash
+npm run build
+```
+
+The output is `dist/`. [`vite.config.ts`](../vite.config.ts) uses a relative base,
+so the artifact can be served from a repository subpath. GitHub Pages deployment
+configuration is not present yet.
+
+## Documentation workflow
+
+All human-maintained Markdown except root [`AGENTS.md`](../AGENTS.md) belongs in
+`docs/`. Update the canonical owner named in [the documentation index](README.md)
+in the same change as code, configuration, data, test, or workflow changes. Avoid
+duplicating source-level inventories or formulas outside their owning document.
+
+Validate documentation links, index coverage, boundaries, and policy placement:
+
+```bash
+npm run docs:check
+```
+
+After verification, commit each discrete change using the message policy in
+[`AGENTS.md`](../AGENTS.md).
