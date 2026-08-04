@@ -21,6 +21,19 @@ describe("artifact calculations", () => {
     expect(calculateStat(exposure, 100, 0, 0, 150)).toBeCloseTo(1);
   });
 
+  it("scales an ordinary harmful property directly by artifact quality", () => {
+    const temperature: ParsedStat = {
+      key: "stalker.artefact_properties.factor.thermal_accumulation",
+      name: "Temperature",
+      min: 1.0625,
+      max: 1.25,
+      positive: false,
+      percentage: false,
+    };
+
+    expect(calculateStat(temperature, 92.18, 0, 0, 100)).toBeCloseTo(1.15225);
+  });
+
   it("offers both rarities at a quality boundary", () => {
     expect(rarityOptions(115)).toEqual([1, 2]);
   });

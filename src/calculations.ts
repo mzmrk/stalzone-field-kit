@@ -66,14 +66,11 @@ export function rarityOptions(quality: number) {
   return [Math.min(6, Math.floor((quality - 100) / 15) + 1)];
 }
 
-function endpoints(stat: ParsedStat) {
-  let strongest = Math.max(stat.min, stat.max);
-  let weakest = Math.min(stat.min, stat.max);
+function strongestEndpoint(stat: ParsedStat) {
   if (stat.min <= 0 && stat.max <= 0) {
-    strongest = Math.min(stat.min, stat.max);
-    weakest = Math.max(stat.min, stat.max);
+    return Math.min(stat.min, stat.max);
   }
-  return { strongest, weakest };
+  return Math.max(stat.min, stat.max);
 }
 
 export function calculateStat(
@@ -83,7 +80,7 @@ export function calculateStat(
   rarityIndex: number,
   effectiveness: number,
 ) {
-  const { strongest, weakest } = endpoints(stat);
+  const strongest = strongestEndpoint(stat);
   const efficiency = EXPOSURE_KEYS.has(stat.key) ? 1 : effectiveness / 100;
 
   if (stat.positive) {
@@ -92,7 +89,7 @@ export function calculateStat(
 
   let value: number;
   if (quality <= 100) {
-    value = weakest + ((strongest - weakest) * quality) / 100;
+    value = strongest * (quality / 100);
   } else {
     const inferred = Math.floor((quality - 100) / 15);
     const tier = Math.max(0, Math.min(rarityIndex ?? inferred, 5));

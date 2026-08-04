@@ -27,9 +27,12 @@ strongest × quality / 100 × (1 + 0.02 × level) × effectiveness
 
 Container effectiveness is expressed as a ratio, such as `1.2` for `120%`.
 Artifact exposure properties do not receive this multiplier. Harmful properties
-use range interpolation through quality `100`; above `100`, each selected rarity
-tier starts at `85%` of its strongest value and interpolates across the tier's
-15-point quality span. The implementation in
+through quality `100` scale their strongest endpoint directly by quality; the
+EXBO minimum endpoint must not be used to normalize that quality a second time.
+Above `100`, each selected rarity tier starts at `85%` of its strongest value and
+interpolates across the tier's 15-point quality span. Artifact previews call the
+same calculation function with `100%` container effectiveness so their raw values
+cannot drift from the totals engine. The implementation in
 [`calculateStat`](../src/calculations.ts) is canonical for the boundary details.
 
 ## Combination order
@@ -79,8 +82,9 @@ calculated stats.
 ## Verification expectations
 
 Formula changes must add or update focused Vitest cases. Existing coverage checks
-quality/level/effectiveness scaling, the exposure effectiveness exception,
-rarity-boundary choices and resets, protection, counter-before-protection order,
-carrier and manual bonus addition, mass, and strict warning thresholds. Changes
-to the user workflow or persistence should also update the Playwright flow in
+quality/level/effectiveness scaling, ordinary harmful-property quality scaling,
+the exposure effectiveness exception, rarity-boundary choices and resets,
+protection, counter-before-protection order, carrier and manual bonus addition,
+mass, and strict warning thresholds. Changes to the user workflow or persistence
+should also update the Playwright flow in
 [`tests/calculator.spec.ts`](../tests/calculator.spec.ts).

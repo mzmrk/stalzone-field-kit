@@ -28,6 +28,7 @@ import {
   useState,
 } from "react";
 import {
+  calculateStat,
   calculateTotals,
   EXPOSURE_KEYS,
   rarityOptions,
@@ -422,10 +423,13 @@ function ArtifactEditor({
             <li key={stat.key} className={stat.positive ? "positive" : "negative"}>
               <span>{stat.name}</span>
               <span>{formatNumber(
-                // The result panel applies container-specific math; this preview is intentionally raw.
-                stat.positive
-                  ? (stat.min <= 0 && stat.max <= 0 ? Math.min(stat.min, stat.max) : Math.max(stat.min, stat.max)) * (artifact.quality / 100) * (1 + artifact.level * 0.02)
-                  : stat.max,
+                calculateStat(
+                  stat,
+                  artifact.quality,
+                  artifact.level,
+                  artifact.rarityIndex,
+                  100,
+                ),
                 stat.percentage,
               )}</span>
             </li>
