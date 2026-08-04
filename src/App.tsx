@@ -812,7 +812,7 @@ function OptimizerPanel({
               <div className="optimizer-rules">
                 <label><input type="checkbox" checked={safeOnly} onChange={(event) => setSafeOnly(event.target.checked)} /><span><strong>Safe exposure only</strong><small>Reject builds above damage thresholds</small></span></label>
                 <label><input type="checkbox" checked={noNegativeEffects} onChange={(event) => setNoNegativeEffects(event.target.checked)} /><span><strong>No remaining negative effects</strong><small>Every harmful property must be fully countered</small></span></label>
-                <label><input type="checkbox" checked={requireAllObjectives} onChange={(event) => setRequireAllObjectives(event.target.checked)} /><span><strong>Require every objective</strong><small>Every selected objective must finish above zero</small></span></label>
+                <label><input type="checkbox" checked={requireAllObjectives} onChange={(event) => setRequireAllObjectives(event.target.checked)} /><span><strong>Require every objective</strong><small>Artifacts must contribute to every objective</small></span></label>
                 <label><input type="checkbox" checked={allowDuplicates} onChange={(event) => setAllowDuplicates(event.target.checked)} /><span><strong>Allow duplicate artifacts</strong><small>Enumerate combinations with replacement</small></span></label>
               </div>
               <div className={`search-estimate ${oversized ? "search-estimate--danger" : ""}`}>

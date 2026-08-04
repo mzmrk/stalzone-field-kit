@@ -9,6 +9,7 @@ import type { ParsedStat } from "./types";
 
 const MOVEMENT = "stalker.artefact_properties.factor.speed_modifier";
 const STAMINA = "stalker.artefact_properties.factor.stamina_regeneration_bonus";
+const CARRY_WEIGHT = "stalker.artefact_properties.factor.max_weight_bonus";
 const TEMPERATURE = "stalker.artefact_properties.factor.thermal_accumulation";
 
 const stat = (key: string, name: string, value: number, positive = true): ParsedStat => ({
@@ -145,5 +146,26 @@ describe("artifact optimizer", () => {
     expect(required.feasibleCombinations).toBe(2);
     expect(required.results[0].indices).toEqual([0, 1]);
     expect(required.results.every((result) => result.values.every((value) => value > 0))).toBe(true);
+  });
+
+  it("does not let a carrier stat satisfy a required artifact objective", () => {
+    const carrier: OptimizerContainer = {
+      capacity: 1,
+      protection: 0,
+      effectiveness: 100,
+      stats: [stat(CARRY_WEIGHT, "Carry weight", 35)],
+    };
+    const candidates = [
+      candidate("No carry weight", [stat(MOVEMENT, "Movement speed", 1)]),
+      candidate("Artifact carry weight", [stat(CARRY_WEIGHT, "Carry weight", 2)]),
+    ];
+
+    const result = optimizeArtifactCombinations(carrier, candidates, [
+      { key: CARRY_WEIGHT, weight: 100 },
+    ], { ...settings, requireAllObjectives: true });
+
+    expect(result.feasibleCombinations).toBe(1);
+    expect(result.results[0].indices).toEqual([1]);
+    expect(result.results[0].values).toEqual([37]);
   });
 });

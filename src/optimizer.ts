@@ -168,8 +168,7 @@ export function optimizeArtifactCombinations(
     const index = keyIndexes.get(key)!;
     return finalizeValue(key, index, sums[index]) * direction <= EPSILON;
   });
-  const hasEveryObjective = (sums: Float64Array) => objectiveIndexes.every((index, objectiveIndex) =>
-    finalizeValue(activeObjectives[objectiveIndex].key, index, sums[index]) > EPSILON);
+  const hasEveryObjective = (sums: Float64Array) => objectiveIndexes.every((index) => sums[index] > EPSILON);
   const eligible = (sums: Float64Array) =>
     (!settings.safeOnly || safe(sums))
     && (!settings.noNegativeEffects || hasNoNegativeEffects(sums))
