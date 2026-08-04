@@ -53,6 +53,17 @@ test("exhaustively ranks and loads a four-slot weighted build", async ({ page })
   await page.getByRole("button", { name: /Errand Junior Backpack/ }).click();
 
   await expect(page.getByText("4,967,690").first()).toBeVisible();
+  await expect(page.getByLabel("Objective 1 weight")).toHaveValue("70");
+  await expect(page.getByLabel("Objective 2 weight")).toHaveValue("30");
+  await page.getByRole("button", { name: "Add objective" }).click();
+  await expect(page.getByLabel("Objective 1 weight")).toHaveValue("47");
+  await expect(page.getByLabel("Objective 2 weight")).toHaveValue("20");
+  await expect(page.getByLabel("Objective 3 weight")).toHaveValue("33");
+  await page.getByRole("button", { name: "Remove objective 3" }).click();
+  await expect(page.getByLabel("Objective 1 weight")).toHaveValue("70");
+  await expect(page.getByLabel("Objective 2 weight")).toHaveValue("30");
+  await page.getByLabel("Objective 1 weight").fill("60");
+  await expect(page.getByLabel("Objective 2 weight")).toHaveValue("40");
   await page.getByRole("checkbox", { name: /No remaining negative effects/ }).check();
   await page.getByRole("checkbox", { name: /Require every objective/ }).check();
   await page.getByRole("button", { name: /Search 4,967,690 combinations/ }).click();
