@@ -43,6 +43,7 @@ export type OptimizerSettings = {
   rarityIndex: number;
   allowDuplicates: boolean;
   safeOnly: boolean;
+  noNegativeEffects: boolean;
   resultLimit?: number;
   combinationLimit?: number;
 };
@@ -111,7 +112,21 @@ export function optimizeArtifactCombinations(
   if (combinations === 0) return { combinations, feasibleCombinations: 0, ranges: [], results: [] };
 
   const exposureKeys = [...EXPOSURE_KEYS];
-  const relevantKeys = [...new Set([...activeObjectives.map((objective) => objective.key), ...exposureKeys])];
+  const harmfulDirections = new Map<string, number>();
+  const registerHarmfulDirection = (stat: ParsedStat) => {
+    if (stat.positive || harmfulDirections.has(stat.key)) return;
+    const endpoint = Math.abs(stat.max) >= Math.abs(stat.min) ? stat.max : stat.min;
+    const direction = Math.sign(endpoint);
+    if (direction !== 0) harmfulDirections.set(stat.key, direction);
+  };
+  container.stats.forEach(registerHarmfulDirection);
+  candidates.forEach((candidate) => candidate.stats.forEach(registerHarmfulDirection));
+
+  const relevantKeys = [...new Set([
+    ...activeObjectives.map((objective) => objective.key),
+    ...exposureKeys,
+    ...harmfulDirections.keys(),
+  ])];
   const keyIndexes = new Map(relevantKeys.map((key, index) => [key, index]));
   const objectiveIndexes = activeObjectives.map((objective) => keyIndexes.get(objective.key)!);
   const exposureIndexes = exposureKeys.map((key) => keyIndexes.get(key)!);
@@ -148,6 +163,13 @@ export function optimizeArtifactCombinations(
     const index = exposureIndexes[exposureIndex];
     return finalizeValue(key, index, sums[index]) <= WARNING_LIMITS[key];
   });
+  const hasNoNegativeEffects = (sums: Float64Array) => [...harmfulDirections].every(([key, direction]) => {
+    const index = keyIndexes.get(key)!;
+    return finalizeValue(key, index, sums[index]) * direction <= EPSILON;
+  });
+  const eligible = (sums: Float64Array) =>
+    (!settings.safeOnly || safe(sums))
+    && (!settings.noNegativeEffects || hasNoNegativeEffects(sums));
 
   const mins = new Float64Array(activeObjectives.length).fill(Number.POSITIVE_INFINITY);
   const maxes = new Float64Array(activeObjectives.length).fill(Number.NEGATIVE_INFINITY);
@@ -160,7 +182,7 @@ export function optimizeArtifactCombinations(
     "ranges",
     onProgress,
     (sums) => {
-      if (settings.safeOnly && !safe(sums)) return;
+      if (!eligible(sums)) return;
       feasibleCombinations += 1;
       objectiveIndexes.forEach((index, objectiveIndex) => {
         const value = finalizeValue(activeObjectives[objectiveIndex].key, index, sums[index]);
@@ -190,7 +212,7 @@ export function optimizeArtifactCombinations(
     "ranking",
     onProgress,
     (sums, indices) => {
-      if (settings.safeOnly && !safe(sums)) return;
+      if (!eligible(sums)) return;
       const values = objectiveIndexes.map((index, objectiveIndex) =>
         finalizeValue(activeObjectives[objectiveIndex].key, index, sums[index]));
       const score = values.reduce((sum, value, objectiveIndex) => {

@@ -88,6 +88,12 @@ then carrier stats and the same strict damage thresholds used by
 [`calculateTotals`](../src/calculations.ts). Random additional properties are not
 searched because EXBO does not publish their pools.
 
+The safe-only constraint accepts exposure values at or below their damage
+thresholds. The stricter no-negative-effects constraint identifies every stat
+key that has a harmful EXBO property and requires its final net value to reach
+zero or cross into the beneficial direction. Artifact counter-effects therefore
+combine before this check; an exactly countered harmful property passes.
+
 The exact search performs two passes over canonical combinations. The first pass
 filters on safe exposure when requested and discovers the feasible minimum and
 maximum for every positive-weight objective. The second pass normalizes each
@@ -114,3 +120,4 @@ should also update the Playwright flow in
 [`tests/calculator.spec.ts`](../tests/calculator.spec.ts).
 Optimizer coverage checks combination counts, weight-sensitive ranking,
 search-size rejection, feasible-range normalization, and safe-only filtering.
+It also covers the zero boundary for fully countered harmful properties.

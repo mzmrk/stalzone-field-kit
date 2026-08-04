@@ -106,10 +106,12 @@ The optimizer is a theoretical catalog search: every artifact receives one fixed
 quality, level, and boundary rarity, and random additional properties are
 excluded. It fills every carrier slot, optionally allows duplicate artifact
 types, and can reject builds exceeding the same exposure thresholds as the
-manual calculator. Canonical combinations are enumerated without slot
-permutations in a Web Worker. Searches above ten million combinations are
-rejected explicitly; with the current catalog this makes four-slot searches
-available while larger carriers normally exceed the guard.
+manual calculator. A stricter constraint can additionally require every harmful
+property to be fully countered in the final net totals. Canonical combinations
+are enumerated without slot permutations in a Web Worker. Searches above ten
+million combinations are rejected explicitly; with the current catalog this
+makes four-slot searches available while larger carriers normally exceed the
+guard.
 
 Optimizer settings and results are transient. Loading a ranked result clones its
 artifacts into the persisted manual build, where individual values can be edited.

@@ -33,6 +33,7 @@ const settings = {
   rarityIndex: 0,
   allowDuplicates: true,
   safeOnly: true,
+  noNegativeEffects: false,
 };
 
 describe("artifact optimizer", () => {
@@ -95,5 +96,27 @@ describe("artifact optimizer", () => {
     expect(result.feasibleCombinations).toBe(1);
     expect(result.ranges[0]).toEqual({ key: MOVEMENT, min: 2, max: 2 });
     expect(result.results[0].indices).toEqual([1, 1]);
+  });
+
+  it("accepts a harmful property only when its final net value is fully countered", () => {
+    const candidates = [
+      candidate("Hot and fast", [
+        stat(MOVEMENT, "Movement speed", 3),
+        stat(TEMPERATURE, "Temperature", 1, false),
+      ]),
+      candidate("Mild", [
+        stat(MOVEMENT, "Movement speed", 2),
+        stat(TEMPERATURE, "Temperature", 0.2, false),
+      ]),
+      candidate("Counter", [stat(TEMPERATURE, "Temperature", -1)]),
+    ];
+
+    const result = optimizeArtifactCombinations(container, candidates, [
+      { key: MOVEMENT, weight: 100 },
+    ], { ...settings, safeOnly: false, noNegativeEffects: true });
+
+    expect(result.feasibleCombinations).toBe(3);
+    expect(result.results[0].indices).toEqual([0, 2]);
+    expect(result.results[0].values[0]).toBe(3);
   });
 });
