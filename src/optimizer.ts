@@ -44,6 +44,7 @@ export type OptimizerSettings = {
   allowDuplicates: boolean;
   safeOnly: boolean;
   noNegativeEffects: boolean;
+  requireAllObjectives: boolean;
   resultLimit?: number;
   combinationLimit?: number;
 };
@@ -167,9 +168,12 @@ export function optimizeArtifactCombinations(
     const index = keyIndexes.get(key)!;
     return finalizeValue(key, index, sums[index]) * direction <= EPSILON;
   });
+  const hasEveryObjective = (sums: Float64Array) => objectiveIndexes.every((index, objectiveIndex) =>
+    finalizeValue(activeObjectives[objectiveIndex].key, index, sums[index]) > EPSILON);
   const eligible = (sums: Float64Array) =>
     (!settings.safeOnly || safe(sums))
-    && (!settings.noNegativeEffects || hasNoNegativeEffects(sums));
+    && (!settings.noNegativeEffects || hasNoNegativeEffects(sums))
+    && (!settings.requireAllObjectives || hasEveryObjective(sums));
 
   const mins = new Float64Array(activeObjectives.length).fill(Number.POSITIVE_INFINITY);
   const maxes = new Float64Array(activeObjectives.length).fill(Number.NEGATIVE_INFINITY);

@@ -93,6 +93,9 @@ thresholds. The stricter no-negative-effects constraint identifies every stat
 key that has a harmful EXBO property and requires its final net value to reach
 zero or cross into the beneficial direction. Artifact counter-effects therefore
 combine before this check; an exactly countered harmful property passes.
+The require-every-objective constraint accepts only builds whose final value for
+every positive-weight objective is greater than zero. It is applied before
+feasible ranges are discovered, so normalization uses only qualifying builds.
 
 The exact search performs two passes over canonical combinations. The first pass
 filters on safe exposure when requested and discovers the feasible minimum and
@@ -120,4 +123,5 @@ should also update the Playwright flow in
 [`tests/calculator.spec.ts`](../tests/calculator.spec.ts).
 Optimizer coverage checks combination counts, weight-sensitive ranking,
 search-size rejection, feasible-range normalization, and safe-only filtering.
-It also covers the zero boundary for fully countered harmful properties.
+It also covers the zero boundary for fully countered harmful properties and
+positive-value filtering when every objective is required.

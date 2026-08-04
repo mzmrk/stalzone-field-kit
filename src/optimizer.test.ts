@@ -34,6 +34,7 @@ const settings = {
   allowDuplicates: true,
   safeOnly: true,
   noNegativeEffects: false,
+  requireAllObjectives: false,
 };
 
 describe("artifact optimizer", () => {
@@ -118,5 +119,31 @@ describe("artifact optimizer", () => {
     expect(result.feasibleCombinations).toBe(3);
     expect(result.results[0].indices).toEqual([0, 2]);
     expect(result.results[0].values[0]).toBe(3);
+  });
+
+  it("can require every positive-weight objective to finish above zero", () => {
+    const candidates = [
+      candidate("Sprinter", [stat(MOVEMENT, "Movement speed", 5)]),
+      candidate("Balanced", [
+        stat(MOVEMENT, "Movement speed", 1),
+        stat(STAMINA, "Stamina regeneration", 1),
+      ]),
+    ];
+    const objectives = [
+      { key: MOVEMENT, weight: 99 },
+      { key: STAMINA, weight: 1 },
+    ];
+
+    const optional = optimizeArtifactCombinations(container, candidates, objectives, settings);
+    expect(optional.results[0].indices).toEqual([0, 0]);
+    expect(optional.results[0].values).toEqual([10, 0]);
+
+    const required = optimizeArtifactCombinations(container, candidates, objectives, {
+      ...settings,
+      requireAllObjectives: true,
+    });
+    expect(required.feasibleCombinations).toBe(2);
+    expect(required.results[0].indices).toEqual([0, 1]);
+    expect(required.results.every((result) => result.values.every((value) => value > 0))).toBe(true);
   });
 });

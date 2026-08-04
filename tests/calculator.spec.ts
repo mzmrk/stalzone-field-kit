@@ -54,6 +54,7 @@ test("exhaustively ranks and loads a four-slot weighted build", async ({ page })
 
   await expect(page.getByText("4,967,690").first()).toBeVisible();
   await page.getByRole("checkbox", { name: /No remaining negative effects/ }).check();
+  await page.getByRole("checkbox", { name: /Require every objective/ }).check();
   await page.getByRole("button", { name: /Search 4,967,690 combinations/ }).click();
   await expect(page.getByText(/combinations evaluated/)).toBeVisible({ timeout: 45_000 });
   await expect(page.getByRole("button", { name: "Load into calculator" }).first()).toBeVisible();
