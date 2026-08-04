@@ -1,4 +1,5 @@
 import type {
+  ArtifactData,
   ContainerData,
   ListingEntry,
   ParsedStat,
@@ -126,4 +127,14 @@ export function parseContainer(entry: ListingEntry, item: RawItem): ContainerDat
 
 export function parseWeight(item: RawItem) {
   return property(item, WEIGHT_KEY);
+}
+
+export function parseArtifact(entry: ListingEntry, item: RawItem): ArtifactData {
+  return {
+    entry,
+    item,
+    name: translated(item.name),
+    weight: parseWeight(item),
+    stats: parseStats(item),
+  };
 }

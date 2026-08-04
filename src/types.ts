@@ -56,6 +56,14 @@ export type ContainerData = {
   stats: ParsedStat[];
 };
 
+export type ArtifactData = {
+  entry: ListingEntry;
+  item: RawItem;
+  name: string;
+  weight: number;
+  stats: ParsedStat[];
+};
+
 export type BonusProperty = {
   id: string;
   key: string;
@@ -64,16 +72,11 @@ export type BonusProperty = {
   percentage: boolean;
 };
 
-export type ArtifactConfig = {
+export type ArtifactConfig = ArtifactData & {
   uid: string;
-  entry: ListingEntry;
-  item: RawItem;
-  name: string;
   level: number;
   quality: number;
   rarityIndex: number;
-  weight: number;
-  stats: ParsedStat[];
   bonuses: BonusProperty[];
 };
 

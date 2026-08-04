@@ -79,6 +79,30 @@ Artifact mass is the simple sum of selected artifacts' raw weight properties. It
 does not include the backpack/container weight and is reported separately from
 calculated stats.
 
+## Weighted optimizer
+
+[`src/optimizer.ts`](../src/optimizer.ts) precomputes each catalog artifact's
+selected objective and exposure contributions with [`calculateStat`](../src/calculations.ts).
+At each complete combination it applies counter-effects before inner protection,
+then carrier stats and the same strict damage thresholds used by
+[`calculateTotals`](../src/calculations.ts). Random additional properties are not
+searched because EXBO does not publish their pools.
+
+The exact search performs two passes over canonical combinations. The first pass
+filters on safe exposure when requested and discovers the feasible minimum and
+maximum for every positive-weight objective. The second pass normalizes each
+objective as:
+
+```text
+(value - feasible minimum) / (feasible maximum - feasible minimum)
+```
+
+A zero-width range receives normalized value `1`. The final score is the weighted
+average of normalized objectives; raw weights need not total `100`. Independent
+objective maxima need not be simultaneously achievable, so even the best
+compromise may score below `100%`. The engine retains the ten highest-scoring
+builds and breaks equal-score ties by canonical artifact order.
+
 ## Verification expectations
 
 Formula changes must add or update focused Vitest cases. Existing coverage checks
@@ -88,3 +112,5 @@ protection, counter-before-protection order, carrier and manual bonus addition,
 mass, and strict warning thresholds. Changes to the user workflow or persistence
 should also update the Playwright flow in
 [`tests/calculator.spec.ts`](../tests/calculator.spec.ts).
+Optimizer coverage checks combination counts, weight-sensitive ranking,
+search-size rejection, feasible-range normalization, and safe-only filtering.

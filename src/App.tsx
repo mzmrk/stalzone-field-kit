@@ -15,6 +15,7 @@ import {
   RotateCcw,
   Search,
   ShieldCheck,
+  SlidersHorizontal,
   Sparkles,
   Trash2,
   Weight,
@@ -41,14 +42,21 @@ import {
   EXBO_REPOSITORY,
   loadCatalog,
   loadItem,
+  parseArtifact,
   parseContainer,
-  parseStats,
-  parseWeight,
   translated,
   type Catalog,
 } from "./data";
+import {
+  combinationCount,
+  OPTIMIZER_STAT_OPTIONS,
+  type OptimizerObjective,
+  type OptimizerProgress,
+  type OptimizerSearchResult,
+} from "./optimizer";
 import type {
   ArtifactConfig,
+  ArtifactData,
   BonusProperty,
   ContainerData,
   ListingEntry,
@@ -63,6 +71,11 @@ const CATEGORY_ORDER = [
   "Protection",
   "Exposure",
   "Other effects",
+];
+const OPTIMIZER_COMBINATION_LIMIT = 10_000_000;
+const DEFAULT_OPTIMIZER_OBJECTIVES: OptimizerObjective[] = [
+  { key: "stalker.artefact_properties.factor.speed_modifier", weight: 70 },
+  { key: "stalker.artefact_properties.factor.stamina_regeneration_bonus", weight: 30 },
 ];
 
 type PickerState =
@@ -536,6 +549,320 @@ function ResultPanel({
   );
 }
 
+type OptimizerRun = {
+  search: OptimizerSearchResult;
+  candidates: ArtifactConfig[];
+  objectives: OptimizerObjective[];
+  failedItems: number;
+};
+
+type OptimizerWorkerMessage =
+  | { type: "progress"; progress: OptimizerProgress }
+  | { type: "result"; result: OptimizerSearchResult }
+  | { type: "error"; error: string };
+
+function OptimizerPanel({
+  catalog,
+  container,
+  onApply,
+}: {
+  catalog: Catalog | null;
+  container: ContainerData | null;
+  onApply: (artifacts: ArtifactConfig[]) => void;
+}) {
+  const [quality, setQuality] = useState(100);
+  const [level, setLevel] = useState(0);
+  const [rarityIndex, setRarityIndex] = useState(0);
+  const [objectives, setObjectives] = useState<OptimizerObjective[]>(DEFAULT_OPTIMIZER_OBJECTIVES);
+  const [allowDuplicates, setAllowDuplicates] = useState(true);
+  const [safeOnly, setSafeOnly] = useState(true);
+  const [state, setState] = useState<"idle" | "loading" | "searching" | "done" | "error">("idle");
+  const [loadProgress, setLoadProgress] = useState({ completed: 0, total: 0 });
+  const [searchProgress, setSearchProgress] = useState<OptimizerProgress | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [run, setRun] = useState<OptimizerRun | null>(null);
+  const cache = useRef(new Map<string, ArtifactData>());
+  const workerRef = useRef<Worker | null>(null);
+  const runIdRef = useRef(0);
+  const searchSignature = JSON.stringify({
+    carrier: container?.entry.data ?? null,
+    quality,
+    level,
+    rarityIndex,
+    objectives,
+    allowDuplicates,
+    safeOnly,
+  });
+  const signatureRef = useRef(searchSignature);
+
+  useEffect(() => () => workerRef.current?.terminate(), []);
+  useEffect(() => {
+    if (signatureRef.current === searchSignature) return;
+    signatureRef.current = searchSignature;
+    runIdRef.current += 1;
+    workerRef.current?.terminate();
+    workerRef.current = null;
+    setRun(null);
+    setError(null);
+    setSearchProgress(null);
+    setState("idle");
+  }, [searchSignature]);
+
+  const rarityChoices = rarityOptions(quality);
+  const estimatedCombinations = catalog && container
+    ? combinationCount(catalog.artifacts.length, container.capacity, allowDuplicates)
+    : 0;
+  const oversized = estimatedCombinations > OPTIMIZER_COMBINATION_LIMIT;
+  const activeObjectives = objectives.filter((objective) => objective.weight > 0);
+
+  const updateQuality = (value: number) => {
+    const nextQuality = clamp(Number(value.toFixed(2)), 0, 190);
+    const choices = rarityOptions(nextQuality);
+    setQuality(nextQuality);
+    setRarityIndex((current) => choices.includes(current) ? current : choices[0]);
+  };
+
+  const loadCandidates = async (runId: number) => {
+    if (!catalog) return { items: [] as ArtifactData[], failed: 0 };
+    const output = new Array<ArtifactData | null>(catalog.artifacts.length).fill(null);
+    let cursor = 0;
+    let completed = 0;
+    let failed = 0;
+    setLoadProgress({ completed: 0, total: catalog.artifacts.length });
+
+    const loadNext = async () => {
+      while (cursor < catalog.artifacts.length) {
+        const index = cursor;
+        cursor += 1;
+        const entry = catalog.artifacts[index];
+        try {
+          const cached = cache.current.get(entry.data);
+          const data = cached ?? parseArtifact(entry, await loadItem(entry));
+          cache.current.set(entry.data, data);
+          output[index] = data;
+        } catch {
+          failed += 1;
+        }
+        completed += 1;
+        if (runId === runIdRef.current) {
+          setLoadProgress({ completed, total: catalog.artifacts.length });
+        }
+      }
+    };
+
+    await Promise.all(Array.from({ length: Math.min(10, catalog.artifacts.length) }, loadNext));
+    return { items: output.filter((item): item is ArtifactData => item !== null), failed };
+  };
+
+  const startSearch = async () => {
+    if (!catalog || !container || oversized || activeObjectives.length === 0) return;
+    const runId = runIdRef.current + 1;
+    runIdRef.current = runId;
+    workerRef.current?.terminate();
+    workerRef.current = null;
+    setError(null);
+    setRun(null);
+    setSearchProgress(null);
+    setState("loading");
+
+    const loaded = await loadCandidates(runId);
+    if (runId !== runIdRef.current) return;
+    if (loaded.items.length === 0) {
+      setError("No artifact data could be loaded from EXBO.");
+      setState("error");
+      return;
+    }
+
+    const candidateConfigs: ArtifactConfig[] = loaded.items.map((artifact, index) => ({
+      ...artifact,
+      uid: `optimizer-${index}`,
+      quality,
+      level,
+      rarityIndex,
+      bonuses: [],
+    }));
+    const actualCombinations = combinationCount(candidateConfigs.length, container.capacity, allowDuplicates);
+    if (actualCombinations > OPTIMIZER_COMBINATION_LIMIT) {
+      setError(`The ${actualCombinations.toLocaleString()}-combination search exceeds the current exact-search limit.`);
+      setState("error");
+      return;
+    }
+
+    const worker = new Worker(new URL("./optimizer.worker.ts", import.meta.url), { type: "module" });
+    workerRef.current = worker;
+    setState("searching");
+    worker.onmessage = (event: MessageEvent<OptimizerWorkerMessage>) => {
+      if (runId !== runIdRef.current) return;
+      if (event.data.type === "progress") {
+        setSearchProgress(event.data.progress);
+        return;
+      }
+      worker.terminate();
+      workerRef.current = null;
+      if (event.data.type === "error") {
+        setError(event.data.error);
+        setState("error");
+        return;
+      }
+      setRun({
+        search: event.data.result,
+        candidates: candidateConfigs,
+        objectives: activeObjectives,
+        failedItems: loaded.failed,
+      });
+      setState("done");
+    };
+    worker.onerror = () => {
+      worker.terminate();
+      workerRef.current = null;
+      setError("The optimizer worker stopped unexpectedly.");
+      setState("error");
+    };
+    worker.postMessage({
+      container: {
+        capacity: container.capacity,
+        protection: container.protection,
+        effectiveness: container.effectiveness,
+        stats: container.stats,
+      },
+      candidates: candidateConfigs.map((candidate) => ({ name: candidate.name, stats: candidate.stats })),
+      objectives: activeObjectives,
+      settings: {
+        quality,
+        level,
+        rarityIndex,
+        allowDuplicates,
+        safeOnly,
+        combinationLimit: OPTIMIZER_COMBINATION_LIMIT,
+      },
+    });
+  };
+
+  const addObjective = () => {
+    const option = OPTIMIZER_STAT_OPTIONS.find(([key]) => !objectives.some((objective) => objective.key === key));
+    if (option) setObjectives((current) => [...current, { key: option[0], weight: 25 }]);
+  };
+
+  const applyResult = (resultIndex: number) => {
+    if (!run) return;
+    const result = run.search.results[resultIndex];
+    onApply(result.indices.map((index) => ({
+      ...structuredClone(run.candidates[index]),
+      uid: makeId(),
+      bonuses: [],
+    })));
+    document.querySelector("#loadout")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  const progressPercent = searchProgress
+    ? ((searchProgress.phase === "ranges" ? searchProgress.completed : searchProgress.total + searchProgress.completed)
+      / (searchProgress.total * 2)) * 100
+    : 0;
+
+  return (
+    <section className="optimizer-panel" id="optimizer">
+      <div className="optimizer-heading">
+        <div>
+          <p className="eyebrow">04 / OPTIMIZE</p>
+          <h2>Weighted combination search</h2>
+          <p>Enumerate every canonical loadout, derive feasible stat ranges, then rank the exact tradeoffs.</p>
+        </div>
+        <SlidersHorizontal size={24} />
+      </div>
+
+      {!container ? (
+        <div className="optimizer-empty"><Gauge size={28} /><span>Select a carrier before searching combinations.</span></div>
+      ) : (
+        <div className="optimizer-body">
+          <div className="optimizer-settings">
+            <div className="optimizer-block">
+              <div className="section-label"><span>Artifact assumptions</span><span>Catalog mode</span></div>
+              <div className="optimizer-assumptions">
+                <label><span>Quality</span><input aria-label="Optimizer quality" type="number" min="0" max="190" step="0.1" value={quality} onChange={(event) => updateQuality(Number(event.target.value))} /></label>
+                <label><span>Level</span><input aria-label="Optimizer level" type="number" min="0" max="15" step="1" value={level} onChange={(event) => setLevel(clamp(Math.round(Number(event.target.value)), 0, 15))} /></label>
+                <label><span>Rarity</span><select aria-label="Optimizer rarity" value={rarityIndex} onChange={(event) => setRarityIndex(Number(event.target.value))}>{rarityChoices.map((choice) => <option value={choice} key={choice}>{RARITY_NAMES[choice]}</option>)}</select></label>
+              </div>
+              <p className="field-note">Every catalog artifact uses these settings. Random additional properties are excluded.</p>
+            </div>
+
+            <div className="optimizer-block">
+              <div className="section-label"><span>Weighted objectives</span><span>{objectives.reduce((sum, objective) => sum + objective.weight, 0)} raw weight</span></div>
+              <div className="objective-list">
+                {objectives.map((objective, index) => (
+                  <div className="objective-row" key={`${objective.key}-${index}`}>
+                    <select aria-label={`Objective ${index + 1}`} value={objective.key} onChange={(event) => setObjectives((current) => current.map((item, itemIndex) => itemIndex === index ? { ...item, key: event.target.value } : item))}>
+                      {OPTIMIZER_STAT_OPTIONS.map(([key, name]) => <option key={key} value={key} disabled={objectives.some((item, itemIndex) => itemIndex !== index && item.key === key)}>{name}</option>)}
+                    </select>
+                    <label><input aria-label={`Objective ${index + 1} weight`} type="number" min="0" max="1000" step="1" value={objective.weight} onChange={(event) => setObjectives((current) => current.map((item, itemIndex) => itemIndex === index ? { ...item, weight: Math.max(0, Number(event.target.value)) } : item))} /><span>WT</span></label>
+                    <button className="icon-button" aria-label={`Remove objective ${index + 1}`} disabled={objectives.length === 1} onClick={() => setObjectives((current) => current.filter((_, itemIndex) => itemIndex !== index))}><X size={15} /></button>
+                  </div>
+                ))}
+                <button className="add-bonus optimizer-add" disabled={objectives.length >= OPTIMIZER_STAT_OPTIONS.length} onClick={addObjective}><Plus size={15} /> Add objective</button>
+              </div>
+            </div>
+
+            <div className="optimizer-block">
+              <div className="section-label"><span>Search rules</span><span>Exact</span></div>
+              <div className="optimizer-rules">
+                <label><input type="checkbox" checked={safeOnly} onChange={(event) => setSafeOnly(event.target.checked)} /><span><strong>Safe exposure only</strong><small>Reject builds above damage thresholds</small></span></label>
+                <label><input type="checkbox" checked={allowDuplicates} onChange={(event) => setAllowDuplicates(event.target.checked)} /><span><strong>Allow duplicate artifacts</strong><small>Enumerate combinations with replacement</small></span></label>
+              </div>
+              <div className={`search-estimate ${oversized ? "search-estimate--danger" : ""}`}>
+                <span>SEARCH SPACE</span><strong>{estimatedCombinations.toLocaleString()}</strong><small>canonical combinations</small>
+              </div>
+              {oversized && <p className="optimizer-error">This exceeds the current {OPTIMIZER_COMBINATION_LIMIT.toLocaleString()}-combination exact-search limit. Choose a carrier with fewer slots.</p>}
+              {activeObjectives.length === 0 && <p className="optimizer-error">At least one objective needs a positive weight.</p>}
+              <button className="optimizer-search" disabled={!catalog || oversized || activeObjectives.length === 0 || state === "loading" || state === "searching"} onClick={startSearch}>
+                {state === "loading" ? `Loading artifacts ${loadProgress.completed}/${loadProgress.total}` : state === "searching" ? `Searching ${progressPercent.toFixed(0)}%` : `Search ${estimatedCombinations.toLocaleString()} combinations`}
+              </button>
+              {(state === "loading" || state === "searching") && <div className="optimizer-progress"><span style={{ width: `${state === "loading" ? (loadProgress.completed / Math.max(1, loadProgress.total)) * 100 : progressPercent}%` }} /></div>}
+              {error && <p className="optimizer-error" role="alert">{error}</p>}
+            </div>
+          </div>
+
+          <div className="optimizer-results">
+            <div className="section-label"><span>Ranked results</span><span>{run ? `${run.search.results.length} shown` : "Waiting"}</span></div>
+            {!run ? (
+              <div className="optimizer-results-empty"><CircleGauge size={31} /><strong>Configure and run an exact search</strong><span>Weights are normalized automatically against the safe minimum and maximum found for each objective.</span></div>
+            ) : run.search.results.length === 0 ? (
+              <div className="optimizer-results-empty"><AlertTriangle size={31} /><strong>No feasible combinations</strong><span>Try disabling safe-only mode or changing the artifact assumptions.</span></div>
+            ) : (
+              <>
+                <div className="optimizer-summary">
+                  <strong>{run.search.combinations.toLocaleString()}</strong> combinations evaluated · <strong>{run.search.feasibleCombinations.toLocaleString()}</strong> feasible
+                  {run.failedItems > 0 && <span> · {run.failedItems} artifact file{run.failedItems === 1 ? "" : "s"} unavailable</span>}
+                </div>
+                <div className="optimizer-result-list">
+                  {run.search.results.map((result, resultIndex) => {
+                    const selected = result.indices.map((index) => run.candidates[index]);
+                    const resultTotals = calculateTotals(container, selected);
+                    return (
+                      <article className="optimizer-result" key={result.indices.join("-")}>
+                        <div className="optimizer-result__top"><span>#{resultIndex + 1}</span><strong>{(result.score * 100).toFixed(1)} score</strong><small className={resultTotals.warnings.length ? "unsafe" : "safe"}>{resultTotals.warnings.length ? "Unsafe" : "Safe"}</small></div>
+                        <div className="optimizer-artifacts">{selected.map((artifact, index) => <span key={`${artifact.entry.data}-${index}`} title={artifact.name}><ItemImage entry={artifact.entry} /><small>{artifact.name}</small></span>)}</div>
+                        <div className="optimizer-metrics">
+                          {run.objectives.map((objective, objectiveIndex) => {
+                            const option = OPTIMIZER_STAT_OPTIONS.find(([key]) => key === objective.key)!;
+                            const range = run.search.ranges[objectiveIndex];
+                            const span = range.max - range.min;
+                            const normalized = Math.abs(span) < 1e-10 ? 1 : (result.values[objectiveIndex] - range.min) / span;
+                            return <div key={objective.key}><span>{option[1]}</span><strong>{formatNumber(result.values[objectiveIndex], option[2])}</strong><small>{(normalized * 100).toFixed(0)}% of feasible range · max {formatNumber(range.max, option[2])} · wt {objective.weight}</small></div>;
+                          })}
+                        </div>
+                        <button className="optimizer-apply" onClick={() => applyResult(resultIndex)}>Load into calculator</button>
+                      </article>
+                    );
+                  })}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
+
 export default function App() {
   const saved = useMemo(loadSavedBuild, []);
   const [catalog, setCatalog] = useState<Catalog | null>(null);
@@ -583,16 +910,13 @@ export default function App() {
         setActiveIndex((current) => current !== null && current < next.capacity ? current : null);
       } else {
         const index = picker.index;
+        const data = parseArtifact(entry, item);
         const artifact: ArtifactConfig = {
+          ...data,
           uid: makeId(),
-          entry,
-          item,
-          name: translated(item.name),
           level: 0,
           quality: 100,
           rarityIndex: 0,
-          weight: parseWeight(item),
-          stats: parseStats(item),
           bonuses: [],
         };
         setArtifacts((current) => current.map((value, slot) => slot === index ? artifact : value));
@@ -684,7 +1008,7 @@ export default function App() {
         )}
 
         <nav className="mobile-steps" aria-label="Calculator sections">
-          <a href="#loadout">01 Loadout</a><a href="#artifact">02 Tune</a><a href="#results">03 Results</a>
+          <a href="#loadout">01 Loadout</a><a href="#artifact">02 Tune</a><a href="#results">03 Results</a><a href="#optimizer">04 Optimize</a>
         </nav>
 
         <div className="calculator-grid">
@@ -709,6 +1033,14 @@ export default function App() {
           />
           <ResultPanel container={container} totals={totals} warnings={warnings} mass={mass} />
         </div>
+        <OptimizerPanel
+          catalog={catalog}
+          container={container}
+          onApply={(nextArtifacts) => {
+            setArtifacts(Array.from({ length: container?.capacity ?? nextArtifacts.length }, (_, index) => nextArtifacts[index] ?? null));
+            setActiveIndex(nextArtifacts.length > 0 ? 0 : null);
+          }}
+        />
       </main>
 
       <footer>

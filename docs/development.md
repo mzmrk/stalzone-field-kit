@@ -45,7 +45,9 @@ On a minimal Linux container, Chromium may also require system packages installe
 by `npx playwright install-deps chromium`; that command modifies the container and
 may require root privileges. The Playwright suite starts its own Vite server on
 port `4173`, selects a live EXBO-backed Berloga-6 and Bracelet build, verifies
-persistence after reload, and checks phone-width overflow.
+persistence after reload, checks phone-width overflow, and runs the live
+4,967,690-combination Errand Junior optimizer flow through loading its winner
+into the manual calculator.
 
 Type-check and produce the static artifact with:
 

@@ -2,11 +2,12 @@
 
 ## Product boundary
 
-The current application is a manual artifact loadout calculator. A user selects
-one backpack or container, fills the capacity-derived slots with artifacts,
-configures each artifact, and receives live combined totals and exposure
-warnings. Armor, consumable buffs, accounts, remote build storage, comparisons,
-and artifact optimization are outside the implemented product boundary.
+The application supports manual artifact loadouts and theoretical catalog
+optimization. A user selects one backpack or container, then either configures
+the capacity-derived slots directly or exhaustively ranks catalog combinations
+under shared artifact assumptions and weighted objectives. Armor, consumable
+buffs, accounts, remote build storage, owned-artifact inventory, and comparisons
+remain outside the implemented product boundary.
 
 The application is a React single-page app built by Vite. The active entry point
 is [`src/main.tsx`](../src/main.tsx), and
@@ -23,14 +24,19 @@ flowchart LR
     Build --> Calculator["Pure calculation module"]
     Calculator --> Results["Totals and warnings"]
     Build <--> Storage["localStorage: field-kit-build-v1"]
+    Catalog -->|all artifact JSON on search| Optimizer["Exact-search Web Worker"]
+    Optimizer --> Ranked["Weighted ranked builds"]
+    Ranked -->|load result| Build
 ```
 
 At startup, [`loadCatalog`](../src/data.ts) fetches the Global
 `listing.json`, keeps base artifact entries plus `containers` and `backpacks`,
-and sorts them by English name. Item JSON is fetched only after selection. Images
-use the icon paths from the same listing. Both data and images are requested
-directly from `raw.githubusercontent.com`; runtime use therefore requires the
-browser to reach GitHub.
+and sorts them by English name. Manual item JSON is fetched after selection; the
+first optimizer run loads every artifact JSON with up to ten concurrent requests
+and retains parsed data in memory for later searches. Images use the icon paths
+from the same listing. Both data and images are requested directly from
+`raw.githubusercontent.com`; runtime use therefore requires the browser to reach
+GitHub.
 
 ## Source ownership
 
@@ -41,8 +47,13 @@ browser to reach GitHub.
   configured artifacts, persisted builds, and calculated totals.
 - [`src/calculations.ts`](../src/calculations.ts) is the pure domain layer. UI or
   optimizer work should call this layer instead of duplicating formulas.
+- [`src/optimizer.ts`](../src/optimizer.ts) owns canonical-combination counts,
+  exact enumeration, feasible-range discovery, and weighted ranking.
+- [`src/optimizer.worker.ts`](../src/optimizer.worker.ts) runs that synchronous
+  search away from the UI thread and reports progress and results.
 - [`src/App.tsx`](../src/App.tsx) owns item selection, slot management, artifact
-  editing, error presentation, persistence, and responsive screen composition.
+  editing, optimizer controls and live-data loading, result application, error
+  presentation, persistence, and responsive screen composition.
 - [`src/styles.css`](../src/styles.css) owns visual layout and the desktop,
   tablet, mobile, and reduced-motion presentation.
 
@@ -91,8 +102,17 @@ the browser loads EXBO JSON and icons. The code contains no runtime secrets.
 
 ## Optimizer boundary
 
-The planned optimizer is not implemented. It should consume the parsed catalog
-types and pure calculations rather than introduce a second EXBO parser or formula
-set. Search objectives and constraints should remain separate from manual build
-state so the current calculator stays usable without running an exhaustive
+The optimizer is a theoretical catalog search: every artifact receives one fixed
+quality, level, and boundary rarity, and random additional properties are
+excluded. It fills every carrier slot, optionally allows duplicate artifact
+types, and can reject builds exceeding the same exposure thresholds as the
+manual calculator. Canonical combinations are enumerated without slot
+permutations in a Web Worker. Searches above ten million combinations are
+rejected explicitly; with the current catalog this makes four-slot searches
+available while larger carriers normally exceed the guard.
+
+Optimizer settings and results are transient. Loading a ranked result clones its
+artifacts into the persisted manual build, where individual values can be edited.
+Artifact files that fail to load are excluded and counted in the result summary,
+so a partially available upstream catalog cannot be mistaken for a complete
 search.

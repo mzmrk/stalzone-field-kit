@@ -1,11 +1,11 @@
 # Field Kit project memory
 
 Field Kit is a static, browser-side STALZONE calculator for manually configuring
-a backpack or container and its artifacts. It loads the Global item catalog and
-item details directly from EXBO Studio's public repository, calculates the
-resulting properties in the browser, and stores the current build in local
-browser storage. There is no application server, account system, armor model, or
-optimizer in the current product.
+a backpack or container and its artifacts or exhaustively searching theoretical
+catalog combinations. It loads Global item data directly from EXBO Studio's
+public repository, calculates and optimizes in the browser, and stores the current
+manual build in local browser storage. There is no application server, account
+system, armor model, or remote build storage.
 
 This directory is the canonical project documentation. Read every document here
 before changing the system; source links identify the executable authority when

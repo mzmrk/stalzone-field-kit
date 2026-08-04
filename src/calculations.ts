@@ -13,14 +13,14 @@ export const EXPOSURE_KEYS = new Set([
   "stalker.artefact_properties.factor.frost_accumulation",
 ]);
 
-const PROTECTED_EXPOSURE_KEYS = new Set([
+export const PROTECTED_EXPOSURE_KEYS = new Set([
   "stalker.artefact_properties.factor.radiation_accumulation",
   "stalker.artefact_properties.factor.biological_accumulation",
   "stalker.artefact_properties.factor.psycho_accumulation",
   "stalker.artefact_properties.factor.thermal_accumulation",
 ]);
 
-const WARNING_LIMITS: Record<string, number> = {
+export const WARNING_LIMITS: Record<string, number> = {
   "stalker.artefact_properties.factor.radiation_accumulation": 0.5,
   "stalker.artefact_properties.factor.biological_accumulation": 0.5,
   "stalker.artefact_properties.factor.psycho_accumulation": 0.5,

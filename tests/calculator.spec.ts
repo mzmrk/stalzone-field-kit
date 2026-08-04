@@ -17,7 +17,7 @@ test("creates and restores a live EXBO-backed artifact build", async ({ page }) 
 
   await expect(page.getByRole("heading", { name: "Bracelet" })).toBeVisible();
   await expect(page.getByText("1 / 6")).toBeVisible();
-  await expect(page.getByText("Movement speed").last()).toBeVisible();
+  await expect(page.locator(".base-properties").getByText("Movement speed")).toBeVisible();
 
   await page.getByLabel("Exact quality").fill("130");
   await page.getByRole("button", { name: "Rare", exact: true }).click();
@@ -41,4 +41,23 @@ test("keeps the calculator usable at a phone viewport", async ({ page }) => {
     clientWidth: document.documentElement.clientWidth,
   }));
   expect(dimensions.scrollWidth).toBe(dimensions.clientWidth);
+});
+
+test("exhaustively ranks and loads a four-slot weighted build", async ({ page }) => {
+  test.setTimeout(60_000);
+  await page.goto("/");
+  await expect(page.getByText(/EXBO LIVE/)).toBeVisible({ timeout: 20_000 });
+
+  await page.getByRole("button", { name: /Select a backpack or container/i }).click();
+  await page.getByPlaceholder(/Search backpacks and containers/).fill("Errand Junior Backpack");
+  await page.getByRole("button", { name: /Errand Junior Backpack/ }).click();
+
+  await expect(page.getByText("4,967,690").first()).toBeVisible();
+  await page.getByRole("button", { name: /Search 4,967,690 combinations/ }).click();
+  await expect(page.getByText(/combinations evaluated/)).toBeVisible({ timeout: 45_000 });
+  await expect(page.getByRole("button", { name: "Load into calculator" }).first()).toBeVisible();
+  await page.screenshot({ path: "test-results/optimizer.png", fullPage: true });
+
+  await page.getByRole("button", { name: "Load into calculator" }).first().click();
+  await expect(page.getByText("4 / 4")).toBeVisible();
 });
