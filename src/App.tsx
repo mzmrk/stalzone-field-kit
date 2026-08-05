@@ -915,7 +915,7 @@ function OptimizerPanel({
                 {negativeFilters.map((filter) => {
                   const option = OPTIMIZER_HARMFUL_OPTIONS.find((item) => item.key === filter.key)!;
                   return (
-                    <div className={`negative-filter negative-filter--${filter.policy}`} key={filter.key}>
+                    <div className="negative-filter" key={filter.key}>
                       <strong>{option.name}</strong>
                       <select aria-label={`${option.name} policy`} value={filter.policy} onChange={(event) => setNegativeFilters((current) => current.map((item) => item.key === filter.key ? { ...item, policy: event.target.value as NegativeEffectPolicy } : item))}>
                         <option value="allow">Allow</option>

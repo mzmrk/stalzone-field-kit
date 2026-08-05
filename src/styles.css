@@ -254,9 +254,6 @@ input[type="range"]::-webkit-slider-thumb { appearance: none; width: 14px; heigh
 .negative-presets button:hover { border-color: var(--acid); color: var(--acid); }
 .negative-filter { padding: 8px; display: grid; grid-template-columns: minmax(110px,1fr) minmax(145px,1fr); gap: 6px; align-items: center; border: 1px solid var(--line); background: rgba(7,12,11,.3); }
 .negative-filter > strong { font-size: 8px; font-weight: 500; text-transform: uppercase; }
-.negative-filter--safe { border-color: rgba(119,213,151,.28); }
-.negative-filter--strict { border-color: rgba(216,238,117,.42); background: rgba(216,238,117,.05); }
-.negative-filter--custom { border-color: rgba(110,178,197,.42); }
 .negative-filter > input { grid-column: 2; }
 .optimizer-rules { padding: 12px 18px 4px; display: grid; grid-template-columns: 1fr; gap: 7px; }
 .optimizer-rules > label { padding: 11px; display: flex; align-items: flex-start; gap: 9px; border: 1px solid var(--line); background: rgba(7,12,11,.3); cursor: pointer; }
