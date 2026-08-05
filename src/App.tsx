@@ -116,7 +116,7 @@ const DEFAULT_POSITIVE_FILTERS: PositiveFilter[] = OPTIMIZER_STAT_OPTIONS.map(([
 
 const DEFAULT_NEGATIVE_FILTERS: NegativeFilter[] = OPTIMIZER_HARMFUL_OPTIONS.map((option) => ({
   key: option.key,
-  policy: "strict",
+  policy: option.safeLimit === null ? "strict" : "safe",
   limit: "",
 }));
 
@@ -908,7 +908,7 @@ function OptimizerPanel({
               <div className="section-label"><span>Accepted consequences</span><span>Final build values</span></div>
               <div className="negative-presets" role="group" aria-label="Negative effect presets">
                 <button type="button" onClick={() => setNegativeFilters((current) => current.map((filter) => ({ ...filter, policy: "allow" })))}>Allow all</button>
-                <button type="button" onClick={() => setNegativeFilters((current) => current.map((filter) => ({ ...filter, policy: OPTIMIZER_HARMFUL_OPTIONS.find((option) => option.key === filter.key)!.safeLimit === null ? "allow" : "safe" })))}>Game-safe</button>
+                <button type="button" onClick={() => setNegativeFilters((current) => current.map((filter) => ({ ...filter, policy: OPTIMIZER_HARMFUL_OPTIONS.find((option) => option.key === filter.key)!.safeLimit === null ? "strict" : "safe" })))}>Game-safe</button>
                 <button type="button" onClick={() => setNegativeFilters((current) => current.map((filter) => ({ ...filter, policy: "strict" })))}>Counter all</button>
               </div>
               <div className="negative-filter-list">

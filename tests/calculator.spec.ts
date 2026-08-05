@@ -62,7 +62,7 @@ test("exhaustively ranks and loads a four-slot weighted build", async ({ page })
   await expect(movementRow).toHaveClass(/positive-filter--enabled/);
   await expect(staminaRow).toHaveClass(/positive-filter--enabled/);
   await expect(runningRow).not.toHaveClass(/positive-filter--enabled/);
-  await expect(page.getByLabel("Radiation policy")).toHaveValue("strict");
+  await expect(page.getByLabel("Radiation policy")).toHaveValue("safe");
   await expect(page.getByLabel("Vitality policy")).toHaveValue("strict");
   await expect(page.getByLabel("Minimum Running speed from artifacts")).toHaveCount(0);
   await expect(movementRow.getByRole("button", { name: /Neutral/ })).toHaveAttribute("aria-pressed", "true");
@@ -99,7 +99,7 @@ test("exhaustively ranks and loads a four-slot weighted build", async ({ page })
   await page.getByRole("button", { name: "Game-safe" }).click();
   await expect(page.getByLabel("Radiation policy")).toHaveValue("safe");
   await expect(page.getByLabel("Temperature policy")).toHaveValue("safe");
-  await expect(page.getByLabel("Vitality policy")).toHaveValue("allow");
+  await expect(page.getByLabel("Vitality policy")).toHaveValue("strict");
   await page.getByLabel("Maximum total price").fill("0");
   await expect(searchButton).toBeDisabled();
   await expect(page.getByText("Maximum total price must be greater than zero.")).toBeVisible();

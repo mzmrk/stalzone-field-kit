@@ -110,10 +110,11 @@ its damage threshold and is only available where
 [`WARNING_LIMITS`](../src/calculations.ts) defines one. Harmful limits evaluate
 final values after artifact counter-effects, inner protection, and carrier
 properties. The Allow all, Game-safe, and Counter all buttons are bulk policy
-setters, not additional constraints. All numerical constraints are applied before
-feasible ranges are discovered, so normalization uses only qualifying builds.
-Every harmful-property row defaults to `No negative`; users must explicitly relax
-individual policies or apply a less strict bulk preset.
+setters, not additional constraints. `Game-safe` is also the initial profile:
+threshold-bearing exposures use their published safe cap, while every harmful
+property without a game threshold uses `No negative`. All numerical constraints
+are applied before feasible ranges are discovered, so normalization uses only
+qualifying builds.
 
 When a maximum total price is supplied, each candidate uses the generated median
 completed-sale estimate for the optimizer's selected rarity. Duplicate artifacts
