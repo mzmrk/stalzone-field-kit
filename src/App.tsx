@@ -48,12 +48,15 @@ import {
   type Catalog,
 } from "./data";
 import {
+  BRUTE_FORCE_COMBINATION_LIMIT,
   candidateCombinationCount,
   groupedCombinationCount,
   harmfulEffectConstraint,
   OPTIMIZER_HARMFUL_OPTIONS,
   OPTIMIZER_STAT_OPTIONS,
+  optimizerEngineFor,
   type OptimizerConstraint,
+  type OptimizerEngine,
   type OptimizerObjective,
   type OptimizerProgress,
   type OptimizerSearchResult,
@@ -90,7 +93,6 @@ const CATEGORY_ORDER = [
   "Exposure",
   "Other effects",
 ];
-const OPTIMIZER_COMBINATION_LIMIT = 10_000_000;
 const CARRY_WEIGHT_KEY = "stalker.artefact_properties.factor.max_weight_bonus";
 const DEFAULT_OBJECTIVE_WEIGHTS = new Map<string, number>([
   ["stalker.artefact_properties.factor.speed_modifier", IMPORTANT_OBJECTIVE_WEIGHT],
@@ -607,7 +609,7 @@ type OptimizerRun = {
   candidates: ArtifactConfig[];
   objectives: OptimizerObjective[];
   failedItems: number;
-  engine: "brute-force" | "milp";
+  engine: OptimizerEngine;
 };
 
 type OptimizerWorkerMessage =
@@ -630,7 +632,7 @@ function OptimizerPanel({
   const [negativeFilters, setNegativeFilters] = useState<NegativeFilter[]>(DEFAULT_NEGATIVE_FILTERS);
   const [allowDuplicates, setAllowDuplicates] = useState(true);
   const [maxTotalPrice, setMaxTotalPrice] = useState("");
-  const [engine, setEngine] = useState<"brute-force" | "milp">("brute-force");
+  const [activeEngine, setActiveEngine] = useState<OptimizerEngine | null>(null);
   const [state, setState] = useState<"idle" | "loading" | "searching" | "done" | "error">("idle");
   const [loadProgress, setLoadProgress] = useState({ completed: 0, total: 0 });
   const [searchProgress, setSearchProgress] = useState<OptimizerProgress | MilpProgress | null>(null);
@@ -647,7 +649,6 @@ function OptimizerPanel({
     negativeFilters,
     allowDuplicates,
     maxTotalPrice,
-    engine,
   });
   const signatureRef = useRef(searchSignature);
 
@@ -661,13 +662,14 @@ function OptimizerPanel({
     setRun(null);
     setError(null);
     setSearchProgress(null);
+    setActiveEngine(null);
     setState("idle");
   }, [searchSignature]);
 
   const estimatedCombinations = catalog && container
     ? groupedCombinationCount(catalog.artifacts.length, selectedRarities.length, container.capacity, allowDuplicates)
     : 0;
-  const oversized = engine === "brute-force" && estimatedCombinations > OPTIMIZER_COMBINATION_LIMIT;
+  const estimatedEngine = optimizerEngineFor(estimatedCombinations);
   const activeObjectives: OptimizerObjective[] = positiveFilters
     .filter((filter) => filter.enabled)
     .map((filter) => ({ key: filter.key, weight: filter.weight }));
@@ -732,7 +734,7 @@ function OptimizerPanel({
   };
 
   const startSearch = async () => {
-    if (!catalog || !container || oversized || activeObjectives.length === 0 || selectedRarities.length === 0
+    if (!catalog || !container || activeObjectives.length === 0 || selectedRarities.length === 0
       || invalidMaxTotalPrice || invalidPositiveMinimum || invalidCustomLimit) return;
     const runId = runIdRef.current + 1;
     runIdRef.current = runId;
@@ -741,6 +743,7 @@ function OptimizerPanel({
     setError(null);
     setRun(null);
     setSearchProgress(null);
+    setActiveEngine(null);
     setState("loading");
 
     const loaded = await loadCandidates(runId);
@@ -770,13 +773,10 @@ function OptimizerPanel({
       rarityIndex: candidate.rarityIndex,
     }));
     const actualCombinations = candidateCombinationCount(optimizerCandidates, container.capacity, allowDuplicates);
-    if (engine === "brute-force" && actualCombinations > OPTIMIZER_COMBINATION_LIMIT) {
-      setError(`The ${actualCombinations.toLocaleString()}-combination search exceeds the current exact-search limit.`);
-      setState("error");
-      return;
-    }
+    const selectedEngine = optimizerEngineFor(actualCombinations);
+    setActiveEngine(selectedEngine);
 
-    const worker = engine === "milp"
+    const worker = selectedEngine === "milp"
       ? new Worker(new URL("./milp-optimizer.worker.ts", import.meta.url), { type: "module" })
       : new Worker(new URL("./optimizer.worker.ts", import.meta.url), { type: "module" });
     workerRef.current = worker;
@@ -799,7 +799,7 @@ function OptimizerPanel({
         candidates: candidateConfigs,
         objectives: activeObjectives,
         failedItems: loaded.failed,
-        engine,
+        engine: selectedEngine,
       });
       setState("done");
     };
@@ -825,7 +825,7 @@ function OptimizerPanel({
         allowDuplicates,
         constraints,
         maxTotalPrice: parsedMaxTotalPrice,
-        combinationLimit: OPTIMIZER_COMBINATION_LIMIT,
+        combinationLimit: BRUTE_FORCE_COMBINATION_LIMIT,
       },
     });
   };
@@ -847,6 +847,7 @@ function OptimizerPanel({
         / (searchProgress.total * 2)) * 100
       : (searchProgress.completed / searchProgress.total) * 100
     : 0;
+  const displayedEngine = activeEngine ?? estimatedEngine;
 
   return (
     <section className="optimizer-panel" id="optimizer">
@@ -945,14 +946,6 @@ function OptimizerPanel({
 
             <div className="optimizer-block">
               <div className="section-label"><span>Search rules</span><span>Exact</span></div>
-              <label className="optimizer-budget">
-                <span>Optimization engine</span>
-                <select aria-label="Optimization engine" value={engine} onChange={(event) => setEngine(event.target.value as "brute-force" | "milp")}>
-                  <option value="brute-force">Brute force · top 10</option>
-                  <option value="milp">MILP beta · top 10</option>
-                </select>
-                <small>MILP repeatedly excludes each previous build to prove an exact top 10 without enumerating the full search space.</small>
-              </label>
               <div className="optimizer-rules">
                 <label><input type="checkbox" checked={allowDuplicates} onChange={(event) => setAllowDuplicates(event.target.checked)} /><span><strong>Allow duplicate artifacts</strong><small>Enumerate combinations with replacement</small></span></label>
               </div>
@@ -961,17 +954,16 @@ function OptimizerPanel({
                 <input aria-label="Maximum total price" type="number" min="1" step="1000" placeholder="No limit" value={maxTotalPrice} onChange={(event) => setMaxTotalPrice(event.target.value)} />
                 <small>Median completed-sale estimates, {PRICING_REGION} snapshot {PRICING_SNAPSHOT}. Unknown-price artifacts are excluded when enabled.</small>
               </label>
-              <div className={`search-estimate ${oversized ? "search-estimate--danger" : ""}`}>
-                <span>SEARCH SPACE</span><strong>{estimatedCombinations.toLocaleString()}</strong><small>canonical combinations</small>
+              <div className="search-estimate">
+                <span>SEARCH SPACE</span><strong>{estimatedCombinations.toLocaleString()}</strong><small>canonical combinations · {estimatedEngine === "milp" ? "MILP" : "Brute force"} selected automatically</small>
               </div>
-              {oversized && <p className="optimizer-error">This exceeds the brute-force {OPTIMIZER_COMBINATION_LIMIT.toLocaleString()}-combination limit. Switch to MILP for this carrier.</p>}
               {selectedRarities.length === 0 && <p className="optimizer-error">Select at least one artifact rarity.</p>}
               {activeObjectives.length === 0 && <p className="optimizer-error">At least one positive effect must be enabled for optimization.</p>}
               {invalidPositiveMinimum && <p className="optimizer-error">Positive minimums must be greater than zero.</p>}
               {invalidCustomLimit && <p className="optimizer-error">Every accepted penalty must be zero or greater.</p>}
               {invalidMaxTotalPrice && <p className="optimizer-error">Maximum total price must be greater than zero.</p>}
-              <button className="optimizer-search" disabled={!catalog || oversized || selectedRarities.length === 0 || activeObjectives.length === 0 || invalidPositiveMinimum || invalidCustomLimit || invalidMaxTotalPrice || state === "loading" || state === "searching"} onClick={startSearch}>
-                {state === "loading" ? `Loading artifacts ${loadProgress.completed}/${loadProgress.total}` : state === "searching" ? `${engine === "milp" ? "Solving MILP" : "Searching"} ${progressPercent.toFixed(0)}%` : engine === "milp" ? "Find optimal build with MILP" : `Search ${estimatedCombinations.toLocaleString()} combinations`}
+              <button className="optimizer-search" disabled={!catalog || selectedRarities.length === 0 || activeObjectives.length === 0 || invalidPositiveMinimum || invalidCustomLimit || invalidMaxTotalPrice || state === "loading" || state === "searching"} onClick={startSearch}>
+                {state === "loading" ? `Loading artifacts ${loadProgress.completed}/${loadProgress.total}` : state === "searching" ? `${displayedEngine === "milp" ? "Solving MILP" : "Searching"} ${progressPercent.toFixed(0)}%` : estimatedEngine === "milp" ? "Find optimal build with MILP" : `Search ${estimatedCombinations.toLocaleString()} combinations`}
               </button>
               {(state === "loading" || state === "searching") && <div className="optimizer-progress"><span style={{ width: `${state === "loading" ? (loadProgress.completed / Math.max(1, loadProgress.total)) * 100 : progressPercent}%` }} /></div>}
               {error && <p className="optimizer-error" role="alert">{error}</p>}

@@ -54,6 +54,8 @@ test("exhaustively ranks and loads a four-slot weighted build", async ({ page })
   await page.getByRole("button", { name: /Errand Junior Backpack/ }).click();
 
   await expect(page.getByText("4,967,690").first()).toBeVisible();
+  await expect(page.getByText(/Brute force selected automatically/)).toBeVisible();
+  await expect(page.getByLabel("Optimization engine")).toHaveCount(0);
   await expect(page.locator(".container-specs")).toContainText("CARRY WEIGHT");
   await expect(page.locator(".container-specs")).toContainText("+35.00 kg");
   const movementRow = page.locator(".positive-filter").filter({ hasText: "Movement speed" });
@@ -128,10 +130,11 @@ test("uses MILP to optimize a carrier beyond the brute-force limit", async ({ pa
   await page.getByPlaceholder(/Search backpacks and containers/).fill("Berloga-6 Container");
   await page.getByRole("button", { name: /Berloga-6 Container/ }).click();
 
-  await expect(page.getByText(/exceeds the brute-force/)).toBeVisible();
+  await expect(page.getByText(/MILP selected automatically/)).toBeVisible();
+  await expect(page.getByLabel("Optimization engine")).toHaveCount(0);
   await expect(page.getByLabel("Search Ordinary rarity")).toBeChecked();
   await page.getByLabel("Search Uncommon rarity").check();
-  await page.getByLabel("Optimization engine").selectOption("milp");
+  await expect(page.getByText(/MILP selected automatically/)).toBeVisible();
   const searchButton = page.getByRole("button", { name: "Find optimal build with MILP" });
   await expect(searchButton).toBeEnabled();
   await searchButton.click();

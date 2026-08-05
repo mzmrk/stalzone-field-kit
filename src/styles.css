@@ -282,8 +282,6 @@ input[type="range"]::-webkit-slider-thumb { appearance: none; width: 14px; heigh
 .search-estimate span { color: var(--muted); font-size: 7px; letter-spacing: .12em; }
 .search-estimate strong { grid-row: span 2; font: 600 23px "Barlow Condensed", sans-serif; color: var(--acid); }
 .search-estimate small { color: #66736d; font-size: 7px; }
-.search-estimate--danger { border-color: rgba(239,121,111,.35); }
-.search-estimate--danger strong { color: var(--red); }
 .optimizer-search, .optimizer-apply { border: 0; background: var(--acid); color: #111711; cursor: pointer; text-transform: uppercase; font-size: 9px; font-weight: 600; letter-spacing: .08em; }
 .optimizer-search { width: calc(100% - 36px); min-height: 40px; margin: 4px 18px 0; }
 .optimizer-search:hover, .optimizer-apply:hover { background: #e6f69d; }

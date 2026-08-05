@@ -131,11 +131,12 @@ a minimum artifact contribution. Each harmful-property row can be unrestricted,
 fully countered, or limited to a custom accepted penalty; the five environmental
 exposures with published warning thresholds can also use a game-safe policy.
 
-The user chooses one of two exact engines. Brute force enumerates canonical
-combinations without slot permutations, returns the ten best builds, and rejects
-searches above ten million combinations. MILP uses integer counts per artifact,
-repeatedly excludes each selected count vector to prove the next-best build
-without enumeration, and therefore supports larger carriers. Its displayed
+The app selects between two exact engines from the canonical search-space size.
+Searches up to and including ten million combinations use brute force; larger
+searches use MILP automatically. Brute force enumerates combinations without slot
+permutations and returns the ten best builds. MILP uses integer counts per
+artifact, repeatedly excludes each selected count vector to prove the next-best
+build without enumeration, and therefore supports larger carriers. Its displayed
 combination count describes the theoretical search space; MILP does not claim an
 evaluated or feasible-combination count.
 

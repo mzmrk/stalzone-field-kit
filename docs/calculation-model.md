@@ -149,7 +149,11 @@ Important (`2×`), or Essential (`4×`). Enabling a previously inactive objectiv
 uses its Neutral priority. Changing one priority leaves every other priority
 unchanged; the UI derives and displays their resulting percentage shares.
 Independent objective maxima need not be simultaneously achievable, so even the
-best compromise may score below `100%`. Brute force obtains those ranges in its
+best compromise may score below `100%`. Engine selection is automatic: a
+canonical search space of at most ten million combinations uses brute force, and
+any larger space uses MILP. The final dispatch uses the exact count after artifact
+files load, so unavailable catalog entries cannot leave the search on the wrong
+side of the cutoff. Brute force obtains those ranges in its
 first complete enumeration and ranks in a second enumeration. It retains the ten
 highest-scoring builds and breaks equal-score ties by canonical artifact order.
 The MILP engine solves one minimum and one maximum integer program per objective,
@@ -170,8 +174,9 @@ protection, counter-before-protection order, carrier and manual bonus addition,
 mass, and strict warning thresholds. Changes to the user workflow or persistence
 should also update the Playwright flow in
 [`tests/calculator.spec.ts`](../tests/calculator.spec.ts).
-Optimizer coverage checks combination counts, weight-sensitive ranking,
-search-size rejection, feasible-range normalization, independent final maximums,
+Optimizer coverage checks combination counts, automatic engine selection at the
+ten-million boundary, search-size rejection, weight-sensitive ranking,
+feasible-range normalization, independent final maximums,
 and artifact-only positive minimums. It also covers both harmful directions, the
 zero boundary for fully countered harmful properties, the catalog's complete
 harmful-property filter list, and exclusion of carrier stats from artifact

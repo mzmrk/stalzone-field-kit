@@ -1,11 +1,13 @@
 import { describe, expect, it } from "vitest";
 import {
+  BRUTE_FORCE_COMBINATION_LIMIT,
   combinationCount,
   candidateCombinationCount,
   groupedCombinationCount,
   harmfulEffectConstraint,
   OPTIMIZER_HARMFUL_OPTIONS,
   OPTIMIZER_STAT_OPTIONS,
+  optimizerEngineFor,
   optimizeArtifactCombinations,
   type OptimizerCandidate,
   type OptimizerContainer,
@@ -101,6 +103,12 @@ describe("artifact optimizer", () => {
   it("counts canonical combinations without generating slot permutations", () => {
     expect(combinationCount(103, 4, true)).toBe(4_967_690);
     expect(combinationCount(103, 4, false)).toBe(4_421_275);
+  });
+
+  it("selects MILP only when the brute-force combination limit is exceeded", () => {
+    expect(optimizerEngineFor(BRUTE_FORCE_COMBINATION_LIMIT - 1)).toBe("brute-force");
+    expect(optimizerEngineFor(BRUTE_FORCE_COMBINATION_LIMIT)).toBe("brute-force");
+    expect(optimizerEngineFor(BRUTE_FORCE_COMBINATION_LIMIT + 1)).toBe("milp");
   });
 
   it("counts rarity variants while keeping artifact identities unique", () => {

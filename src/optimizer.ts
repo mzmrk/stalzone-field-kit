@@ -129,7 +129,16 @@ export type OptimizerProgress = {
   total: number;
 };
 
-const DEFAULT_COMBINATION_LIMIT = 10_000_000;
+export const BRUTE_FORCE_COMBINATION_LIMIT = 10_000_000;
+
+export type OptimizerEngine = "brute-force" | "milp";
+
+export function optimizerEngineFor(
+  combinations: number,
+  bruteForceLimit = BRUTE_FORCE_COMBINATION_LIMIT,
+): OptimizerEngine {
+  return combinations > bruteForceLimit ? "milp" : "brute-force";
+}
 const DEFAULT_RESULT_LIMIT = 10;
 const EPSILON = 1e-10;
 
@@ -197,7 +206,7 @@ export function optimizeArtifactCombinations(
   if (activeObjectives.length === 0) throw new Error("Add at least one objective with a positive weight.");
 
   const combinations = candidateCombinationCount(candidates, container.capacity, settings.allowDuplicates);
-  const combinationLimit = settings.combinationLimit ?? DEFAULT_COMBINATION_LIMIT;
+  const combinationLimit = settings.combinationLimit ?? BRUTE_FORCE_COMBINATION_LIMIT;
   if (combinations > combinationLimit) throw new SearchSpaceTooLargeError(combinations, combinationLimit);
   if (combinations === 0) return { combinations, feasibleCombinations: 0, ranges: [], results: [] };
 
