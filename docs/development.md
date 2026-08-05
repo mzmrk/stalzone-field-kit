@@ -59,6 +59,18 @@ The output is `dist/`. [`vite.config.ts`](../vite.config.ts) uses a relative bas
 so the artifact can be served from a repository subpath. GitHub Pages deployment
 configuration is not present yet.
 
+## Raw market snapshots
+
+Auction-history captures live under `data/pricing/raw/<region>/<UTC snapshot>/`,
+with one unmodified JSON response named after each EXBO artifact ID. Treat a
+completed snapshot directory as immutable source data: derived price estimates
+belong in a separate generated file rather than edits to these responses.
+
+Validate a capture by comparing its filenames with the current Global artifact
+listing, parsing every response, and checking for a numeric `total` plus a
+`prices` array. Acquisition may require STALZONE's browser request contract, but
+request credentials must never be written to the repository.
+
 ## Documentation workflow
 
 All human-maintained Markdown except root [`AGENTS.md`](../AGENTS.md) belongs in
