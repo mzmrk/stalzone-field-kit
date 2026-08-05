@@ -4,7 +4,7 @@
 
 The application supports manual artifact loadouts and theoretical catalog
 optimization. A user selects one backpack or container, then either configures
-the capacity-derived slots directly or exhaustively ranks catalog combinations
+the capacity-derived slots directly or searches catalog combinations
 under shared artifact assumptions and weighted objectives. Armor, consumable
 buffs, accounts, remote build storage, owned-artifact inventory, and comparisons
 remain outside the implemented product boundary.
@@ -26,7 +26,7 @@ flowchart LR
     Build --> Calculator["Pure calculation module"]
     Calculator --> Results["Totals and warnings"]
     Build <--> Storage["localStorage: field-kit-build-v1"]
-    Catalog -->|all artifact JSON on search| Optimizer["Exact-search Web Worker"]
+    Catalog -->|all artifact JSON on search| Optimizer["Brute-force or MILP Web Worker"]
     PriceIndex --> Optimizer
     Optimizer --> Ranked["Weighted ranked builds"]
     Ranked -->|load result| Build
@@ -57,9 +57,13 @@ unknown rather than falling back to another rarity.
 - [`src/calculations.ts`](../src/calculations.ts) is the pure domain layer. UI or
   optimizer work should call this layer instead of duplicating formulas.
 - [`src/optimizer.ts`](../src/optimizer.ts) owns canonical-combination counts,
-  exact enumeration, feasible-range discovery, and weighted ranking.
+  exact enumeration, feasible-range discovery, and top-ten weighted ranking.
 - [`src/optimizer.worker.ts`](../src/optimizer.worker.ts) runs that synchronous
   search away from the UI thread and reports progress and results.
+- [`src/milp-optimizer.ts`](../src/milp-optimizer.ts) expresses the same artifact
+  choices and constraints as a mixed-integer linear program, derives objective
+  ranges, and returns one proven optimum. [`src/milp-optimizer.worker.ts`](../src/milp-optimizer.worker.ts)
+  loads the HiGHS WebAssembly solver away from the UI thread.
 - [`src/pricing.ts`](../src/pricing.ts) maps EXBO artifact IDs and rarity indices
   to bundled market estimates and owns ruble display formatting. Its generated
   index is authoritative at runtime; raw histories remain source inputs.
@@ -121,11 +125,14 @@ quality, level, and boundary rarity, and random additional properties are
 excluded. It fills every carrier slot, optionally allows duplicate artifact
 types, and can reject builds exceeding the same exposure thresholds as the
 manual calculator. A stricter constraint can additionally require every harmful
-property to be fully countered in the final net totals. Canonical combinations
-are enumerated without slot permutations in a Web Worker. Searches above ten
-million combinations are rejected explicitly; with the current catalog this
-makes four-slot searches available while larger carriers normally exceed the
-guard.
+property to be fully countered in the final net totals.
+
+The user chooses one of two exact engines. Brute force enumerates canonical
+combinations without slot permutations, returns the ten best builds, and rejects
+searches above ten million combinations. MILP uses integer counts per artifact,
+proves one best build without enumeration, and therefore supports larger
+carriers. Its displayed combination count describes the theoretical search space;
+MILP does not claim an evaluated or feasible-combination count.
 
 An optional maximum-total-price constraint uses the median estimate for the
 optimizer's shared rarity. When enabled, combinations containing an unknown

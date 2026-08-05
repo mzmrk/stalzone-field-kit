@@ -88,3 +88,23 @@ test("exhaustively ranks and loads a four-slot weighted build", async ({ page })
   await page.getByRole("button", { name: "Load into calculator" }).first().click();
   await expect(page.getByText("4 / 4")).toBeVisible();
 });
+
+test("uses MILP to optimize a carrier beyond the brute-force limit", async ({ page }) => {
+  test.setTimeout(60_000);
+  await page.goto("/");
+  await expect(page.getByText(/EXBO LIVE/)).toBeVisible({ timeout: 20_000 });
+
+  await page.getByRole("button", { name: /Select a backpack or container/i }).click();
+  await page.getByPlaceholder(/Search backpacks and containers/).fill("Berloga-6 Container");
+  await page.getByRole("button", { name: /Berloga-6 Container/ }).click();
+
+  await expect(page.getByText(/exceeds the brute-force/)).toBeVisible();
+  await page.getByLabel("Optimization engine").selectOption("milp");
+  const searchButton = page.getByRole("button", { name: "Find optimal build with MILP" });
+  await expect(searchButton).toBeEnabled();
+  await searchButton.click();
+
+  await expect(page.getByText("MILP optimal")).toBeVisible({ timeout: 45_000 });
+  await expect(page.getByText(/possible combinations were not enumerated/)).toBeVisible();
+  await expect(page.getByRole("button", { name: "Load into calculator" })).toBeVisible();
+});

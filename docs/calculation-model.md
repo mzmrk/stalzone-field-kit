@@ -108,10 +108,8 @@ repeat their price. A combination passes only when every artifact has an estimat
 and their sum is at or below the cap. Price eligibility is applied in both search
 passes before feasible ranges or ranked results are recorded.
 
-The exact search performs two passes over canonical combinations. The first pass
-filters on safe exposure when requested and discovers the feasible minimum and
-maximum for every positive-weight objective. The second pass normalizes each
-objective as:
+Both optimizer engines first derive the feasible minimum and maximum for every
+positive-weight objective, then normalize each objective as:
 
 ```text
 (value - feasible minimum) / (feasible maximum - feasible minimum)
@@ -124,8 +122,15 @@ Important (`2×`), or Essential (`4×`). Every initial or newly added objective
 starts Neutral. Changing one priority leaves every other priority unchanged; the
 UI derives and displays their resulting percentage shares. Independent objective
 maxima need not be simultaneously achievable, so even the best compromise may
-score below `100%`. The engine retains the ten highest-scoring builds and breaks
-equal-score ties by canonical artifact order.
+score below `100%`. Brute force obtains those ranges in its first complete
+enumeration and ranks in a second enumeration. It retains the ten highest-scoring
+builds and breaks equal-score ties by canonical artifact order. The MILP engine
+solves one minimum and one maximum integer program per objective, then one
+normalized weighted program. HiGHS is configured for zero MIP gap and only an
+`Optimal` status is accepted, so the single returned build is a proven optimum
+rather than a heuristic result. MILP does not enumerate alternatives, count
+feasible builds, or reproduce brute force's canonical tie order when several
+builds share the same score.
 
 ## Verification expectations
 
@@ -144,4 +149,6 @@ carrier stats from that requirement. Priority-control coverage checks exact
 normalized shares, neutral defaults, and the doubling between importance levels.
 Pricing coverage checks rarity-specific lookup, missing-tier behavior, ruble
 formatting, budget filtering, duplicate-price summation, and uncapped handling of
-unknown estimates.
+unknown estimates. MILP coverage runs the actual WebAssembly solver, compares its
+ranges and optimum with brute force under combined constraints, and verifies that
+the enumeration guard is not applied.

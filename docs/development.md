@@ -45,9 +45,9 @@ On a minimal Linux container, Chromium may also require system packages installe
 by `npx playwright install-deps chromium`; that command modifies the container and
 may require root privileges. The Playwright suite starts its own Vite server on
 port `4173`, selects a live EXBO-backed Berloga-6 and Bracelet build, verifies
-persistence after reload, checks phone-width overflow, and runs the live
-4,967,690-combination Errand Junior optimizer flow through loading its winner
-into the manual calculator.
+persistence after reload, checks phone-width overflow, runs the live
+4,967,690-combination Errand Junior brute-force flow, and verifies a six-slot
+Berloga MILP result in the browser.
 
 Type-check and produce the static artifact with:
 
@@ -56,8 +56,10 @@ npm run build
 ```
 
 The output is `dist/`. [`vite.config.ts`](../vite.config.ts) uses a relative base,
-so the artifact can be served from a repository subpath. GitHub Pages deployment
-configuration is not present yet.
+so the artifact can be served from a repository subpath. The build includes the
+HiGHS WebAssembly binary as a hashed asset; MILP remains fully browser-side and
+adds no application server. GitHub Pages deployment configuration is not present
+yet.
 
 ## Raw market snapshots
 

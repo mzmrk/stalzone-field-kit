@@ -53,6 +53,7 @@ import {
   type OptimizerProgress,
   type OptimizerSearchResult,
 } from "./optimizer";
+import type { MilpProgress } from "./milp-optimizer";
 import {
   NEUTRAL_OBJECTIVE_WEIGHT,
   OBJECTIVE_PRIORITIES,
@@ -571,10 +572,11 @@ type OptimizerRun = {
   candidates: ArtifactConfig[];
   objectives: OptimizerObjective[];
   failedItems: number;
+  engine: "brute-force" | "milp";
 };
 
 type OptimizerWorkerMessage =
-  | { type: "progress"; progress: OptimizerProgress }
+  | { type: "progress"; progress: OptimizerProgress | MilpProgress }
   | { type: "result"; result: OptimizerSearchResult }
   | { type: "error"; error: string };
 
@@ -596,9 +598,10 @@ function OptimizerPanel({
   const [noNegativeEffects, setNoNegativeEffects] = useState(false);
   const [requireAllObjectives, setRequireAllObjectives] = useState(false);
   const [maxTotalPrice, setMaxTotalPrice] = useState("");
+  const [engine, setEngine] = useState<"brute-force" | "milp">("brute-force");
   const [state, setState] = useState<"idle" | "loading" | "searching" | "done" | "error">("idle");
   const [loadProgress, setLoadProgress] = useState({ completed: 0, total: 0 });
-  const [searchProgress, setSearchProgress] = useState<OptimizerProgress | null>(null);
+  const [searchProgress, setSearchProgress] = useState<OptimizerProgress | MilpProgress | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [run, setRun] = useState<OptimizerRun | null>(null);
   const cache = useRef(new Map<string, ArtifactData>());
@@ -615,6 +618,7 @@ function OptimizerPanel({
     noNegativeEffects,
     requireAllObjectives,
     maxTotalPrice,
+    engine,
   });
   const signatureRef = useRef(searchSignature);
 
@@ -635,7 +639,7 @@ function OptimizerPanel({
   const estimatedCombinations = catalog && container
     ? combinationCount(catalog.artifacts.length, container.capacity, allowDuplicates)
     : 0;
-  const oversized = estimatedCombinations > OPTIMIZER_COMBINATION_LIMIT;
+  const oversized = engine === "brute-force" && estimatedCombinations > OPTIMIZER_COMBINATION_LIMIT;
   const activeObjectives = objectives.filter((objective) => objective.weight > 0);
   const parsedMaxTotalPrice = maxTotalPrice === "" ? null : Number(maxTotalPrice);
   const invalidMaxTotalPrice = parsedMaxTotalPrice !== null
@@ -709,13 +713,15 @@ function OptimizerPanel({
     }));
     const candidatePrices = loaded.items.map((artifact) => artifactPrice(artifact.entry, rarityIndex)?.median ?? null);
     const actualCombinations = combinationCount(candidateConfigs.length, container.capacity, allowDuplicates);
-    if (actualCombinations > OPTIMIZER_COMBINATION_LIMIT) {
+    if (engine === "brute-force" && actualCombinations > OPTIMIZER_COMBINATION_LIMIT) {
       setError(`The ${actualCombinations.toLocaleString()}-combination search exceeds the current exact-search limit.`);
       setState("error");
       return;
     }
 
-    const worker = new Worker(new URL("./optimizer.worker.ts", import.meta.url), { type: "module" });
+    const worker = engine === "milp"
+      ? new Worker(new URL("./milp-optimizer.worker.ts", import.meta.url), { type: "module" })
+      : new Worker(new URL("./optimizer.worker.ts", import.meta.url), { type: "module" });
     workerRef.current = worker;
     setState("searching");
     worker.onmessage = (event: MessageEvent<OptimizerWorkerMessage>) => {
@@ -736,6 +742,7 @@ function OptimizerPanel({
         candidates: candidateConfigs,
         objectives: activeObjectives,
         failedItems: loaded.failed,
+        engine,
       });
       setState("done");
     };
@@ -792,8 +799,10 @@ function OptimizerPanel({
   };
 
   const progressPercent = searchProgress
-    ? ((searchProgress.phase === "ranges" ? searchProgress.completed : searchProgress.total + searchProgress.completed)
-      / (searchProgress.total * 2)) * 100
+    ? "phase" in searchProgress
+      ? ((searchProgress.phase === "ranges" ? searchProgress.completed : searchProgress.total + searchProgress.completed)
+        / (searchProgress.total * 2)) * 100
+      : (searchProgress.completed / searchProgress.total) * 100
     : 0;
 
   return (
@@ -845,6 +854,14 @@ function OptimizerPanel({
 
             <div className="optimizer-block">
               <div className="section-label"><span>Search rules</span><span>Exact</span></div>
+              <label className="optimizer-budget">
+                <span>Optimization engine</span>
+                <select aria-label="Optimization engine" value={engine} onChange={(event) => setEngine(event.target.value as "brute-force" | "milp")}>
+                  <option value="brute-force">Brute force · top 10</option>
+                  <option value="milp">MILP beta · best build</option>
+                </select>
+                <small>MILP proves one optimal build without enumerating the full search space and supports larger carriers.</small>
+              </label>
               <div className="optimizer-rules">
                 <label><input type="checkbox" checked={safeOnly} onChange={(event) => setSafeOnly(event.target.checked)} /><span><strong>Safe exposure only</strong><small>Reject builds above damage thresholds</small></span></label>
                 <label><input type="checkbox" checked={noNegativeEffects} onChange={(event) => setNoNegativeEffects(event.target.checked)} /><span><strong>No remaining negative effects</strong><small>Every harmful property must be fully countered</small></span></label>
@@ -859,11 +876,11 @@ function OptimizerPanel({
               <div className={`search-estimate ${oversized ? "search-estimate--danger" : ""}`}>
                 <span>SEARCH SPACE</span><strong>{estimatedCombinations.toLocaleString()}</strong><small>canonical combinations</small>
               </div>
-              {oversized && <p className="optimizer-error">This exceeds the current {OPTIMIZER_COMBINATION_LIMIT.toLocaleString()}-combination exact-search limit. Choose a carrier with fewer slots.</p>}
+              {oversized && <p className="optimizer-error">This exceeds the brute-force {OPTIMIZER_COMBINATION_LIMIT.toLocaleString()}-combination limit. Switch to MILP for this carrier.</p>}
               {activeObjectives.length === 0 && <p className="optimizer-error">At least one objective needs a positive weight.</p>}
               {invalidMaxTotalPrice && <p className="optimizer-error">Maximum total price must be greater than zero.</p>}
               <button className="optimizer-search" disabled={!catalog || oversized || activeObjectives.length === 0 || invalidMaxTotalPrice || state === "loading" || state === "searching"} onClick={startSearch}>
-                {state === "loading" ? `Loading artifacts ${loadProgress.completed}/${loadProgress.total}` : state === "searching" ? `Searching ${progressPercent.toFixed(0)}%` : `Search ${estimatedCombinations.toLocaleString()} combinations`}
+                {state === "loading" ? `Loading artifacts ${loadProgress.completed}/${loadProgress.total}` : state === "searching" ? `${engine === "milp" ? "Solving MILP" : "Searching"} ${progressPercent.toFixed(0)}%` : engine === "milp" ? "Find optimal build with MILP" : `Search ${estimatedCombinations.toLocaleString()} combinations`}
               </button>
               {(state === "loading" || state === "searching") && <div className="optimizer-progress"><span style={{ width: `${state === "loading" ? (loadProgress.completed / Math.max(1, loadProgress.total)) * 100 : progressPercent}%` }} /></div>}
               {error && <p className="optimizer-error" role="alert">{error}</p>}
@@ -879,7 +896,7 @@ function OptimizerPanel({
             ) : (
               <>
                 <div className="optimizer-summary">
-                  <strong>{run.search.combinations.toLocaleString()}</strong> combinations evaluated · <strong>{run.search.feasibleCombinations.toLocaleString()}</strong> feasible
+                  {run.engine === "milp" ? <><strong>MILP optimal</strong> · {run.search.combinations.toLocaleString()} possible combinations were not enumerated</> : <><strong>{run.search.combinations.toLocaleString()}</strong> combinations evaluated · <strong>{run.search.feasibleCombinations?.toLocaleString()}</strong> feasible</>}
                   {run.failedItems > 0 && <span> · {run.failedItems} artifact file{run.failedItems === 1 ? "" : "s"} unavailable</span>}
                 </div>
                 <div className="optimizer-result-list">

@@ -251,7 +251,7 @@ input[type="range"]::-webkit-slider-thumb { appearance: none; width: 14px; heigh
 .optimizer-rules small { color: var(--muted); font-size: 7px; line-height: 1.4; }
 .optimizer-budget { margin: 7px 18px 0; padding: 11px; display: grid; grid-template-columns: minmax(110px, .7fr) minmax(150px, 1fr); gap: 5px 12px; align-items: center; border: 1px solid var(--line); background: rgba(7,12,11,.3); }
 .optimizer-budget > span { font-size: 8px; text-transform: uppercase; }
-.optimizer-budget input { min-width: 0; height: 35px; padding: 0 9px; border: 1px solid var(--line-strong); background: #0b1211; color: var(--text); font-size: 9px; }
+.optimizer-budget input, .optimizer-budget select { min-width: 0; height: 35px; padding: 0 9px; border: 1px solid var(--line-strong); background: #0b1211; color: var(--text); font-size: 9px; }
 .optimizer-budget small { grid-column: 1 / -1; color: var(--muted); font-size: 7px; line-height: 1.45; }
 .search-estimate { margin: 9px 18px; padding: 12px; display: grid; grid-template-columns: 1fr auto; gap: 3px 12px; border: 1px solid var(--line); background: rgba(7,12,11,.4); }
 .search-estimate span { color: var(--muted); font-size: 7px; letter-spacing: .12em; }

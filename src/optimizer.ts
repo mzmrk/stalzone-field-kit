@@ -66,7 +66,7 @@ export type OptimizerResult = {
 
 export type OptimizerSearchResult = {
   combinations: number;
-  feasibleCombinations: number;
+  feasibleCombinations: number | null;
   ranges: OptimizerRange[];
   results: OptimizerResult[];
 };

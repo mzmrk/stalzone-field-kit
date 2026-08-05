@@ -1,7 +1,7 @@
 # Field Kit project memory
 
 Field Kit is a static, browser-side STALZONE calculator for manually configuring
-a backpack or container and its artifacts or exhaustively searching theoretical
+a backpack or container and its artifacts or optimizing theoretical
 catalog combinations. It loads Global item data directly from EXBO Studio's
 public repository, calculates and optimizes in the browser, and stores the current
 manual build in local browser storage. There is no application server, account
