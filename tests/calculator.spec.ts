@@ -10,6 +10,8 @@ test("creates and restores a live EXBO-backed artifact build", async ({ page }) 
 
   await expect(page.getByText("78.5%").first()).toBeVisible();
   await expect(page.getByText("0 / 6")).toBeVisible();
+  await expect(page.getByText("Container weight")).toBeVisible();
+  await expect(page.getByText("Artifact weight")).toBeVisible();
 
   await page.getByRole("button", { name: /Add artifact/i }).first().click();
   await page.getByPlaceholder("Search artifacts…").fill("Bracelet");
@@ -54,6 +56,8 @@ test("exhaustively ranks and loads a four-slot weighted build", async ({ page })
   await page.getByRole("button", { name: /Errand Junior Backpack/ }).click();
 
   await expect(page.getByText("4,967,690").first()).toBeVisible();
+  await expect(page.getByText("Backpack weight")).toBeVisible();
+  await expect(page.getByText("Artifact weight")).toBeVisible();
   const objectiveRows = page.locator(".objective-row");
   await expect(objectiveRows.nth(0).getByRole("button", { name: /Neutral/ })).toHaveAttribute("aria-pressed", "true");
   await expect(objectiveRows.nth(1).getByRole("button", { name: /Neutral/ })).toHaveAttribute("aria-pressed", "true");

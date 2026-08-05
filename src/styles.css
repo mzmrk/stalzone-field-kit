@@ -210,7 +210,7 @@ input[type="range"]::-webkit-slider-thumb { appearance: none; width: 14px; heigh
 .build-status--danger { color: var(--red); border-color: rgba(239,121,111,.32); background: rgba(239,121,111,.07); }
 .warning { margin: -7px 16px 14px; padding: 10px; display: flex; align-items: flex-start; gap: 8px; color: #e6aaa4; background: rgba(112,31,27,.22); font-size: 8px; line-height: 1.5; }
 .warning svg { flex: 0 0 auto; margin-top: 1px; }
-.summary-strip { margin: 0 16px 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.summary-strip { margin: 0 16px 14px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
 .summary-strip > div { padding: 10px; display: grid; grid-template-columns: auto 1fr; gap: 4px 8px; align-items: center; background: rgba(7,12,11,.4); border: 1px solid var(--line); }
 .summary-strip svg { grid-row: span 2; color: #707d77; }
 .summary-strip span { color: var(--muted); font-size: 7px; text-transform: uppercase; }

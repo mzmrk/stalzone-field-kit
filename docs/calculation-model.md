@@ -75,9 +75,10 @@ The entered value is added directly; quality, level, and effectiveness are not
 applied again. The supported manual stat list lives in
 [`STAT_OPTIONS`](../src/calculations.ts).
 
-Artifact mass is the simple sum of selected artifacts' raw weight properties. It
-does not include the backpack/container weight and is reported separately from
-calculated stats.
+Artifact weight is the simple sum of selected artifacts' raw weight properties.
+It does not include the selected carrier's own raw weight. The readout presents
+these as separate artifact and backpack/container values; neither is folded into
+calculated stat totals.
 
 ## Weighted optimizer
 

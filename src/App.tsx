@@ -541,7 +541,8 @@ function ResultPanel({
             </div>
           ))}
           <div className="summary-strip">
-            <div><Weight size={17} /><span>Artifact mass</span><strong>{mass.toFixed(2)} kg</strong></div>
+            <div><Weight size={17} /><span>{container.entry.data.includes("/backpacks/") ? "Backpack weight" : "Container weight"}</span><strong>{container.weight.toFixed(2)} kg</strong></div>
+            <div><Weight size={17} /><span>Artifact weight</span><strong>{mass.toFixed(2)} kg</strong></div>
             <div><ShieldCheck size={17} /><span>Inner protection</span><strong>{container.protection.toFixed(1)}%</strong></div>
           </div>
           {grouped.length ? grouped.map(({ category, stats }) => (
