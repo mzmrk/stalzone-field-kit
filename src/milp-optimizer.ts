@@ -1,4 +1,5 @@
 import {
+  CARRY_WEIGHT_KEY,
   calculateStat,
   PROTECTED_EXPOSURE_KEYS,
 } from "./calculations";
@@ -156,6 +157,7 @@ function prepareProblem(
   const keyIndexes = new Map(keys.map((key, index) => [key, index]));
   const carrierValues = new Float64Array(keys.length);
   for (const stat of container.stats) {
+    if (stat.key === CARRY_WEIGHT_KEY) continue;
     const index = keyIndexes.get(stat.key);
     if (index !== undefined) carrierValues[index] += stat.max;
   }

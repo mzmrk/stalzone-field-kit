@@ -28,8 +28,10 @@ export const WARNING_LIMITS: Record<string, number> = {
   "stalker.artefact_properties.factor.frost_accumulation": 1,
 };
 
+export const CARRY_WEIGHT_KEY = "stalker.artefact_properties.factor.max_weight_bonus";
+
 export const STAT_OPTIONS = [
-  ["stalker.artefact_properties.factor.max_weight_bonus", "Carry weight", false],
+  [CARRY_WEIGHT_KEY, "Carry weight", false],
   ["stalker.artefact_properties.factor.speed_modifier", "Movement speed", true],
   ["stalker.artefact_properties.factor.sprint_speed_modifier", "Running speed", true],
   ["stalker.artefact_properties.factor.stamina_bonus", "Stamina", true],
@@ -156,6 +158,7 @@ export function calculateTotals(
   }
 
   for (const stat of container.stats) {
+    if (stat.key === CARRY_WEIGHT_KEY) continue;
     add(stat.key, stat.name, stat.max, stat.percentage, !stat.positive);
   }
 

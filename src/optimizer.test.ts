@@ -271,7 +271,7 @@ describe("artifact optimizer", () => {
     expect(required.results.every((result) => result.values.every((value) => value > 0))).toBe(true);
   });
 
-  it("does not let a carrier stat satisfy an artifact minimum", () => {
+  it("excludes carrier carry weight from objectives and artifact minimums", () => {
     const carrier: OptimizerContainer = {
       capacity: 1,
       protection: 0,
@@ -292,7 +292,7 @@ describe("artifact optimizer", () => {
 
     expect(result.feasibleCombinations).toBe(1);
     expect(result.results[0].indices).toEqual([1]);
-    expect(result.results[0].values).toEqual([37]);
+    expect(result.results[0].values).toEqual([2]);
   });
 
   it("filters combinations by total median price before deriving feasible ranges", () => {

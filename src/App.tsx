@@ -28,6 +28,7 @@ import {
   useState,
 } from "react";
 import {
+  CARRY_WEIGHT_KEY,
   calculateStat,
   calculateTotals,
   EXPOSURE_KEYS,
@@ -95,7 +96,6 @@ const CATEGORY_ORDER = [
   "Exposure",
   "Other effects",
 ];
-const CARRY_WEIGHT_KEY = "stalker.artefact_properties.factor.max_weight_bonus";
 const DEFAULT_OBJECTIVE_WEIGHTS = new Map<string, number>([
   ["stalker.artefact_properties.factor.speed_modifier", IMPORTANT_OBJECTIVE_WEIGHT],
   ["stalker.artefact_properties.factor.sprint_speed_modifier", NEUTRAL_OBJECTIVE_WEIGHT],

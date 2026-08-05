@@ -156,6 +156,11 @@ ranges and rankings are derived, so normalization reflects the affordable search
 space. Repeated artifacts are always eligible, including copies of the same
 artifact at different enabled rarities.
 
+The carrier card displays its built-in carry-weight bonus as reference data, but
+that bonus is excluded from manual totals, optimizer objective values, and final
+constraints. Carry weight elsewhere in the UI therefore represents artifact
+contribution only.
+
 Optimizer results are transient. Loading a ranked result clones its artifacts
 into the persisted manual build, where individual values can be edited. Artifact
 files that fail to load are excluded and counted in the result summary, so a

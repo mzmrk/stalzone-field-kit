@@ -15,6 +15,7 @@ import type { ParsedStat } from "./types";
 const MOVEMENT = "stalker.artefact_properties.factor.speed_modifier";
 const STAMINA = "stalker.artefact_properties.factor.stamina_regeneration_bonus";
 const TEMPERATURE = "stalker.artefact_properties.factor.thermal_accumulation";
+const CARRY_WEIGHT = "stalker.artefact_properties.factor.max_weight_bonus";
 
 const stat = (key: string, value: number, positive = true): ParsedStat => ({
   key,
@@ -67,6 +68,22 @@ describe("MILP artifact optimizer", () => {
     expect(milp.results[0].values).toEqual(bruteForce.results[0].values);
     expect(milp.results[0].score).toBeCloseTo(bruteForce.results[0].score, 10);
     expect(milp.feasibleCombinations).toBeNull();
+  });
+
+  it("excludes carrier carry weight from both exact engines", async () => {
+    const carrier = { ...container, capacity: 1, stats: [stat(CARRY_WEIGHT, 35)] };
+    const candidates = [candidate("Artifact carry weight", [stat(CARRY_WEIGHT, 2)])];
+    const objectives = [{ key: CARRY_WEIGHT, weight: 1 }];
+    const carrySettings = {
+      ...settings,
+      constraints: [{ key: CARRY_WEIGHT, minimum: 1e-6, maximum: null, scope: "artifact" as const }],
+    };
+
+    const bruteForce = optimizeArtifactCombinations(carrier, candidates, objectives, carrySettings);
+    const milp = await optimizeArtifactCombinationsMilp(solver, carrier, candidates, objectives, carrySettings);
+
+    expect(bruteForce.results[0].values).toEqual([2]);
+    expect(milp.results[0].values).toEqual([2]);
   });
 
   it("matches brute force when rarity variants share a no-duplicate identity", async () => {

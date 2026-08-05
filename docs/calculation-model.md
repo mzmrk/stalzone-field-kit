@@ -46,8 +46,9 @@ The order is an invariant because changing it changes exposure outcomes:
    offset harmful exposure before protection.
 4. If the remaining radiation, biological, psy, or thermal exposure is positive,
    multiply it by `1 - innerProtection / 100`.
-5. Add properties provided by the backpack or container itself. These carrier
-   properties are neither effectiveness-scaled nor inner-protection-scaled.
+5. Add properties provided by the backpack or container itself, except its
+   `max_weight_bonus`. Included carrier properties are neither
+   effectiveness-scaled nor inner-protection-scaled.
 6. Remove near-zero totals and evaluate damage warnings.
 
 Frost is an exposure stat but is not included in the inner-protection set.
@@ -77,18 +78,20 @@ applied again. The supported manual stat list lives in
 
 Carry weight is the `max_weight_bonus` capacity stat, not physical equipment
 mass. A carrier's built-in value is shown with its slots, protection, and
-effectiveness and is also included in calculated totals. `calculateTotals` still
-returns the sum of selected artifact mass for domain use, but the UI does not
-display backpack/container or artifact mass.
+effectiveness as reference only. It is excluded from calculated totals, optimizer
+values, and constraints, so calculated carry weight always comes from artifacts.
+`calculateTotals` still returns the sum of selected artifact mass for domain use,
+but the UI does not display backpack/container or artifact mass.
 
 ## Weighted optimizer
 
 [`src/optimizer.ts`](../src/optimizer.ts) precomputes each catalog artifact's
 selected objective and constrained-stat contributions with
 [`calculateStat`](../src/calculations.ts). At each complete combination it applies
-counter-effects before inner protection, then carrier stats and the configured
-per-effect limits. Random additional properties are not searched because EXBO
-does not publish their pools.
+counter-effects before inner protection, then eligible carrier stats and the
+configured per-effect limits. Carrier carry weight is excluded at this stage as
+well as from manual totals. Random additional properties are not searched because
+EXBO does not publish their pools.
 
 The user enables one or more rarity bands. Every enabled rarity becomes a
 separately priced variant of every artifact and uses the midpoint quality of its
@@ -170,19 +173,19 @@ ten builds share the same score; either tied subset is equally optimal.
 Formula changes must add or update focused Vitest cases. Existing coverage checks
 quality/level/effectiveness scaling, ordinary harmful-property quality scaling,
 the exposure effectiveness exception, rarity-boundary choices and resets,
-protection, counter-before-protection order, carrier and manual bonus addition,
-mass, and strict warning thresholds. Changes to the user workflow or persistence
-should also update the Playwright flow in
+protection, counter-before-protection order, non-carry carrier and manual bonus
+addition, carrier carry-weight exclusion, mass, and strict warning thresholds.
+Changes to the user workflow or persistence should also update the Playwright flow in
 [`tests/calculator.spec.ts`](../tests/calculator.spec.ts).
 Optimizer coverage checks combination counts, automatic engine selection at the
 ten-million boundary, search-size rejection, weight-sensitive ranking,
 feasible-range normalization, independent final maximums,
 enabled-effect presence, and artifact-only positive minimums. It also covers both
 harmful directions, the zero boundary for fully countered harmful properties, the
-catalog's complete harmful-property filter list, and exclusion of carrier stats
-from artifact minimums. Priority-control coverage checks exact normalized shares,
-neutral defaults, enabled-row highlighting, and the doubling between importance
-levels.
+catalog's complete harmful-property filter list, and exclusion of carrier carry
+weight from objectives and artifact minimums. Priority-control coverage checks
+exact normalized shares, neutral defaults, enabled-row highlighting, and the
+doubling between importance levels.
 Rarity-variant coverage checks midpoint qualities, group-aware combination counts,
 per-candidate scaling, and artifact-identity constraints in both exact engines.
 Pricing coverage checks rarity-specific lookup, missing-tier behavior, ruble

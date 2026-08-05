@@ -1,4 +1,5 @@
 import {
+  CARRY_WEIGHT_KEY,
   calculateStat,
   PROTECTED_EXPOSURE_KEYS,
   WARNING_LIMITS,
@@ -13,7 +14,7 @@ export const OPTIMIZER_STAT_OPTIONS = [
   ["stalker.artefact_properties.factor.stamina_regeneration_bonus", "Stamina regeneration", true],
   ["stalker.artefact_properties.factor.heal_efficiency", "Healing effectiveness", true],
   ["stalker.artefact_properties.factor.regeneration_bonus", "Health regeneration", true],
-  ["stalker.artefact_properties.factor.max_weight_bonus", "Carry weight", false],
+  [CARRY_WEIGHT_KEY, "Carry weight", false],
   ["stalker.artefact_properties.factor.stamina_bonus", "Stamina", true],
   ["stalker.artefact_properties.factor.tear_dmg_factor", "Laceration protection", false],
   ["stalker.artefact_properties.factor.explosion_dmg_factor", "Explosion protection", false],
@@ -232,6 +233,7 @@ export function optimizeArtifactCombinations(
   const objectiveIndexes = activeObjectives.map((objective) => keyIndexes.get(objective.key)!);
   const carrierValues = new Float64Array(relevantKeys.length);
   for (const stat of container.stats) {
+    if (stat.key === CARRY_WEIGHT_KEY) continue;
     const index = keyIndexes.get(stat.key);
     if (index !== undefined) carrierValues[index] += stat.max;
   }

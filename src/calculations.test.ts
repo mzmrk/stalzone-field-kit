@@ -112,7 +112,7 @@ describe("artifact calculations", () => {
     expect(result.warnings).toHaveLength(0);
   });
 
-  it("includes carrier stats and exact additional properties", () => {
+  it("excludes carrier carry weight while retaining artifact bonuses and other carrier stats", () => {
     const containerStat: ParsedStat = {
       key: "stalker.artefact_properties.factor.max_weight_bonus",
       name: "Carry weight",
@@ -121,10 +121,18 @@ describe("artifact calculations", () => {
       positive: true,
       percentage: false,
     };
+    const movementStat: ParsedStat = {
+      key: "stalker.artefact_properties.factor.speed_modifier",
+      name: "Movement speed",
+      min: 1,
+      max: 1,
+      positive: true,
+      percentage: true,
+    };
     const container = {
       protection: 0,
       effectiveness: 100,
-      stats: [containerStat],
+      stats: [containerStat, movementStat],
     } as unknown as ContainerData;
     const artifact = {
       quality: 100,
@@ -141,7 +149,8 @@ describe("artifact calculations", () => {
       weight: 0.4,
     } as unknown as ArtifactConfig;
     const result = calculateTotals(container, [artifact]);
-    expect(result.totals[0].value).toBeCloseTo(23.5);
+    expect(result.totals.find((stat) => stat.key === containerStat.key)?.value).toBeCloseTo(3.5);
+    expect(result.totals.find((stat) => stat.key === movementStat.key)?.value).toBeCloseTo(1);
     expect(result.mass).toBeCloseTo(0.4);
   });
 
