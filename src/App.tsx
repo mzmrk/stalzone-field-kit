@@ -48,12 +48,14 @@ import {
 } from "./data";
 import {
   combinationCount,
+  harmfulEffectConstraint,
   OPTIMIZER_HARMFUL_OPTIONS,
   OPTIMIZER_STAT_OPTIONS,
   type OptimizerConstraint,
   type OptimizerObjective,
   type OptimizerProgress,
   type OptimizerSearchResult,
+  type NegativeEffectPolicy,
 } from "./optimizer";
 import type { MilpProgress } from "./milp-optimizer";
 import {
@@ -99,12 +101,10 @@ type PositiveFilter = {
   minimum: string;
 };
 
-type NegativePolicy = "allow" | "safe" | "strict" | "custom";
-
 type NegativeFilter = {
   key: string;
-  policy: NegativePolicy;
-  maximum: string;
+  policy: NegativeEffectPolicy;
+  limit: string;
 };
 
 const DEFAULT_POSITIVE_FILTERS: PositiveFilter[] = OPTIMIZER_STAT_OPTIONS.map(([key]) => ({
@@ -114,10 +114,10 @@ const DEFAULT_POSITIVE_FILTERS: PositiveFilter[] = OPTIMIZER_STAT_OPTIONS.map(([
   minimum: "",
 }));
 
-const DEFAULT_NEGATIVE_FILTERS: NegativeFilter[] = OPTIMIZER_HARMFUL_OPTIONS.map(([key, , safeLimit]) => ({
-  key,
-  policy: safeLimit === null ? "allow" : "safe",
-  maximum: "",
+const DEFAULT_NEGATIVE_FILTERS: NegativeFilter[] = OPTIMIZER_HARMFUL_OPTIONS.map((option) => ({
+  key: option.key,
+  policy: option.safeLimit === null ? "allow" : "safe",
+  limit: "",
 }));
 
 type PickerState =
@@ -672,11 +672,11 @@ function OptimizerPanel({
   const objectiveWeights = activeObjectives.map((objective) => objective.weight);
   const invalidPositiveMinimum = positiveFilters.some((filter) =>
     filter.minimum !== "" && (!Number.isFinite(Number(filter.minimum)) || Number(filter.minimum) <= 0));
-  const invalidCustomMaximum = negativeFilters.some((filter) =>
-    filter.policy === "custom" && (filter.maximum === "" || !Number.isFinite(Number(filter.maximum))));
+  const invalidCustomLimit = negativeFilters.some((filter) =>
+    filter.policy === "custom" && (filter.limit === "" || !Number.isFinite(Number(filter.limit)) || Number(filter.limit) < 0));
   const constraints: OptimizerConstraint[] = [
     ...positiveFilters
-      .filter((filter) => filter.minimum !== "" && !invalidPositiveMinimum)
+      .filter((filter) => filter.enabled && filter.minimum !== "" && !invalidPositiveMinimum)
       .map((filter) => ({
         key: filter.key,
         minimum: Number(filter.minimum),
@@ -684,20 +684,13 @@ function OptimizerPanel({
         scope: "artifact" as const,
       })),
     ...negativeFilters.flatMap((filter) => {
-      const option = OPTIMIZER_HARMFUL_OPTIONS.find(([key]) => key === filter.key)!;
-      const maximum = filter.policy === "safe"
-        ? option[2]
-        : filter.policy === "strict"
-          ? 0
-          : filter.policy === "custom" && !invalidCustomMaximum
-            ? Number(filter.maximum)
-            : null;
-      return maximum === null ? [] : [{
-        key: filter.key,
-        minimum: null,
-        maximum,
-        scope: "final" as const,
-      }];
+      const option = OPTIMIZER_HARMFUL_OPTIONS.find((item) => item.key === filter.key)!;
+      const constraint = harmfulEffectConstraint(
+        option,
+        filter.policy,
+        filter.policy === "custom" && !invalidCustomLimit ? Number(filter.limit) : null,
+      );
+      return constraint ? [constraint] : [];
     }),
   ];
   const parsedMaxTotalPrice = maxTotalPrice === "" ? null : Number(maxTotalPrice);
@@ -745,7 +738,7 @@ function OptimizerPanel({
 
   const startSearch = async () => {
     if (!catalog || !container || oversized || activeObjectives.length === 0
-      || invalidMaxTotalPrice || invalidPositiveMinimum || invalidCustomMaximum) return;
+      || invalidMaxTotalPrice || invalidPositiveMinimum || invalidCustomLimit) return;
     const runId = runIdRef.current + 1;
     runIdRef.current = runId;
     workerRef.current?.terminate();
@@ -886,26 +879,24 @@ function OptimizerPanel({
               <div className="positive-filter-list">
                 {positiveFilters.map((filter) => {
                   const option = OPTIMIZER_STAT_OPTIONS.find(([key]) => key === filter.key)!;
-                  const objectiveIndex = activeObjectives.findIndex((objective) => objective.key === filter.key);
                   return (
                     <div className={`positive-filter ${filter.enabled ? "positive-filter--enabled" : ""} ${filter.minimum !== "" ? "positive-filter--constrained" : ""}`} key={filter.key}>
                       <div className="positive-filter__top">
                         <label className="positive-filter__toggle">
-                          <input type="checkbox" aria-label={`Optimize ${option[1]}`} checked={filter.enabled} onChange={(event) => setPositiveFilters((current) => current.map((item) => item.key === filter.key ? { ...item, enabled: event.target.checked } : item))} />
+                          <input type="checkbox" aria-label={`Optimize ${option[1]}`} checked={filter.enabled} onChange={(event) => setPositiveFilters((current) => current.map((item) => item.key === filter.key ? { ...item, enabled: event.target.checked, minimum: event.target.checked ? item.minimum : "" } : item))} />
                           <strong>{option[1]}</strong>
                         </label>
                         {filter.enabled && <span className="objective-share">{objectiveWeightPercentage(filter.weight, objectiveWeights).toFixed(1).replace(".0", "")}%</span>}
-                        <label className="positive-filter__minimum">
+                        {filter.enabled && <label className="positive-filter__minimum">
                           <span>Minimum</span>
                           <input aria-label={`Minimum ${option[1]} from artifacts`} type="number" min="0" step="0.01" placeholder="No min" value={filter.minimum} onChange={(event) => setPositiveFilters((current) => current.map((item) => item.key === filter.key ? { ...item, minimum: event.target.value } : item))} />
-                        </label>
+                        </label>}
                       </div>
                       {filter.enabled && (
                         <div className="objective-priority" role="group" aria-label={`${option[1]} importance`}>
                           {OBJECTIVE_PRIORITIES.map((priority) => <button type="button" className={filter.weight === priority.weight ? "active" : ""} aria-pressed={filter.weight === priority.weight} title={`${priority.label}: ${priority.factor} scoring influence`} key={priority.weight} onClick={() => setPositiveFilters((current) => current.map((item) => item.key === filter.key ? { ...item, weight: priority.weight } : item))}><span>{priority.label}</span><small>{priority.factor}</small></button>)}
                         </div>
                       )}
-                      {objectiveIndex < 0 && filter.minimum !== "" && <small className="positive-filter__note">Required, but not scored</small>}
                     </div>
                   );
                 })}
@@ -917,22 +908,22 @@ function OptimizerPanel({
               <div className="section-label"><span>Accepted consequences</span><span>Final build values</span></div>
               <div className="negative-presets" role="group" aria-label="Negative effect presets">
                 <button type="button" onClick={() => setNegativeFilters((current) => current.map((filter) => ({ ...filter, policy: "allow" })))}>Allow all</button>
-                <button type="button" onClick={() => setNegativeFilters((current) => current.map((filter) => ({ ...filter, policy: OPTIMIZER_HARMFUL_OPTIONS.find(([key]) => key === filter.key)![2] === null ? "allow" : "safe" })))}>Game-safe</button>
+                <button type="button" onClick={() => setNegativeFilters((current) => current.map((filter) => ({ ...filter, policy: OPTIMIZER_HARMFUL_OPTIONS.find((option) => option.key === filter.key)!.safeLimit === null ? "allow" : "safe" })))}>Game-safe</button>
                 <button type="button" onClick={() => setNegativeFilters((current) => current.map((filter) => ({ ...filter, policy: "strict" })))}>Counter all</button>
               </div>
               <div className="negative-filter-list">
                 {negativeFilters.map((filter) => {
-                  const option = OPTIMIZER_HARMFUL_OPTIONS.find(([key]) => key === filter.key)!;
+                  const option = OPTIMIZER_HARMFUL_OPTIONS.find((item) => item.key === filter.key)!;
                   return (
                     <div className={`negative-filter negative-filter--${filter.policy}`} key={filter.key}>
-                      <strong>{option[1]}</strong>
-                      <select aria-label={`${option[1]} policy`} value={filter.policy} onChange={(event) => setNegativeFilters((current) => current.map((item) => item.key === filter.key ? { ...item, policy: event.target.value as NegativePolicy } : item))}>
+                      <strong>{option.name}</strong>
+                      <select aria-label={`${option.name} policy`} value={filter.policy} onChange={(event) => setNegativeFilters((current) => current.map((item) => item.key === filter.key ? { ...item, policy: event.target.value as NegativeEffectPolicy } : item))}>
                         <option value="allow">Allow</option>
-                        {option[2] !== null && <option value="safe">Game-safe · ≤ {option[2]}</option>}
-                        <option value="strict">No negative · ≤ 0</option>
-                        <option value="custom">Custom maximum</option>
+                        {option.safeLimit !== null && <option value="safe">Game-safe · ≤ {option.safeLimit}</option>}
+                        <option value="strict">No negative · {option.harmfulDirection === 1 ? "≤" : "≥"} 0</option>
+                        <option value="custom">Custom accepted penalty</option>
                       </select>
-                      {filter.policy === "custom" && <input aria-label={`${option[1]} custom maximum`} type="number" step="0.01" placeholder="Maximum" value={filter.maximum} onChange={(event) => setNegativeFilters((current) => current.map((item) => item.key === filter.key ? { ...item, maximum: event.target.value } : item))} />}
+                      {filter.policy === "custom" && <input aria-label={`${option.name} accepted penalty`} type="number" min="0" step="0.01" placeholder="Penalty" value={filter.limit} onChange={(event) => setNegativeFilters((current) => current.map((item) => item.key === filter.key ? { ...item, limit: event.target.value } : item))} />}
                     </div>
                   );
                 })}
@@ -963,9 +954,9 @@ function OptimizerPanel({
               {oversized && <p className="optimizer-error">This exceeds the brute-force {OPTIMIZER_COMBINATION_LIMIT.toLocaleString()}-combination limit. Switch to MILP for this carrier.</p>}
               {activeObjectives.length === 0 && <p className="optimizer-error">At least one positive effect must be enabled for optimization.</p>}
               {invalidPositiveMinimum && <p className="optimizer-error">Positive minimums must be greater than zero.</p>}
-              {invalidCustomMaximum && <p className="optimizer-error">Every custom negative maximum needs a number.</p>}
+              {invalidCustomLimit && <p className="optimizer-error">Every accepted penalty must be zero or greater.</p>}
               {invalidMaxTotalPrice && <p className="optimizer-error">Maximum total price must be greater than zero.</p>}
-              <button className="optimizer-search" disabled={!catalog || oversized || activeObjectives.length === 0 || invalidPositiveMinimum || invalidCustomMaximum || invalidMaxTotalPrice || state === "loading" || state === "searching"} onClick={startSearch}>
+              <button className="optimizer-search" disabled={!catalog || oversized || activeObjectives.length === 0 || invalidPositiveMinimum || invalidCustomLimit || invalidMaxTotalPrice || state === "loading" || state === "searching"} onClick={startSearch}>
                 {state === "loading" ? `Loading artifacts ${loadProgress.completed}/${loadProgress.total}` : state === "searching" ? `${engine === "milp" ? "Solving MILP" : "Searching"} ${progressPercent.toFixed(0)}%` : engine === "milp" ? "Find optimal build with MILP" : `Search ${estimatedCombinations.toLocaleString()} combinations`}
               </button>
               {(state === "loading" || state === "searching") && <div className="optimizer-progress"><span style={{ width: `${state === "loading" ? (loadProgress.completed / Math.max(1, loadProgress.total)) * 100 : progressPercent}%` }} /></div>}

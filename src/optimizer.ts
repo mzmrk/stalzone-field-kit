@@ -19,13 +19,30 @@ export const OPTIMIZER_STAT_OPTIONS = [
   ["stalker.artefact_properties.factor.tear_dmg_factor", "Laceration protection", false],
 ] as const;
 
-export const OPTIMIZER_HARMFUL_OPTIONS = [
-  ["stalker.artefact_properties.factor.radiation_accumulation", "Radiation", WARNING_LIMITS["stalker.artefact_properties.factor.radiation_accumulation"]],
-  ["stalker.artefact_properties.factor.biological_accumulation", "Biological infection", WARNING_LIMITS["stalker.artefact_properties.factor.biological_accumulation"]],
-  ["stalker.artefact_properties.factor.psycho_accumulation", "Psy-emissions", WARNING_LIMITS["stalker.artefact_properties.factor.psycho_accumulation"]],
-  ["stalker.artefact_properties.factor.thermal_accumulation", "Temperature", WARNING_LIMITS["stalker.artefact_properties.factor.thermal_accumulation"]],
-  ["stalker.artefact_properties.factor.frost_accumulation", "Frost", WARNING_LIMITS["stalker.artefact_properties.factor.frost_accumulation"]],
-] as const;
+export type OptimizerHarmfulOption = {
+  key: string;
+  name: string;
+  harmfulDirection: 1 | -1;
+  safeLimit: number | null;
+};
+
+export type NegativeEffectPolicy = "allow" | "safe" | "strict" | "custom";
+
+export const OPTIMIZER_HARMFUL_OPTIONS: readonly OptimizerHarmfulOption[] = [
+  { key: "stalker.artefact_properties.factor.radiation_accumulation", name: "Radiation", harmfulDirection: 1, safeLimit: WARNING_LIMITS["stalker.artefact_properties.factor.radiation_accumulation"] },
+  { key: "stalker.artefact_properties.factor.biological_accumulation", name: "Biological infection", harmfulDirection: 1, safeLimit: WARNING_LIMITS["stalker.artefact_properties.factor.biological_accumulation"] },
+  { key: "stalker.artefact_properties.factor.psycho_accumulation", name: "Psy-emissions", harmfulDirection: 1, safeLimit: WARNING_LIMITS["stalker.artefact_properties.factor.psycho_accumulation"] },
+  { key: "stalker.artefact_properties.factor.thermal_accumulation", name: "Temperature", harmfulDirection: 1, safeLimit: WARNING_LIMITS["stalker.artefact_properties.factor.thermal_accumulation"] },
+  { key: "stalker.artefact_properties.factor.frost_accumulation", name: "Frost", harmfulDirection: 1, safeLimit: WARNING_LIMITS["stalker.artefact_properties.factor.frost_accumulation"] },
+  { key: "stalker.artefact_properties.factor.recoil_bonus", name: "Recoil", harmfulDirection: 1, safeLimit: null },
+  { key: "stalker.artefact_properties.factor.health_bonus", name: "Vitality", harmfulDirection: -1, safeLimit: null },
+  { key: "stalker.artefact_properties.factor.heal_efficiency", name: "Healing effectiveness", harmfulDirection: -1, safeLimit: null },
+  { key: "stalker.artefact_properties.factor.bullet_dmg_factor", name: "Bullet resistance", harmfulDirection: -1, safeLimit: null },
+  { key: "stalker.artefact_properties.factor.bleeding_protection", name: "Bleeding protection", harmfulDirection: -1, safeLimit: null },
+  { key: "stalker.artefact_properties.factor.reaction_to_burn", name: "Reaction to burns", harmfulDirection: -1, safeLimit: null },
+  { key: "stalker.artefact_properties.factor.speed_modifier", name: "Movement speed", harmfulDirection: -1, safeLimit: null },
+  { key: "stalker.artefact_properties.factor.sprint_speed_modifier", name: "Running speed", harmfulDirection: -1, safeLimit: null },
+];
 
 export type OptimizerObjective = {
   key: string;
@@ -38,6 +55,26 @@ export type OptimizerConstraint = {
   maximum: number | null;
   scope: "artifact" | "final";
 };
+
+export function harmfulEffectConstraint(
+  option: OptimizerHarmfulOption,
+  policy: NegativeEffectPolicy,
+  customLimit: number | null,
+): OptimizerConstraint | null {
+  if (policy === "allow") return null;
+  const acceptedPenalty = policy === "safe"
+    ? option.safeLimit
+    : policy === "strict"
+      ? 0
+      : customLimit;
+  if (acceptedPenalty === null) return null;
+  return {
+    key: option.key,
+    minimum: option.harmfulDirection === -1 ? -acceptedPenalty : null,
+    maximum: option.harmfulDirection === 1 ? acceptedPenalty : null,
+    scope: "final",
+  };
+}
 
 export type OptimizerCandidate = {
   name: string;

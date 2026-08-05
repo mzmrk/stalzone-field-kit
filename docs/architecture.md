@@ -123,11 +123,12 @@ stale and are not active-lot quotes or guarantees.
 The optimizer is a theoretical catalog search: every artifact receives one fixed
 quality, level, and boundary rarity, and random additional properties are
 excluded. It fills every carrier slot, optionally allows duplicate artifact
-types, exposes every supported positive stat and harmful exposure without
+types, exposes every supported positive stat and harmful property without
 add/remove controls, and applies independent numerical requirements before
-ranking. Positive rows can participate in scoring, require a minimum artifact
-contribution, or do both. Each harmful-exposure row can be unrestricted,
-game-safe, fully countered, or limited to a custom final value.
+ranking. Enabled positive rows can participate in scoring and optionally require
+a minimum artifact contribution. Each harmful-property row can be unrestricted,
+fully countered, or limited to a custom accepted penalty; the five environmental
+exposures with published warning thresholds can also use a game-safe policy.
 
 The user chooses one of two exact engines. Brute force enumerates canonical
 combinations without slot permutations, returns the ten best builds, and rejects

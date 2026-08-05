@@ -91,22 +91,27 @@ per-effect limits. Random additional properties are not searched because EXBO
 does not publish their pools.
 
 Every supported positive stat remains visible. Enabling its Optimize control
-adds it to weighted scoring; an optional minimum instead creates an artifact-only
-hard constraint and works whether scoring is enabled or not. Carrier properties
-therefore cannot satisfy a positive minimum—for example, built-in backpack carry
-weight cannot stand in for artifact carry weight. Movement speed and stamina
-regeneration start enabled at Neutral; every other row starts visible, disabled,
-and retains Neutral as the priority used if enabled.
+adds it to weighted scoring and reveals an optional artifact-only minimum. Turning
+the row off clears and removes that minimum. Carrier properties therefore cannot
+satisfy a positive minimum—for example, built-in backpack carry weight cannot
+stand in for artifact carry weight. Movement speed and stamina regeneration start
+enabled at Neutral; every other row starts visible, disabled, and retains Neutral
+as the priority used if enabled.
 
-Every supported harmful exposure also remains visible. `Allow` adds no constraint;
-`Game-safe` caps an exposure at its damage threshold; `No negative` caps its
-final value at zero; and `Custom maximum` uses the entered cap. Game-safe is only
-available where [`WARNING_LIMITS`](../src/calculations.ts) defines a threshold.
-Harmful limits evaluate final values after artifact counter-effects, inner
-protection, and carrier properties. The Allow all, Game-safe, and Counter all
-buttons are bulk policy setters, not additional constraints. All numerical
-constraints are applied before feasible ranges are discovered, so normalization
-uses only qualifying builds.
+All 13 properties that appear as harmful on artifacts in the current EXBO Global
+catalog remain visible. `Allow` adds no constraint. `No negative` requires a final
+value at or below zero for positive-is-harmful properties such as radiation and
+recoil, and at or above zero for negative-is-harmful properties such as vitality,
+healing effectiveness, bullet resistance, bleeding protection, reaction to burns,
+movement speed, and running speed. A custom accepted penalty is entered as a
+non-negative magnitude: for example, `5` means vitality must remain at least
+`-5%`, while radiation must remain at most `+5`. `Game-safe` caps an exposure at
+its damage threshold and is only available where
+[`WARNING_LIMITS`](../src/calculations.ts) defines one. Harmful limits evaluate
+final values after artifact counter-effects, inner protection, and carrier
+properties. The Allow all, Game-safe, and Counter all buttons are bulk policy
+setters, not additional constraints. All numerical constraints are applied before
+feasible ranges are discovered, so normalization uses only qualifying builds.
 
 When a maximum total price is supplied, each candidate uses the generated median
 completed-sale estimate for the optimizer's selected rarity. Duplicate artifacts
@@ -151,8 +156,9 @@ should also update the Playwright flow in
 [`tests/calculator.spec.ts`](../tests/calculator.spec.ts).
 Optimizer coverage checks combination counts, weight-sensitive ranking,
 search-size rejection, feasible-range normalization, independent final maximums,
-and artifact-only positive minimums. It also covers the zero boundary for fully
-countered harmful properties and exclusion of carrier stats from artifact
+and artifact-only positive minimums. It also covers both harmful directions, the
+zero boundary for fully countered harmful properties, the catalog's complete
+harmful-property filter list, and exclusion of carrier stats from artifact
 minimums. Priority-control coverage checks exact normalized shares, neutral
 defaults, enabled-row highlighting, and the doubling between importance levels.
 Pricing coverage checks rarity-specific lookup, missing-tier behavior, ruble

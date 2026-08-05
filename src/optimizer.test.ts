@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
   combinationCount,
+  harmfulEffectConstraint,
+  OPTIMIZER_HARMFUL_OPTIONS,
   optimizeArtifactCombinations,
   type OptimizerCandidate,
   type OptimizerContainer,
@@ -38,6 +40,45 @@ const settings = {
 };
 
 describe("artifact optimizer", () => {
+  it("covers every harmful property published by the current artifact catalog", () => {
+    expect(OPTIMIZER_HARMFUL_OPTIONS.map((option) => option.name)).toEqual([
+      "Radiation",
+      "Biological infection",
+      "Psy-emissions",
+      "Temperature",
+      "Frost",
+      "Recoil",
+      "Vitality",
+      "Healing effectiveness",
+      "Bullet resistance",
+      "Bleeding protection",
+      "Reaction to burns",
+      "Movement speed",
+      "Running speed",
+    ]);
+  });
+
+  it("translates accepted harm into direction-aware final-build constraints", () => {
+    const radiation = OPTIMIZER_HARMFUL_OPTIONS.find((option) => option.name === "Radiation")!;
+    const vitality = OPTIMIZER_HARMFUL_OPTIONS.find((option) => option.name === "Vitality")!;
+
+    expect(harmfulEffectConstraint(radiation, "safe", null)).toEqual({
+      key: radiation.key,
+      minimum: null,
+      maximum: 0.5,
+      scope: "final",
+    });
+    expect(harmfulEffectConstraint(radiation, "strict", null)?.maximum).toBe(0);
+    expect(harmfulEffectConstraint(vitality, "strict", null)).toEqual({
+      key: vitality.key,
+      minimum: -0,
+      maximum: null,
+      scope: "final",
+    });
+    expect(harmfulEffectConstraint(vitality, "custom", 5)?.minimum).toBe(-5);
+    expect(harmfulEffectConstraint(vitality, "allow", null)).toBeNull();
+  });
+
   it("counts canonical combinations without generating slot permutations", () => {
     expect(combinationCount(103, 4, true)).toBe(4_967_690);
     expect(combinationCount(103, 4, false)).toBe(4_421_275);
