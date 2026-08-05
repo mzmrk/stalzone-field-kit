@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { calculateStat, calculateTotals, rarityOptions } from "./calculations";
+import { calculateStat, calculateTotals, RARITY_MIDPOINT_QUALITIES, rarityOptions } from "./calculations";
 import type { ArtifactConfig, ContainerData, ParsedStat } from "./types";
 
 const beneficial: ParsedStat = {
@@ -12,6 +12,10 @@ const beneficial: ParsedStat = {
 };
 
 describe("artifact calculations", () => {
+  it("uses the midpoint of every rarity band for unstudied optimizer estimates", () => {
+    expect(RARITY_MIDPOINT_QUALITIES).toEqual([92.5, 107.5, 122.5, 137.5, 152.5, 167.5, 182.5]);
+  });
+
   it("applies quality, upgrades, and container effectiveness", () => {
     expect(calculateStat(beneficial, 120, 10, 1, 110)).toBeCloseTo(1.584);
   });

@@ -80,6 +80,9 @@ export type OptimizerCandidate = {
   name: string;
   stats: ParsedStat[];
   price: number | null;
+  identity?: string;
+  quality?: number;
+  rarityIndex?: number;
 };
 
 export type OptimizerContainer = {
@@ -149,6 +152,40 @@ export function combinationCount(candidateCount: number, slots: number, allowDup
   return binomial(allowDuplicates ? candidateCount + slots - 1 : candidateCount, slots);
 }
 
+export function groupedCombinationCount(
+  groupCount: number,
+  variantsPerGroup: number,
+  slots: number,
+  allowDuplicates: boolean,
+) {
+  if (groupCount < 0 || variantsPerGroup < 0) return 0;
+  if (allowDuplicates) return combinationCount(groupCount * variantsPerGroup, slots, true);
+  if (slots < 0 || slots > groupCount) return 0;
+  return Math.round(binomial(groupCount, slots) * variantsPerGroup ** slots);
+}
+
+export function candidateCombinationCount(
+  candidates: OptimizerCandidate[],
+  slots: number,
+  allowDuplicates: boolean,
+) {
+  if (allowDuplicates) return combinationCount(candidates.length, slots, true);
+  if (slots < 0) return 0;
+  const groupSizes = new Map<string, number>();
+  candidates.forEach((candidate, index) => {
+    const identity = candidate.identity ?? `candidate-${index}`;
+    groupSizes.set(identity, (groupSizes.get(identity) ?? 0) + 1);
+  });
+  const counts = new Array<number>(slots + 1).fill(0);
+  counts[0] = 1;
+  for (const size of groupSizes.values()) {
+    for (let selected = slots; selected >= 1; selected -= 1) {
+      counts[selected] += counts[selected - 1] * size;
+    }
+  }
+  return Math.round(counts[slots]);
+}
+
 export function optimizeArtifactCombinations(
   container: OptimizerContainer,
   candidates: OptimizerCandidate[],
@@ -159,7 +196,7 @@ export function optimizeArtifactCombinations(
   const activeObjectives = objectives.filter((objective) => objective.weight > 0);
   if (activeObjectives.length === 0) throw new Error("Add at least one objective with a positive weight.");
 
-  const combinations = combinationCount(candidates.length, container.capacity, settings.allowDuplicates);
+  const combinations = candidateCombinationCount(candidates, container.capacity, settings.allowDuplicates);
   const combinationLimit = settings.combinationLimit ?? DEFAULT_COMBINATION_LIMIT;
   if (combinations > combinationLimit) throw new SearchSpaceTooLargeError(combinations, combinationLimit);
   if (combinations === 0) return { combinations, feasibleCombinations: 0, ranges: [], results: [] };
@@ -183,9 +220,9 @@ export function optimizeArtifactCombinations(
       if (index === undefined) continue;
       values[index] += calculateStat(
         stat,
-        settings.quality,
+        candidate.quality ?? settings.quality,
         settings.level,
-        settings.rarityIndex,
+        candidate.rarityIndex ?? settings.rarityIndex,
         container.effectiveness,
       );
     }
@@ -230,6 +267,7 @@ export function optimizeArtifactCombinations(
   let feasibleCombinations = 0;
   enumerateCombinations(
     vectors,
+    candidates,
     container.capacity,
     settings.allowDuplicates,
     combinations,
@@ -260,6 +298,7 @@ export function optimizeArtifactCombinations(
   const results: OptimizerResult[] = [];
   enumerateCombinations(
     vectors,
+    candidates,
     container.capacity,
     settings.allowDuplicates,
     combinations,
@@ -297,6 +336,7 @@ export function optimizeArtifactCombinations(
 
 function enumerateCombinations(
   vectors: Float64Array[],
+  candidates: OptimizerCandidate[],
   slots: number,
   allowDuplicates: boolean,
   total: number,
@@ -308,6 +348,7 @@ function enumerateCombinations(
   const indices = new Int32Array(slots);
   let completed = 0;
   let lastProgress = 0;
+  const usedGroups = new Set<string>();
 
   const walk = (depth: number, start: number) => {
     if (depth === slots) {
@@ -323,10 +364,14 @@ function enumerateCombinations(
     const remaining = slots - depth;
     const finalIndex = allowDuplicates ? vectors.length - 1 : vectors.length - remaining;
     for (let candidateIndex = start; candidateIndex <= finalIndex; candidateIndex += 1) {
+      const identity = candidates[candidateIndex].identity ?? `candidate-${candidateIndex}`;
+      if (!allowDuplicates && usedGroups.has(identity)) continue;
       indices[depth] = candidateIndex;
       const vector = vectors[candidateIndex];
       for (let index = 0; index < sums.length; index += 1) sums[index] += vector[index];
+      if (!allowDuplicates) usedGroups.add(identity);
       walk(depth + 1, allowDuplicates ? candidateIndex : candidateIndex + 1);
+      if (!allowDuplicates) usedGroups.delete(identity);
       for (let index = 0; index < sums.length; index += 1) sums[index] -= vector[index];
     }
   };

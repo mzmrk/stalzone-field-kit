@@ -126,6 +126,8 @@ test("uses MILP to optimize a carrier beyond the brute-force limit", async ({ pa
   await page.getByRole("button", { name: /Berloga-6 Container/ }).click();
 
   await expect(page.getByText(/exceeds the brute-force/)).toBeVisible();
+  await expect(page.getByLabel("Search Ordinary rarity")).toBeChecked();
+  await page.getByLabel("Search Uncommon rarity").check();
   await page.getByLabel("Optimization engine").selectOption("milp");
   const searchButton = page.getByRole("button", { name: "Find optimal build with MILP" });
   await expect(searchButton).toBeEnabled();
@@ -134,4 +136,7 @@ test("uses MILP to optimize a carrier beyond the brute-force limit", async ({ pa
   await expect(page.getByText("MILP exact")).toBeVisible({ timeout: 45_000 });
   await expect(page.getByText(/possible combinations were not enumerated/)).toBeVisible();
   await expect(page.getByRole("button", { name: "Load into calculator" })).toHaveCount(10);
+  await expect(page.locator(".optimizer-artifacts small").first()).toContainText("Uncommon");
+  await page.getByRole("button", { name: "Load into calculator" }).first().click();
+  await expect(page.getByText(/107.5% · Uncommon/).first()).toBeVisible();
 });

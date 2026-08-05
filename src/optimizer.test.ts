@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
   combinationCount,
+  candidateCombinationCount,
+  groupedCombinationCount,
   harmfulEffectConstraint,
   OPTIMIZER_HARMFUL_OPTIONS,
   optimizeArtifactCombinations,
@@ -82,6 +84,36 @@ describe("artifact optimizer", () => {
   it("counts canonical combinations without generating slot permutations", () => {
     expect(combinationCount(103, 4, true)).toBe(4_967_690);
     expect(combinationCount(103, 4, false)).toBe(4_421_275);
+  });
+
+  it("counts rarity variants while keeping artifact identities unique", () => {
+    const candidates = [
+      { ...candidate("A ordinary", []), identity: "A" },
+      { ...candidate("A uncommon", []), identity: "A" },
+      { ...candidate("B ordinary", []), identity: "B" },
+      { ...candidate("B uncommon", []), identity: "B" },
+    ];
+    expect(groupedCombinationCount(2, 2, 2, false)).toBe(4);
+    expect(groupedCombinationCount(2, 2, 2, true)).toBe(10);
+    expect(candidateCombinationCount(candidates, 2, false)).toBe(4);
+  });
+
+  it("uses candidate-specific rarity quality and rejects two variants of one artifact", () => {
+    const candidates: OptimizerCandidate[] = [
+      { ...candidate("A ordinary", [stat(MOVEMENT, "Movement", 2)]), identity: "A", quality: 92.5, rarityIndex: 0 },
+      { ...candidate("A uncommon", [stat(MOVEMENT, "Movement", 2)]), identity: "A", quality: 107.5, rarityIndex: 1 },
+      { ...candidate("B ordinary", [stat(MOVEMENT, "Movement", 1)]), identity: "B", quality: 92.5, rarityIndex: 0 },
+    ];
+    const result = optimizeArtifactCombinations(container, candidates, [{ key: MOVEMENT, weight: 1 }], {
+      ...settings,
+      allowDuplicates: false,
+      constraints: [],
+    });
+
+    expect(result.combinations).toBe(2);
+    expect(result.feasibleCombinations).toBe(2);
+    expect(result.results[0].indices).toEqual([1, 2]);
+    expect(result.results[0].values[0]).toBeCloseTo(3.075);
   });
 
   it("rejects a search before enumeration when it exceeds the configured limit", () => {

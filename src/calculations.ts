@@ -58,6 +58,8 @@ export const RARITY_NAMES = [
   "Unique",
 ];
 
+export const RARITY_MIDPOINT_QUALITIES = [92.5, 107.5, 122.5, 137.5, 152.5, 167.5, 182.5] as const;
+
 export function rarityOptions(quality: number) {
   const boundaries = [100, 115, 130, 145, 160, 175];
   const boundary = boundaries.indexOf(quality);

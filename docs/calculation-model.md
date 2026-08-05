@@ -90,6 +90,15 @@ counter-effects before inner protection, then carrier stats and the configured
 per-effect limits. Random additional properties are not searched because EXBO
 does not publish their pools.
 
+The user enables one or more rarity bands. Every enabled rarity becomes a
+separately priced variant of every artifact and uses the midpoint quality of its
+unstudied range: `92.5`, `107.5`, `122.5`, `137.5`, `152.5`, `167.5`, or `182.5`.
+These are deterministic estimates for ranged market artifacts rather than claims
+about their eventual researched quality. Variants retain a shared artifact
+identity, so disabling duplicates prevents two rarities of the same artifact from
+appearing together. Enabling duplicates allows multiple copies, including copies
+with different rarities.
+
 Every supported positive stat remains visible. Enabling its Optimize control
 adds it to weighted scoring and reveals an optional artifact-only minimum. Turning
 the row off clears and removes that minimum. Carrier properties therefore cannot
@@ -117,10 +126,10 @@ are applied before feasible ranges are discovered, so normalization uses only
 qualifying builds.
 
 When a maximum total price is supplied, each candidate uses the generated median
-completed-sale estimate for the optimizer's selected rarity. Duplicate artifacts
-repeat their price. A combination passes only when every artifact has an estimate
-and their sum is at or below the cap. Both engines apply price eligibility before
-deriving feasible ranges or ranked results.
+completed-sale estimate for its own rarity. Duplicate artifacts repeat the price
+of each chosen variant. A combination passes only when every artifact has an
+estimate and their sum is at or below the cap. Both engines apply price eligibility
+before deriving feasible ranges or ranked results.
 
 Both optimizer engines first derive the feasible minimum and maximum for every
 positive-weight objective, then normalize each objective as:
@@ -164,6 +173,8 @@ zero boundary for fully countered harmful properties, the catalog's complete
 harmful-property filter list, and exclusion of carrier stats from artifact
 minimums. Priority-control coverage checks exact normalized shares, neutral
 defaults, enabled-row highlighting, and the doubling between importance levels.
+Rarity-variant coverage checks midpoint qualities, group-aware combination counts,
+per-candidate scaling, and artifact-identity constraints in both exact engines.
 Pricing coverage checks rarity-specific lookup, missing-tier behavior, ruble
 formatting, budget filtering, duplicate-price summation, and uncapped handling of
 unknown estimates. MILP coverage runs the actual WebAssembly solver, compares its

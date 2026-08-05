@@ -32,6 +32,7 @@ import {
   calculateTotals,
   EXPOSURE_KEYS,
   rarityOptions,
+  RARITY_MIDPOINT_QUALITIES,
   RARITY_NAMES,
   STAT_OPTIONS,
   statCategory,
@@ -47,7 +48,8 @@ import {
   type Catalog,
 } from "./data";
 import {
-  combinationCount,
+  candidateCombinationCount,
+  groupedCombinationCount,
   harmfulEffectConstraint,
   OPTIMIZER_HARMFUL_OPTIONS,
   OPTIMIZER_STAT_OPTIONS,
@@ -619,9 +621,8 @@ function OptimizerPanel({
   container: ContainerData | null;
   onApply: (artifacts: ArtifactConfig[]) => void;
 }) {
-  const [quality, setQuality] = useState(100);
   const [level, setLevel] = useState(0);
-  const [rarityIndex, setRarityIndex] = useState(0);
+  const [selectedRarities, setSelectedRarities] = useState<number[]>([0]);
   const [positiveFilters, setPositiveFilters] = useState<PositiveFilter[]>(DEFAULT_POSITIVE_FILTERS);
   const [negativeFilters, setNegativeFilters] = useState<NegativeFilter[]>(DEFAULT_NEGATIVE_FILTERS);
   const [allowDuplicates, setAllowDuplicates] = useState(true);
@@ -637,9 +638,8 @@ function OptimizerPanel({
   const runIdRef = useRef(0);
   const searchSignature = JSON.stringify({
     carrier: container?.entry.data ?? null,
-    quality,
     level,
-    rarityIndex,
+    selectedRarities,
     positiveFilters,
     negativeFilters,
     allowDuplicates,
@@ -661,9 +661,8 @@ function OptimizerPanel({
     setState("idle");
   }, [searchSignature]);
 
-  const rarityChoices = rarityOptions(quality);
   const estimatedCombinations = catalog && container
-    ? combinationCount(catalog.artifacts.length, container.capacity, allowDuplicates)
+    ? groupedCombinationCount(catalog.artifacts.length, selectedRarities.length, container.capacity, allowDuplicates)
     : 0;
   const oversized = engine === "brute-force" && estimatedCombinations > OPTIMIZER_COMBINATION_LIMIT;
   const activeObjectives: OptimizerObjective[] = positiveFilters
@@ -696,13 +695,6 @@ function OptimizerPanel({
   const parsedMaxTotalPrice = maxTotalPrice === "" ? null : Number(maxTotalPrice);
   const invalidMaxTotalPrice = parsedMaxTotalPrice !== null
     && (!Number.isFinite(parsedMaxTotalPrice) || parsedMaxTotalPrice <= 0);
-
-  const updateQuality = (value: number) => {
-    const nextQuality = clamp(Number(value.toFixed(2)), 0, 190);
-    const choices = rarityOptions(nextQuality);
-    setQuality(nextQuality);
-    setRarityIndex((current) => choices.includes(current) ? current : choices[0]);
-  };
 
   const loadCandidates = async (runId: number) => {
     if (!catalog) return { items: [] as ArtifactData[], failed: 0 };
@@ -737,7 +729,7 @@ function OptimizerPanel({
   };
 
   const startSearch = async () => {
-    if (!catalog || !container || oversized || activeObjectives.length === 0
+    if (!catalog || !container || oversized || activeObjectives.length === 0 || selectedRarities.length === 0
       || invalidMaxTotalPrice || invalidPositiveMinimum || invalidCustomLimit) return;
     const runId = runIdRef.current + 1;
     runIdRef.current = runId;
@@ -756,16 +748,25 @@ function OptimizerPanel({
       return;
     }
 
-    const candidateConfigs: ArtifactConfig[] = loaded.items.map((artifact, index) => ({
-      ...artifact,
-      uid: `optimizer-${index}`,
-      quality,
-      level,
-      rarityIndex,
-      bonuses: [],
+    const candidateConfigs: ArtifactConfig[] = loaded.items.flatMap((artifact, artifactIndex) =>
+      selectedRarities.map((candidateRarity) => ({
+        ...artifact,
+        uid: `optimizer-${artifactIndex}-${candidateRarity}`,
+        quality: RARITY_MIDPOINT_QUALITIES[candidateRarity],
+        level,
+        rarityIndex: candidateRarity,
+        bonuses: [],
+      })));
+    const candidatePrices = candidateConfigs.map((artifact) => artifactPrice(artifact.entry, artifact.rarityIndex)?.median ?? null);
+    const optimizerCandidates = candidateConfigs.map((candidate, index) => ({
+      name: candidate.name,
+      stats: candidate.stats,
+      price: candidatePrices[index],
+      identity: candidate.entry.data,
+      quality: candidate.quality,
+      rarityIndex: candidate.rarityIndex,
     }));
-    const candidatePrices = loaded.items.map((artifact) => artifactPrice(artifact.entry, rarityIndex)?.median ?? null);
-    const actualCombinations = combinationCount(candidateConfigs.length, container.capacity, allowDuplicates);
+    const actualCombinations = candidateCombinationCount(optimizerCandidates, container.capacity, allowDuplicates);
     if (engine === "brute-force" && actualCombinations > OPTIMIZER_COMBINATION_LIMIT) {
       setError(`The ${actualCombinations.toLocaleString()}-combination search exceeds the current exact-search limit.`);
       setState("error");
@@ -812,16 +813,12 @@ function OptimizerPanel({
         effectiveness: container.effectiveness,
         stats: container.stats,
       },
-      candidates: candidateConfigs.map((candidate, index) => ({
-        name: candidate.name,
-        stats: candidate.stats,
-        price: candidatePrices[index],
-      })),
+      candidates: optimizerCandidates,
       objectives: activeObjectives,
       settings: {
-        quality,
+        quality: 100,
         level,
-        rarityIndex,
+        rarityIndex: 0,
         allowDuplicates,
         constraints,
         maxTotalPrice: parsedMaxTotalPrice,
@@ -867,11 +864,24 @@ function OptimizerPanel({
             <div className="optimizer-block">
               <div className="section-label"><span>Artifact assumptions</span><span>Catalog mode</span></div>
               <div className="optimizer-assumptions">
-                <label><span>Quality</span><input aria-label="Optimizer quality" type="number" min="0" max="190" step="0.1" value={quality} onChange={(event) => updateQuality(Number(event.target.value))} /></label>
                 <label><span>Level</span><input aria-label="Optimizer level" type="number" min="0" max="15" step="1" value={level} onChange={(event) => setLevel(clamp(Math.round(Number(event.target.value)), 0, 15))} /></label>
-                <label><span>Rarity</span><select aria-label="Optimizer rarity" value={rarityIndex} onChange={(event) => setRarityIndex(Number(event.target.value))}>{rarityChoices.map((choice) => <option value={choice} key={choice}>{RARITY_NAMES[choice]}</option>)}</select></label>
               </div>
-              <p className="field-note">Every catalog artifact uses these settings. Random additional properties are excluded.</p>
+              <div className="optimizer-rarity-list" role="group" aria-label="Rarities to search">
+                {RARITY_NAMES.map((rarityName, candidateRarity) => (
+                  <label data-rarity={candidateRarity} key={rarityName}>
+                    <input
+                      type="checkbox"
+                      aria-label={`Search ${rarityName} rarity`}
+                      checked={selectedRarities.includes(candidateRarity)}
+                      onChange={(event) => setSelectedRarities((current) => event.target.checked
+                        ? [...current, candidateRarity].sort((left, right) => left - right)
+                        : current.filter((value) => value !== candidateRarity))}
+                    />
+                    <span><strong>{rarityName}</strong><small>{RARITY_MIDPOINT_QUALITIES[candidateRarity]}% midpoint</small></span>
+                  </label>
+                ))}
+              </div>
+              <p className="field-note">Each enabled rarity uses the midpoint of its unstudied stat range. Random additional properties are excluded.</p>
             </div>
 
             <div className="optimizer-block">
@@ -952,11 +962,12 @@ function OptimizerPanel({
                 <span>SEARCH SPACE</span><strong>{estimatedCombinations.toLocaleString()}</strong><small>canonical combinations</small>
               </div>
               {oversized && <p className="optimizer-error">This exceeds the brute-force {OPTIMIZER_COMBINATION_LIMIT.toLocaleString()}-combination limit. Switch to MILP for this carrier.</p>}
+              {selectedRarities.length === 0 && <p className="optimizer-error">Select at least one artifact rarity.</p>}
               {activeObjectives.length === 0 && <p className="optimizer-error">At least one positive effect must be enabled for optimization.</p>}
               {invalidPositiveMinimum && <p className="optimizer-error">Positive minimums must be greater than zero.</p>}
               {invalidCustomLimit && <p className="optimizer-error">Every accepted penalty must be zero or greater.</p>}
               {invalidMaxTotalPrice && <p className="optimizer-error">Maximum total price must be greater than zero.</p>}
-              <button className="optimizer-search" disabled={!catalog || oversized || activeObjectives.length === 0 || invalidPositiveMinimum || invalidCustomLimit || invalidMaxTotalPrice || state === "loading" || state === "searching"} onClick={startSearch}>
+              <button className="optimizer-search" disabled={!catalog || oversized || selectedRarities.length === 0 || activeObjectives.length === 0 || invalidPositiveMinimum || invalidCustomLimit || invalidMaxTotalPrice || state === "loading" || state === "searching"} onClick={startSearch}>
                 {state === "loading" ? `Loading artifacts ${loadProgress.completed}/${loadProgress.total}` : state === "searching" ? `${engine === "milp" ? "Solving MILP" : "Searching"} ${progressPercent.toFixed(0)}%` : engine === "milp" ? "Find optimal build with MILP" : `Search ${estimatedCombinations.toLocaleString()} combinations`}
               </button>
               {(state === "loading" || state === "searching") && <div className="optimizer-progress"><span style={{ width: `${state === "loading" ? (loadProgress.completed / Math.max(1, loadProgress.total)) * 100 : progressPercent}%` }} /></div>}
@@ -984,8 +995,8 @@ function OptimizerPanel({
                       <article className="optimizer-result" key={result.indices.join("-")}>
                         <div className="optimizer-result__top"><span>#{resultIndex + 1}</span><strong>{(result.score * 100).toFixed(1)} score</strong><span className="optimizer-result__price">{formatPrice(result.totalPrice)}</span><small className={resultTotals.warnings.length ? "unsafe" : "safe"}>{resultTotals.warnings.length ? "Unsafe" : "Safe"}</small></div>
                         <div className="optimizer-artifacts">{selected.map((artifact, index) => {
-                          const estimate = artifactPrice(artifact.entry, rarityIndex);
-                          return <span key={`${artifact.entry.data}-${index}`} title={`${artifact.name} · ${formatPrice(estimate?.median ?? null)}`}><ItemImage entry={artifact.entry} /><small>{artifact.name}</small><em>{formatPrice(estimate?.median ?? null)}</em></span>;
+                          const estimate = artifactPrice(artifact.entry, artifact.rarityIndex);
+                          return <span key={`${artifact.entry.data}-${artifact.rarityIndex}-${index}`} title={`${artifact.name} · ${RARITY_NAMES[artifact.rarityIndex]} · ${formatPrice(estimate?.median ?? null)}`}><ItemImage entry={artifact.entry} /><small>{artifact.name} · {RARITY_NAMES[artifact.rarityIndex]}</small><em>{formatPrice(estimate?.median ?? null)}</em></span>;
                         })}</div>
                         <div className="optimizer-metrics">
                           {run.objectives.map((objective, objectiveIndex) => {

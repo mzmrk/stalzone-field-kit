@@ -69,6 +69,24 @@ describe("MILP artifact optimizer", () => {
     expect(milp.feasibleCombinations).toBeNull();
   });
 
+  it("matches brute force when rarity variants share a no-duplicate identity", async () => {
+    const candidates: OptimizerCandidate[] = [
+      { ...candidate("A ordinary", [stat(MOVEMENT, 2)]), identity: "A", quality: 92.5, rarityIndex: 0 },
+      { ...candidate("A uncommon", [stat(MOVEMENT, 2)]), identity: "A", quality: 107.5, rarityIndex: 1 },
+      { ...candidate("B ordinary", [stat(MOVEMENT, 1)]), identity: "B", quality: 92.5, rarityIndex: 0 },
+    ];
+    const variantSettings = { ...settings, allowDuplicates: false, constraints: [] };
+    const objectives = [{ key: MOVEMENT, weight: 1 }];
+
+    const bruteForce = optimizeArtifactCombinations(container, candidates, objectives, variantSettings);
+    const milp = await optimizeArtifactCombinationsMilp(solver, container, candidates, objectives, variantSettings);
+
+    expect(bruteForce.results[0].indices).toEqual([1, 2]);
+    expect(milp.results[0].indices).toEqual(bruteForce.results[0].indices);
+    expect(milp.results[0].values[0]).toBeCloseTo(3.075);
+    expect(milp.combinations).toBe(2);
+  });
+
   it.each([
     ["with duplicate artifacts", true],
     ["without duplicate artifacts", false],

@@ -3,7 +3,7 @@ import {
   PROTECTED_EXPOSURE_KEYS,
 } from "./calculations";
 import {
-  combinationCount,
+  candidateCombinationCount,
   type OptimizerCandidate,
   type OptimizerContainer,
   type OptimizerObjective,
@@ -58,7 +58,7 @@ export async function optimizeArtifactCombinationsMilp(
   const activeObjectives = objectives.filter((objective) => objective.weight > 0);
   if (activeObjectives.length === 0) throw new Error("Add at least one objective with a positive weight.");
 
-  const combinations = combinationCount(candidates.length, container.capacity, settings.allowDuplicates);
+  const combinations = candidateCombinationCount(candidates, container.capacity, settings.allowDuplicates);
   if (combinations === 0) {
     return { combinations, feasibleCombinations: 0, ranges: [], results: [] };
   }
@@ -166,9 +166,9 @@ function prepareProblem(
       if (index === undefined) continue;
       values[index] += calculateStat(
         stat,
-        settings.quality,
+        candidate.quality ?? settings.quality,
         settings.level,
-        settings.rarityIndex,
+        candidate.rarityIndex ?? settings.rarityIndex,
         container.effectiveness,
       );
     }
@@ -180,6 +180,26 @@ function prepareProblem(
     sense: "=",
     rhs: container.capacity,
   }];
+  if (!settings.allowDuplicates) {
+    const groups = new Map<string, number[]>();
+    candidates.forEach((candidate, candidateIndex) => {
+      const identity = candidate.identity ?? `candidate-${candidateIndex}`;
+      const indices = groups.get(identity) ?? [];
+      indices.push(candidateIndex);
+      groups.set(identity, indices);
+    });
+    for (const indices of groups.values()) {
+      if (indices.length < 2) continue;
+      const coefficients = new Float64Array(candidates.length);
+      indices.forEach((candidateIndex) => { coefficients[candidateIndex] = 1; });
+      constraints.push({
+        name: `artifact_identity_${constraints.length}`,
+        coefficients,
+        sense: "<=",
+        rhs: 1,
+      });
+    }
+  }
   const coefficientsFor = (key: string) => {
     const index = keyIndexes.get(key)!;
     return Float64Array.from(vectors, (vector) => vector[index]);
