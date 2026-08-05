@@ -1,0 +1,2216 @@
+{
+  "region": "eu",
+  "snapshot": "2026-08-05T00-02-19Z",
+  "method": "median completed sale price grouped by additional.qlt",
+  "artifacts": {
+    "04yr": {
+      "0": {
+        "median": 100000,
+        "samples": 5
+      },
+      "1": {
+        "median": 215000,
+        "samples": 36
+      },
+      "2": {
+        "median": 899999.5,
+        "samples": 30
+      },
+      "3": {
+        "median": 4800000,
+        "samples": 25
+      },
+      "4": {
+        "median": 41999999,
+        "samples": 3
+      }
+    },
+    "1k4q": {
+      "0": {
+        "median": 7000,
+        "samples": 66
+      },
+      "1": {
+        "median": 8990,
+        "samples": 23
+      },
+      "2": {
+        "median": 10000,
+        "samples": 5
+      },
+      "3": {
+        "median": 45000,
+        "samples": 4
+      },
+      "4": {
+        "median": 184999.5,
+        "samples": 2
+      }
+    },
+    "1k96": {
+      "0": {
+        "median": 8000,
+        "samples": 62
+      },
+      "1": {
+        "median": 8949,
+        "samples": 19
+      },
+      "2": {
+        "median": 18610,
+        "samples": 6
+      },
+      "3": {
+        "median": 60001,
+        "samples": 3
+      },
+      "4": {
+        "median": 100000,
+        "samples": 8
+      },
+      "5": {
+        "median": 1700000,
+        "samples": 2
+      }
+    },
+    "1kdg": {
+      "0": {
+        "median": 9990,
+        "samples": 60
+      },
+      "1": {
+        "median": 10555,
+        "samples": 12
+      },
+      "2": {
+        "median": 22000,
+        "samples": 13
+      },
+      "3": {
+        "median": 85000,
+        "samples": 11
+      },
+      "4": {
+        "median": 675000,
+        "samples": 4
+      }
+    },
+    "1kv2": {
+      "0": {
+        "median": 8000,
+        "samples": 63
+      },
+      "1": {
+        "median": 10750,
+        "samples": 22
+      },
+      "2": {
+        "median": 17000,
+        "samples": 9
+      },
+      "3": {
+        "median": 50000,
+        "samples": 3
+      },
+      "4": {
+        "median": 299999,
+        "samples": 1
+      },
+      "5": {
+        "median": 1125000,
+        "samples": 2
+      }
+    },
+    "1kw1": {
+      "0": {
+        "median": 30000,
+        "samples": 25
+      },
+      "1": {
+        "median": 75000,
+        "samples": 27
+      },
+      "2": {
+        "median": 180000,
+        "samples": 21
+      },
+      "3": {
+        "median": 525000,
+        "samples": 24
+      },
+      "4": {
+        "median": 1861111,
+        "samples": 2
+      },
+      "5": {
+        "median": 13000000,
+        "samples": 1
+      }
+    },
+    "49zn": {
+      "1": {
+        "median": 182499.5,
+        "samples": 16
+      },
+      "2": {
+        "median": 425000,
+        "samples": 56
+      },
+      "3": {
+        "median": 2900000,
+        "samples": 23
+      },
+      "4": {
+        "median": 10395000,
+        "samples": 3
+      }
+    },
+    "4l1r": {
+      "0": {
+        "median": 12000,
+        "samples": 38
+      },
+      "1": {
+        "median": 26000,
+        "samples": 19
+      },
+      "2": {
+        "median": 58000,
+        "samples": 21
+      },
+      "3": {
+        "median": 120000,
+        "samples": 19
+      },
+      "4": {
+        "median": 3200000,
+        "samples": 3
+      }
+    },
+    "4l7p": {
+      "0": {
+        "median": 9999,
+        "samples": 43
+      },
+      "1": {
+        "median": 12250,
+        "samples": 16
+      },
+      "2": {
+        "median": 20000,
+        "samples": 11
+      },
+      "3": {
+        "median": 100000,
+        "samples": 13
+      },
+      "4": {
+        "median": 750000,
+        "samples": 12
+      },
+      "5": {
+        "median": 11500000,
+        "samples": 5
+      }
+    },
+    "4lkp": {
+      "0": {
+        "median": 34000,
+        "samples": 41
+      },
+      "1": {
+        "median": 49999,
+        "samples": 28
+      },
+      "2": {
+        "median": 124499.5,
+        "samples": 20
+      },
+      "3": {
+        "median": 202500,
+        "samples": 10
+      },
+      "5": {
+        "median": 2700000,
+        "samples": 1
+      }
+    },
+    "4lml": {
+      "0": {
+        "median": 40000,
+        "samples": 24
+      },
+      "1": {
+        "median": 68332.5,
+        "samples": 10
+      },
+      "2": {
+        "median": 1105555.5,
+        "samples": 48
+      },
+      "3": {
+        "median": 6450000,
+        "samples": 17
+      },
+      "4": {
+        "median": 36000000,
+        "samples": 1
+      }
+    },
+    "4lpo": {
+      "0": {
+        "median": 104999.5,
+        "samples": 2
+      },
+      "1": {
+        "median": 160000,
+        "samples": 36
+      },
+      "2": {
+        "median": 650000,
+        "samples": 41
+      },
+      "3": {
+        "median": 4500000,
+        "samples": 18
+      },
+      "4": {
+        "median": 14700000,
+        "samples": 3
+      }
+    },
+    "4lrn": {
+      "0": {
+        "median": 51000,
+        "samples": 7
+      },
+      "1": {
+        "median": 80000,
+        "samples": 34
+      },
+      "2": {
+        "median": 200000,
+        "samples": 30
+      },
+      "3": {
+        "median": 817222,
+        "samples": 26
+      },
+      "4": {
+        "median": 4000000,
+        "samples": 3
+      }
+    },
+    "51l0": {
+      "1": {
+        "median": 70000,
+        "samples": 15
+      },
+      "2": {
+        "median": 105000,
+        "samples": 26
+      },
+      "3": {
+        "median": 1005555,
+        "samples": 28
+      },
+      "4": {
+        "median": 5000000,
+        "samples": 17
+      }
+    },
+    "5r04": {
+      "0": {
+        "median": 8000,
+        "samples": 57
+      },
+      "1": {
+        "median": 10000,
+        "samples": 17
+      },
+      "2": {
+        "median": 11000,
+        "samples": 9
+      },
+      "3": {
+        "median": 19999,
+        "samples": 8
+      },
+      "4": {
+        "median": 144444,
+        "samples": 9
+      }
+    },
+    "5r34": {
+      "0": {
+        "median": 9500,
+        "samples": 64
+      },
+      "1": {
+        "median": 10750,
+        "samples": 16
+      },
+      "2": {
+        "median": 20000,
+        "samples": 5
+      },
+      "3": {
+        "median": 62275,
+        "samples": 4
+      },
+      "4": {
+        "median": 226999.5,
+        "samples": 8
+      },
+      "5": {
+        "median": 1699999,
+        "samples": 3
+      }
+    },
+    "5r5g": {
+      "0": {
+        "median": 19000,
+        "samples": 15
+      },
+      "1": {
+        "median": 42000,
+        "samples": 32
+      },
+      "2": {
+        "median": 160000,
+        "samples": 27
+      },
+      "3": {
+        "median": 477777,
+        "samples": 23
+      },
+      "4": {
+        "median": 7750000,
+        "samples": 3
+      }
+    },
+    "5rd1": {
+      "0": {
+        "median": 45999,
+        "samples": 21
+      },
+      "1": {
+        "median": 98999.5,
+        "samples": 24
+      },
+      "2": {
+        "median": 664999.5,
+        "samples": 42
+      },
+      "3": {
+        "median": 10055555.5,
+        "samples": 12
+      },
+      "4": {
+        "median": 42000000,
+        "samples": 1
+      }
+    },
+    "5rg1": {
+      "0": {
+        "median": 11000,
+        "samples": 27
+      },
+      "1": {
+        "median": 23311,
+        "samples": 12
+      },
+      "2": {
+        "median": 65000,
+        "samples": 19
+      },
+      "3": {
+        "median": 419999.5,
+        "samples": 36
+      },
+      "4": {
+        "median": 6748000,
+        "samples": 6
+      }
+    },
+    "5rm0": {
+      "0": {
+        "median": 60000,
+        "samples": 12
+      },
+      "1": {
+        "median": 88888,
+        "samples": 22
+      },
+      "2": {
+        "median": 1800000,
+        "samples": 44
+      },
+      "3": {
+        "median": 4489444,
+        "samples": 20
+      },
+      "4": {
+        "median": 18777777,
+        "samples": 2
+      }
+    },
+    "5rog": {
+      "0": {
+        "median": 8000,
+        "samples": 63
+      },
+      "1": {
+        "median": 10000,
+        "samples": 15
+      },
+      "2": {
+        "median": 11305.5,
+        "samples": 10
+      },
+      "3": {
+        "median": 17500,
+        "samples": 2
+      },
+      "4": {
+        "median": 90000,
+        "samples": 7
+      },
+      "5": {
+        "median": 250000,
+        "samples": 3
+      }
+    },
+    "5rpq": {
+      "0": {
+        "median": 45000,
+        "samples": 17
+      },
+      "1": {
+        "median": 79000,
+        "samples": 31
+      },
+      "2": {
+        "median": 160000,
+        "samples": 28
+      },
+      "3": {
+        "median": 380000,
+        "samples": 22
+      },
+      "4": {
+        "median": 7200000,
+        "samples": 1
+      }
+    },
+    "5rwq": {
+      "0": {
+        "median": 42000,
+        "samples": 5
+      },
+      "1": {
+        "median": 71500,
+        "samples": 16
+      },
+      "2": {
+        "median": 218500,
+        "samples": 53
+      },
+      "3": {
+        "median": 3200000,
+        "samples": 23
+      },
+      "4": {
+        "median": 25000000,
+        "samples": 3
+      }
+    },
+    "5rzo": {
+      "0": {
+        "median": 30000,
+        "samples": 5
+      },
+      "1": {
+        "median": 70000,
+        "samples": 11
+      },
+      "2": {
+        "median": 90000,
+        "samples": 31
+      },
+      "3": {
+        "median": 390000,
+        "samples": 42
+      },
+      "4": {
+        "median": 3900000,
+        "samples": 9
+      },
+      "5": {
+        "median": 10237500,
+        "samples": 2
+      }
+    },
+    "6goy": {
+      "0": {
+        "median": 152775.5,
+        "samples": 14
+      },
+      "1": {
+        "median": 311111,
+        "samples": 33
+      },
+      "2": {
+        "median": 1200000,
+        "samples": 41
+      },
+      "3": {
+        "median": 8425000,
+        "samples": 12
+      }
+    },
+    "7z77": {
+      "0": {
+        "median": 250000,
+        "samples": 3
+      },
+      "1": {
+        "median": 950000,
+        "samples": 37
+      },
+      "2": {
+        "median": 6400000,
+        "samples": 49
+      },
+      "3": {
+        "median": 21750000,
+        "samples": 10
+      },
+      "4": {
+        "median": 70000000,
+        "samples": 1
+      }
+    },
+    "9n1w": {
+      "0": {
+        "median": 9000,
+        "samples": 69
+      },
+      "1": {
+        "median": 10500,
+        "samples": 24
+      },
+      "2": {
+        "median": 14999,
+        "samples": 3
+      },
+      "4": {
+        "median": 95000,
+        "samples": 4
+      }
+    },
+    "9n7z": {
+      "0": {
+        "median": 360000,
+        "samples": 37
+      },
+      "1": {
+        "median": 900000,
+        "samples": 58
+      },
+      "2": {
+        "median": 19949999.5,
+        "samples": 4
+      },
+      "3": {
+        "median": 78888888,
+        "samples": 1
+      }
+    },
+    "9nd0": {
+      "0": {
+        "median": 9000,
+        "samples": 59
+      },
+      "1": {
+        "median": 11055.5,
+        "samples": 28
+      },
+      "2": {
+        "median": 17000,
+        "samples": 7
+      },
+      "3": {
+        "median": 67676,
+        "samples": 3
+      },
+      "4": {
+        "median": 140000,
+        "samples": 2
+      },
+      "5": {
+        "median": 299999,
+        "samples": 1
+      }
+    },
+    "9nml": {
+      "0": {
+        "median": 7999,
+        "samples": 69
+      },
+      "1": {
+        "median": 8000,
+        "samples": 17
+      },
+      "2": {
+        "median": 14000,
+        "samples": 3
+      },
+      "3": {
+        "median": 40000,
+        "samples": 9
+      },
+      "4": {
+        "median": 220000,
+        "samples": 2
+      }
+    },
+    "9nvy": {
+      "0": {
+        "median": 9000,
+        "samples": 68
+      },
+      "1": {
+        "median": 11220,
+        "samples": 21
+      },
+      "2": {
+        "median": 15000,
+        "samples": 9
+      },
+      "3": {
+        "median": 26500,
+        "samples": 2
+      }
+    },
+    "g34p": {
+      "1": {
+        "median": 145000,
+        "samples": 15
+      },
+      "2": {
+        "median": 1100000,
+        "samples": 59
+      },
+      "3": {
+        "median": 5700000,
+        "samples": 17
+      },
+      "4": {
+        "median": 36000000,
+        "samples": 2
+      }
+    },
+    "gy06": {
+      "0": {
+        "median": 60000,
+        "samples": 33
+      },
+      "1": {
+        "median": 100000,
+        "samples": 19
+      },
+      "2": {
+        "median": 474500,
+        "samples": 26
+      },
+      "3": {
+        "median": 1837999,
+        "samples": 20
+      },
+      "4": {
+        "median": 63000000,
+        "samples": 2
+      }
+    },
+    "gy10": {
+      "0": {
+        "median": 8000,
+        "samples": 68
+      },
+      "1": {
+        "median": 7888,
+        "samples": 13
+      },
+      "2": {
+        "median": 18999,
+        "samples": 9
+      },
+      "3": {
+        "median": 38000,
+        "samples": 5
+      },
+      "4": {
+        "median": 70000,
+        "samples": 4
+      },
+      "5": {
+        "median": 370000,
+        "samples": 1
+      }
+    },
+    "gy7p": {
+      "0": {
+        "median": 29999,
+        "samples": 8
+      },
+      "1": {
+        "median": 69999.5,
+        "samples": 30
+      },
+      "2": {
+        "median": 600000,
+        "samples": 51
+      },
+      "3": {
+        "median": 6999999,
+        "samples": 11
+      }
+    },
+    "gyg5": {
+      "0": {
+        "median": 13000,
+        "samples": 42
+      },
+      "1": {
+        "median": 17995,
+        "samples": 13
+      },
+      "2": {
+        "median": 25500,
+        "samples": 20
+      },
+      "3": {
+        "median": 75000,
+        "samples": 17
+      },
+      "4": {
+        "median": 730000,
+        "samples": 7
+      }
+    },
+    "gyjg": {
+      "0": {
+        "median": 10000,
+        "samples": 68
+      },
+      "1": {
+        "median": 13000,
+        "samples": 19
+      },
+      "2": {
+        "median": 45000,
+        "samples": 4
+      },
+      "3": {
+        "median": 75000,
+        "samples": 7
+      },
+      "4": {
+        "median": 100000,
+        "samples": 1
+      }
+    },
+    "gyln": {
+      "0": {
+        "median": 9999.5,
+        "samples": 14
+      },
+      "1": {
+        "median": 22499.5,
+        "samples": 4
+      },
+      "2": {
+        "median": 30000,
+        "samples": 7
+      },
+      "3": {
+        "median": 66277.5,
+        "samples": 56
+      },
+      "4": {
+        "median": 189999,
+        "samples": 13
+      },
+      "5": {
+        "median": 995000,
+        "samples": 6
+      }
+    },
+    "gyn0": {
+      "0": {
+        "median": 9200,
+        "samples": 52
+      },
+      "1": {
+        "median": 24900,
+        "samples": 21
+      },
+      "2": {
+        "median": 45000,
+        "samples": 13
+      },
+      "3": {
+        "median": 132500,
+        "samples": 6
+      },
+      "4": {
+        "median": 249999.5,
+        "samples": 6
+      },
+      "5": {
+        "median": 1200000,
+        "samples": 2
+      }
+    },
+    "gypg": {
+      "0": {
+        "median": 8250,
+        "samples": 68
+      },
+      "1": {
+        "median": 7900,
+        "samples": 18
+      },
+      "2": {
+        "median": 20000,
+        "samples": 7
+      },
+      "3": {
+        "median": 35000,
+        "samples": 3
+      },
+      "4": {
+        "median": 130000,
+        "samples": 1
+      },
+      "5": {
+        "median": 1400000,
+        "samples": 1
+      }
+    },
+    "gyq5": {
+      "0": {
+        "median": 44500,
+        "samples": 10
+      },
+      "1": {
+        "median": 80000,
+        "samples": 46
+      },
+      "2": {
+        "median": 624999.5,
+        "samples": 30
+      },
+      "3": {
+        "median": 979999,
+        "samples": 13
+      },
+      "4": {
+        "median": 13700000,
+        "samples": 1
+      }
+    },
+    "gyv6": {
+      "0": {
+        "median": 10000,
+        "samples": 65
+      },
+      "1": {
+        "median": 12000,
+        "samples": 27
+      },
+      "2": {
+        "median": 60000,
+        "samples": 2
+      },
+      "3": {
+        "median": 30000,
+        "samples": 3
+      },
+      "4": {
+        "median": 1000000,
+        "samples": 3
+      }
+    },
+    "j306": {
+      "0": {
+        "median": 41500,
+        "samples": 20
+      },
+      "1": {
+        "median": 99999,
+        "samples": 21
+      },
+      "2": {
+        "median": 320000,
+        "samples": 39
+      },
+      "3": {
+        "median": 3390000,
+        "samples": 19
+      },
+      "4": {
+        "median": 20500000,
+        "samples": 1
+      }
+    },
+    "j3p6": {
+      "1": {
+        "median": 270000,
+        "samples": 17
+      },
+      "2": {
+        "median": 3000000,
+        "samples": 65
+      },
+      "3": {
+        "median": 14500000,
+        "samples": 17
+      },
+      "4": {
+        "median": 70000000,
+        "samples": 1
+      }
+    },
+    "jkj4": {
+      "0": {
+        "median": 21000,
+        "samples": 55
+      },
+      "1": {
+        "median": 40000,
+        "samples": 19
+      },
+      "2": {
+        "median": 59999,
+        "samples": 12
+      },
+      "3": {
+        "median": 110000,
+        "samples": 11
+      },
+      "4": {
+        "median": 369999,
+        "samples": 3
+      }
+    },
+    "jkml": {
+      "0": {
+        "median": 170000,
+        "samples": 15
+      },
+      "1": {
+        "median": 220000,
+        "samples": 39
+      },
+      "2": {
+        "median": 650000,
+        "samples": 17
+      },
+      "3": {
+        "median": 1500000,
+        "samples": 28
+      },
+      "4": {
+        "median": 6500000,
+        "samples": 1
+      }
+    },
+    "jkq7": {
+      "1": {
+        "median": 322500,
+        "samples": 72
+      },
+      "2": {
+        "median": 9500000,
+        "samples": 23
+      },
+      "3": {
+        "median": 32699999.5,
+        "samples": 4
+      }
+    },
+    "jky6": {
+      "0": {
+        "median": 545000,
+        "samples": 6
+      },
+      "1": {
+        "median": 2099999,
+        "samples": 93
+      },
+      "2": {
+        "median": 15000000,
+        "samples": 1
+      }
+    },
+    "k3rv": {
+      "0": {
+        "median": 55000,
+        "samples": 9
+      },
+      "1": {
+        "median": 173999,
+        "samples": 41
+      },
+      "2": {
+        "median": 920000,
+        "samples": 46
+      },
+      "3": {
+        "median": 9150000,
+        "samples": 4
+      }
+    },
+    "k3yv": {
+      "1": {
+        "median": 140000,
+        "samples": 13
+      },
+      "2": {
+        "median": 990000,
+        "samples": 53
+      },
+      "3": {
+        "median": 4000000,
+        "samples": 27
+      },
+      "4": {
+        "median": 19999999.5,
+        "samples": 4
+      }
+    },
+    "kq4v": {
+      "1": {
+        "median": 999999.5,
+        "samples": 78
+      },
+      "2": {
+        "median": 6300000,
+        "samples": 18
+      },
+      "3": {
+        "median": 33750000,
+        "samples": 4
+      }
+    },
+    "kqgy": {
+      "0": {
+        "median": 100555.5,
+        "samples": 30
+      },
+      "1": {
+        "median": 250000,
+        "samples": 54
+      },
+      "2": {
+        "median": 1989998.5,
+        "samples": 10
+      },
+      "3": {
+        "median": 11500000,
+        "samples": 5
+      }
+    },
+    "kqj3": {
+      "0": {
+        "median": 14890,
+        "samples": 51
+      },
+      "1": {
+        "median": 23000,
+        "samples": 17
+      },
+      "2": {
+        "median": 45000,
+        "samples": 9
+      },
+      "3": {
+        "median": 99999,
+        "samples": 15
+      },
+      "4": {
+        "median": 570000,
+        "samples": 4
+      },
+      "5": {
+        "median": 2400000,
+        "samples": 4
+      }
+    },
+    "kqoj": {
+      "0": {
+        "median": 64999,
+        "samples": 3
+      },
+      "1": {
+        "median": 81250,
+        "samples": 28
+      },
+      "2": {
+        "median": 289000,
+        "samples": 43
+      },
+      "3": {
+        "median": 3499999,
+        "samples": 23
+      },
+      "4": {
+        "median": 26000000,
+        "samples": 3
+      }
+    },
+    "kqp0": {
+      "0": {
+        "median": 13000,
+        "samples": 59
+      },
+      "1": {
+        "median": 19500,
+        "samples": 11
+      },
+      "2": {
+        "median": 34999,
+        "samples": 5
+      },
+      "3": {
+        "median": 100000,
+        "samples": 20
+      },
+      "4": {
+        "median": 582500,
+        "samples": 4
+      },
+      "5": {
+        "median": 4500000,
+        "samples": 1
+      }
+    },
+    "kqr0": {
+      "0": {
+        "median": 48900,
+        "samples": 21
+      },
+      "1": {
+        "median": 119000,
+        "samples": 41
+      },
+      "2": {
+        "median": 950000,
+        "samples": 28
+      },
+      "3": {
+        "median": 4370000,
+        "samples": 10
+      }
+    },
+    "lj0j": {
+      "0": {
+        "median": 145999,
+        "samples": 5
+      },
+      "1": {
+        "median": 345000,
+        "samples": 79
+      },
+      "2": {
+        "median": 4499943.5,
+        "samples": 8
+      },
+      "3": {
+        "median": 13000000,
+        "samples": 5
+      },
+      "5": {
+        "median": 120000000,
+        "samples": 1
+      }
+    },
+    "ljn2": {
+      "0": {
+        "median": 149999,
+        "samples": 13
+      },
+      "1": {
+        "median": 950000,
+        "samples": 67
+      },
+      "2": {
+        "median": 8600000,
+        "samples": 13
+      },
+      "3": {
+        "median": 27800000,
+        "samples": 7
+      }
+    },
+    "ljpq": {
+      "0": {
+        "median": 55277.5,
+        "samples": 66
+      },
+      "1": {
+        "median": 100000,
+        "samples": 49
+      },
+      "2": {
+        "median": 270000,
+        "samples": 55
+      },
+      "3": {
+        "median": 1082777.5,
+        "samples": 28
+      },
+      "4": {
+        "median": 15017500,
+        "samples": 2
+      }
+    },
+    "ljrj": {
+      "0": {
+        "median": 55000,
+        "samples": 40
+      },
+      "1": {
+        "median": 95000,
+        "samples": 15
+      },
+      "2": {
+        "median": 155000,
+        "samples": 12
+      },
+      "3": {
+        "median": 330000,
+        "samples": 29
+      },
+      "4": {
+        "median": 5847500,
+        "samples": 4
+      }
+    },
+    "q10k": {
+      "0": {
+        "median": 113888.5,
+        "samples": 6
+      },
+      "1": {
+        "median": 399999,
+        "samples": 48
+      },
+      "2": {
+        "median": 4870000,
+        "samples": 36
+      },
+      "3": {
+        "median": 19749999.5,
+        "samples": 10
+      }
+    },
+    "q1lk": {
+      "1": {
+        "median": 110000,
+        "samples": 7
+      },
+      "2": {
+        "median": 200000,
+        "samples": 35
+      },
+      "3": {
+        "median": 2300000,
+        "samples": 51
+      },
+      "4": {
+        "median": 13247500,
+        "samples": 6
+      }
+    },
+    "qo06": {
+      "0": {
+        "median": 49000,
+        "samples": 30
+      },
+      "1": {
+        "median": 89999,
+        "samples": 25
+      },
+      "2": {
+        "median": 650000,
+        "samples": 20
+      },
+      "3": {
+        "median": 399999,
+        "samples": 19
+      },
+      "4": {
+        "median": 18949999.5,
+        "samples": 6
+      }
+    },
+    "qo59": {
+      "0": {
+        "median": 55000,
+        "samples": 32
+      },
+      "1": {
+        "median": 83000,
+        "samples": 25
+      },
+      "2": {
+        "median": 177777,
+        "samples": 17
+      },
+      "3": {
+        "median": 402000,
+        "samples": 19
+      },
+      "4": {
+        "median": 9000000,
+        "samples": 7
+      }
+    },
+    "qo94": {
+      "0": {
+        "median": 13000,
+        "samples": 7
+      },
+      "1": {
+        "median": 46500,
+        "samples": 10
+      },
+      "2": {
+        "median": 115500,
+        "samples": 18
+      },
+      "3": {
+        "median": 222222,
+        "samples": 55
+      },
+      "4": {
+        "median": 4833332.5,
+        "samples": 10
+      }
+    },
+    "qodk": {
+      "0": {
+        "median": 399999.5,
+        "samples": 6
+      },
+      "1": {
+        "median": 1500000,
+        "samples": 90
+      },
+      "2": {
+        "median": 26500000,
+        "samples": 3
+      },
+      "3": {
+        "median": 81500000,
+        "samples": 1
+      }
+    },
+    "qokj": {
+      "0": {
+        "median": 150000,
+        "samples": 4
+      },
+      "1": {
+        "median": 257777,
+        "samples": 62
+      },
+      "2": {
+        "median": 1866666,
+        "samples": 27
+      },
+      "3": {
+        "median": 10499999,
+        "samples": 5
+      },
+      "4": {
+        "median": 70000000,
+        "samples": 1
+      }
+    },
+    "qoq6": {
+      "0": {
+        "median": 45000,
+        "samples": 23
+      },
+      "1": {
+        "median": 70000,
+        "samples": 18
+      },
+      "2": {
+        "median": 228500,
+        "samples": 29
+      },
+      "3": {
+        "median": 1499999,
+        "samples": 29
+      },
+      "4": {
+        "median": 23550000,
+        "samples": 1
+      }
+    },
+    "rn1z": {
+      "0": {
+        "median": 399999.5,
+        "samples": 26
+      },
+      "1": {
+        "median": 2400000,
+        "samples": 142
+      },
+      "2": {
+        "median": 19000000,
+        "samples": 32
+      }
+    },
+    "rnkl": {},
+    "rnvg": {
+      "1": {
+        "median": 170000,
+        "samples": 29
+      },
+      "2": {
+        "median": 313055.5,
+        "samples": 26
+      },
+      "3": {
+        "median": 775000,
+        "samples": 32
+      },
+      "4": {
+        "median": 5283333.5,
+        "samples": 6
+      },
+      "5": {
+        "median": 34500000,
+        "samples": 2
+      }
+    },
+    "w4jo": {
+      "1": {
+        "median": 289998,
+        "samples": 25
+      },
+      "2": {
+        "median": 2497777,
+        "samples": 58
+      },
+      "3": {
+        "median": 14000000,
+        "samples": 12
+      }
+    },
+    "w4no": {
+      "1": {
+        "median": 45000,
+        "samples": 13
+      },
+      "2": {
+        "median": 159995,
+        "samples": 22
+      },
+      "3": {
+        "median": 1800000,
+        "samples": 45
+      },
+      "4": {
+        "median": 5092222,
+        "samples": 14
+      }
+    },
+    "wg3p": {
+      "0": {
+        "median": 13000,
+        "samples": 55
+      },
+      "1": {
+        "median": 23000,
+        "samples": 15
+      },
+      "2": {
+        "median": 49900,
+        "samples": 19
+      },
+      "3": {
+        "median": 99999.5,
+        "samples": 8
+      },
+      "4": {
+        "median": 1349999.5,
+        "samples": 2
+      },
+      "5": {
+        "median": 2999999,
+        "samples": 1
+      }
+    },
+    "wg53": {
+      "0": {
+        "median": 202500,
+        "samples": 18
+      },
+      "1": {
+        "median": 400000,
+        "samples": 43
+      },
+      "2": {
+        "median": 4000000,
+        "samples": 29
+      },
+      "3": {
+        "median": 13250000,
+        "samples": 10
+      }
+    },
+    "wg62": {
+      "0": {
+        "median": 9999,
+        "samples": 69
+      },
+      "1": {
+        "median": 14200,
+        "samples": 20
+      },
+      "2": {
+        "median": 24000,
+        "samples": 5
+      },
+      "3": {
+        "median": 50000,
+        "samples": 3
+      },
+      "4": {
+        "median": 250000,
+        "samples": 1
+      },
+      "5": {
+        "median": 8400000,
+        "samples": 2
+      }
+    },
+    "wgko": {
+      "0": {
+        "median": 39999.5,
+        "samples": 14
+      },
+      "1": {
+        "median": 60000,
+        "samples": 11
+      },
+      "2": {
+        "median": 437222,
+        "samples": 36
+      },
+      "3": {
+        "median": 4990000,
+        "samples": 37
+      },
+      "4": {
+        "median": 22500000,
+        "samples": 2
+      }
+    },
+    "wglp": {
+      "0": {
+        "median": 85000,
+        "samples": 11
+      },
+      "1": {
+        "median": 457500,
+        "samples": 28
+      },
+      "2": {
+        "median": 1299999,
+        "samples": 43
+      },
+      "3": {
+        "median": 7999998.5,
+        "samples": 18
+      }
+    },
+    "wgr3": {
+      "0": {
+        "median": 10000,
+        "samples": 49
+      },
+      "1": {
+        "median": 18000,
+        "samples": 17
+      },
+      "2": {
+        "median": 45000,
+        "samples": 11
+      },
+      "3": {
+        "median": 120000,
+        "samples": 11
+      },
+      "4": {
+        "median": 639999,
+        "samples": 9
+      },
+      "5": {
+        "median": 11000000,
+        "samples": 2
+      }
+    },
+    "wgvd": {
+      "0": {
+        "median": 12999,
+        "samples": 58
+      },
+      "1": {
+        "median": 18500,
+        "samples": 17
+      },
+      "2": {
+        "median": 36000,
+        "samples": 10
+      },
+      "3": {
+        "median": 144500,
+        "samples": 8
+      },
+      "4": {
+        "median": 2450900,
+        "samples": 5
+      },
+      "5": {
+        "median": 7000000,
+        "samples": 1
+      }
+    },
+    "wgwz": {
+      "0": {
+        "median": 12999,
+        "samples": 8
+      },
+      "1": {
+        "median": 42000,
+        "samples": 4
+      },
+      "2": {
+        "median": 135000,
+        "samples": 22
+      },
+      "3": {
+        "median": 2300000,
+        "samples": 57
+      },
+      "4": {
+        "median": 7999999.5,
+        "samples": 6
+      },
+      "5": {
+        "median": 30499999,
+        "samples": 3
+      }
+    },
+    "wgzd": {
+      "0": {
+        "median": 60000,
+        "samples": 37
+      },
+      "1": {
+        "median": 99750,
+        "samples": 22
+      },
+      "2": {
+        "median": 200000,
+        "samples": 25
+      },
+      "3": {
+        "median": 1299999.5,
+        "samples": 14
+      },
+      "4": {
+        "median": 6999999,
+        "samples": 1
+      }
+    },
+    "y54z": {
+      "0": {
+        "median": 13000,
+        "samples": 53
+      },
+      "1": {
+        "median": 19450,
+        "samples": 18
+      },
+      "2": {
+        "median": 45000,
+        "samples": 12
+      },
+      "3": {
+        "median": 95000,
+        "samples": 15
+      },
+      "4": {
+        "median": 406979,
+        "samples": 1
+      },
+      "5": {
+        "median": 4400000,
+        "samples": 1
+      }
+    },
+    "y5jk": {
+      "0": {
+        "median": 12000,
+        "samples": 31
+      },
+      "1": {
+        "median": 18500,
+        "samples": 20
+      },
+      "2": {
+        "median": 37000,
+        "samples": 17
+      },
+      "3": {
+        "median": 160000,
+        "samples": 26
+      },
+      "4": {
+        "median": 5500000,
+        "samples": 6
+      }
+    },
+    "y5k0": {
+      "0": {
+        "median": 55555,
+        "samples": 14
+      },
+      "1": {
+        "median": 200000,
+        "samples": 45
+      },
+      "2": {
+        "median": 2088888,
+        "samples": 29
+      },
+      "3": {
+        "median": 4999999.5,
+        "samples": 12
+      }
+    },
+    "y5m3": {
+      "0": {
+        "median": 12000,
+        "samples": 43
+      },
+      "1": {
+        "median": 25900,
+        "samples": 17
+      },
+      "2": {
+        "median": 46666,
+        "samples": 21
+      },
+      "3": {
+        "median": 95000,
+        "samples": 13
+      },
+      "4": {
+        "median": 800000,
+        "samples": 5
+      },
+      "5": {
+        "median": 6800000,
+        "samples": 1
+      }
+    },
+    "y5nz": {
+      "0": {
+        "median": 9000,
+        "samples": 64
+      },
+      "1": {
+        "median": 11000,
+        "samples": 21
+      },
+      "2": {
+        "median": 13900,
+        "samples": 7
+      },
+      "3": {
+        "median": 19999.5,
+        "samples": 4
+      },
+      "4": {
+        "median": 87500,
+        "samples": 4
+      }
+    },
+    "y5ro": {
+      "0": {
+        "median": 190000,
+        "samples": 12
+      },
+      "1": {
+        "median": 299998,
+        "samples": 45
+      },
+      "2": {
+        "median": 654999.5,
+        "samples": 34
+      },
+      "3": {
+        "median": 3333333,
+        "samples": 9
+      }
+    },
+    "y5vw": {
+      "0": {
+        "median": 9000,
+        "samples": 69
+      },
+      "1": {
+        "median": 10610.5,
+        "samples": 12
+      },
+      "2": {
+        "median": 10000,
+        "samples": 10
+      },
+      "3": {
+        "median": 25000,
+        "samples": 5
+      },
+      "4": {
+        "median": 310000,
+        "samples": 2
+      },
+      "5": {
+        "median": 1074999.5,
+        "samples": 2
+      }
+    },
+    "y5w3": {
+      "0": {
+        "median": 224999,
+        "samples": 21
+      },
+      "1": {
+        "median": 380000,
+        "samples": 34
+      },
+      "2": {
+        "median": 4444444,
+        "samples": 27
+      },
+      "3": {
+        "median": 13175000,
+        "samples": 18
+      }
+    },
+    "y5yw": {
+      "0": {
+        "median": 40000,
+        "samples": 27
+      },
+      "1": {
+        "median": 75000,
+        "samples": 19
+      },
+      "2": {
+        "median": 181488,
+        "samples": 23
+      },
+      "3": {
+        "median": 1000000,
+        "samples": 28
+      },
+      "4": {
+        "median": 15453030,
+        "samples": 3
+      }
+    },
+    "yq3o": {
+      "1": {
+        "median": 50000,
+        "samples": 17
+      },
+      "2": {
+        "median": 99999,
+        "samples": 22
+      },
+      "3": {
+        "median": 399500,
+        "samples": 20
+      },
+      "4": {
+        "median": 1899999,
+        "samples": 35
+      }
+    },
+    "zjzn": {
+      "1": {
+        "median": 155555,
+        "samples": 20
+      },
+      "2": {
+        "median": 900000,
+        "samples": 57
+      },
+      "3": {
+        "median": 7400000,
+        "samples": 19
+      },
+      "4": {
+        "median": 22000000,
+        "samples": 3
+      }
+    },
+    "zy32": {
+      "0": {
+        "median": 10000,
+        "samples": 50
+      },
+      "1": {
+        "median": 14222,
+        "samples": 14
+      },
+      "2": {
+        "median": 38499.5,
+        "samples": 8
+      },
+      "3": {
+        "median": 75000,
+        "samples": 19
+      },
+      "4": {
+        "median": 500000,
+        "samples": 9
+      }
+    },
+    "zy7y": {
+      "0": {
+        "median": 19999,
+        "samples": 48
+      },
+      "1": {
+        "median": 35250,
+        "samples": 22
+      },
+      "2": {
+        "median": 54500,
+        "samples": 18
+      },
+      "3": {
+        "median": 239999,
+        "samples": 11
+      },
+      "4": {
+        "median": 2400000,
+        "samples": 1
+      }
+    },
+    "zyly": {
+      "0": {
+        "median": 9000,
+        "samples": 64
+      },
+      "1": {
+        "median": 11555.5,
+        "samples": 20
+      },
+      "2": {
+        "median": 25000,
+        "samples": 10
+      },
+      "3": {
+        "median": 30000,
+        "samples": 5
+      },
+      "4": {
+        "median": 200000,
+        "samples": 1
+      }
+    },
+    "zymn": {
+      "0": {
+        "median": 25499.5,
+        "samples": 10
+      },
+      "1": {
+        "median": 49999,
+        "samples": 25
+      },
+      "2": {
+        "median": 142499.5,
+        "samples": 34
+      },
+      "3": {
+        "median": 500000,
+        "samples": 28
+      },
+      "4": {
+        "median": 8250000,
+        "samples": 2
+      },
+      "5": {
+        "median": 40000000,
+        "samples": 1
+      }
+    },
+    "zyo9": {
+      "0": {
+        "median": 9000,
+        "samples": 58
+      },
+      "1": {
+        "median": 10000,
+        "samples": 24
+      },
+      "2": {
+        "median": 17250,
+        "samples": 6
+      },
+      "3": {
+        "median": 48000,
+        "samples": 7
+      },
+      "4": {
+        "median": 200000,
+        "samples": 5
+      }
+    },
+    "zypm": {
+      "0": {
+        "median": 15000,
+        "samples": 16
+      },
+      "1": {
+        "median": 57000,
+        "samples": 45
+      },
+      "2": {
+        "median": 129999,
+        "samples": 22
+      },
+      "3": {
+        "median": 474999.5,
+        "samples": 14
+      },
+      "4": {
+        "median": 3050000,
+        "samples": 3
+      }
+    },
+    "zyqk": {
+      "0": {
+        "median": 9999.5,
+        "samples": 16
+      },
+      "1": {
+        "median": 11000,
+        "samples": 8
+      },
+      "2": {
+        "median": 27000,
+        "samples": 9
+      },
+      "3": {
+        "median": 47777,
+        "samples": 32
+      },
+      "4": {
+        "median": 255555,
+        "samples": 29
+      },
+      "5": {
+        "median": 2104999.5,
+        "samples": 6
+      }
+    },
+    "zyrm": {
+      "0": {
+        "median": 35000,
+        "samples": 50
+      },
+      "1": {
+        "median": 65000,
+        "samples": 17
+      },
+      "2": {
+        "median": 110000,
+        "samples": 19
+      },
+      "3": {
+        "median": 544444,
+        "samples": 11
+      },
+      "4": {
+        "median": 1400000,
+        "samples": 2
+      },
+      "5": {
+        "median": 6300000,
+        "samples": 1
+      }
+    },
+    "zyv9": {
+      "0": {
+        "median": 9000,
+        "samples": 56
+      },
+      "1": {
+        "median": 8000,
+        "samples": 15
+      },
+      "2": {
+        "median": 15555,
+        "samples": 10
+      },
+      "3": {
+        "median": 20000,
+        "samples": 13
+      },
+      "4": {
+        "median": 219495,
+        "samples": 4
+      },
+      "5": {
+        "median": 1000000,
+        "samples": 1
+      }
+    },
+    "zyw2": {
+      "0": {
+        "median": 8000,
+        "samples": 63
+      },
+      "1": {
+        "median": 11165.5,
+        "samples": 20
+      },
+      "2": {
+        "median": 17949.5,
+        "samples": 10
+      },
+      "3": {
+        "median": 40999,
+        "samples": 4
+      },
+      "4": {
+        "median": 130000,
+        "samples": 3
+      }
+    }
+  }
+}

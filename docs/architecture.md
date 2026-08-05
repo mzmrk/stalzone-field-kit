@@ -18,13 +18,16 @@ is [`src/main.tsx`](../src/main.tsx), and
 ```mermaid
 flowchart LR
     EXBO["EXBO Global repository"] -->|listing.json| Catalog["Filtered catalog"]
+    Snapshot["Saved STALZONE EU auction history"] --> PriceIndex["Generated rarity medians"]
     Catalog --> Picker["Container and artifact pickers"]
     EXBO -->|selected item JSON and icons| Picker
+    PriceIndex --> Picker
     Picker --> Build["In-memory build state"]
     Build --> Calculator["Pure calculation module"]
     Calculator --> Results["Totals and warnings"]
     Build <--> Storage["localStorage: field-kit-build-v1"]
     Catalog -->|all artifact JSON on search| Optimizer["Exact-search Web Worker"]
+    PriceIndex --> Optimizer
     Optimizer --> Ranked["Weighted ranked builds"]
     Ranked -->|load result| Build
 ```
@@ -37,6 +40,12 @@ and retains parsed data in memory for later searches. Images use the icon paths
 from the same listing. Both data and images are requested directly from
 `raw.githubusercontent.com`; runtime use therefore requires the browser to reach
 GitHub.
+
+Pricing is not fetched at runtime. [`src/pricing.ts`](../src/pricing.ts) reads a
+compact generated index derived from the checked-in EU auction-history snapshot.
+The picker, configured slots, and ranked optimizer builds display the median
+completed-sale price for the artifact's selected rarity. A missing tier remains
+unknown rather than falling back to another rarity.
 
 ## Source ownership
 
@@ -51,6 +60,9 @@ GitHub.
   exact enumeration, feasible-range discovery, and weighted ranking.
 - [`src/optimizer.worker.ts`](../src/optimizer.worker.ts) runs that synchronous
   search away from the UI thread and reports progress and results.
+- [`src/pricing.ts`](../src/pricing.ts) maps EXBO artifact IDs and rarity indices
+  to bundled market estimates and owns ruble display formatting. Its generated
+  index is authoritative at runtime; raw histories remain source inputs.
 - [`src/App.tsx`](../src/App.tsx) owns item selection, slot management, artifact
   editing, optimizer controls and live-data loading, result application, error
   presentation, persistence, and responsive screen composition.
@@ -99,6 +111,8 @@ offline catalog cache, schema validator, or upstream-version pin at present.
 No build data is sent to an application backend. Build configuration stays in
 the user's browser, while normal HTTP request metadata is visible to GitHub when
 the browser loads EXBO JSON and icons. The code contains no runtime secrets.
+The bundled auction snapshot is historical EU market data, so estimates can be
+stale and are not active-lot quotes or guarantees.
 
 ## Optimizer boundary
 
@@ -112,6 +126,12 @@ are enumerated without slot permutations in a Web Worker. Searches above ten
 million combinations are rejected explicitly; with the current catalog this
 makes four-slot searches available while larger carriers normally exceed the
 guard.
+
+An optional maximum-total-price constraint uses the median estimate for the
+optimizer's shared rarity. When enabled, combinations containing an unknown
+price or exceeding the cap are infeasible. This filtering happens before
+objective ranges and rankings are derived, so normalization reflects the
+affordable search space.
 
 Optimizer settings and results are transient. Loading a ranked result clones its
 artifacts into the persisted manual build, where individual values can be edited.

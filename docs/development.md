@@ -71,6 +71,20 @@ listing, parsing every response, and checking for a numeric `total` plus a
 `prices` array. Acquisition may require STALZONE's browser request contract, but
 request credentials must never be written to the repository.
 
+Regenerate the bundled price index from the newest EU snapshot with:
+
+```bash
+npm run pricing:build
+```
+
+[`scripts/generate-pricing-index.mjs`](../scripts/generate-pricing-index.mjs)
+groups completed sales by the exact numeric `additional.qlt` rarity, calculates
+the median, records its sample count, and writes
+[`src/generated/pricing-index.json`](../src/generated/pricing-index.json). Sales
+without a numeric rarity and rarity tiers without sales are omitted; the app must
+not silently substitute another tier. Run unit tests and the static build after
+regeneration.
+
 ## Documentation workflow
 
 All human-maintained Markdown except root [`AGENTS.md`](../AGENTS.md) belongs in

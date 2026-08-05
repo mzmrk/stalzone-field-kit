@@ -100,6 +100,12 @@ carry weight cannot stand in for artifact carry weight. The constraint is applie
 before feasible ranges are discovered, so normalization uses only qualifying
 builds.
 
+When a maximum total price is supplied, each candidate uses the generated median
+completed-sale estimate for the optimizer's selected rarity. Duplicate artifacts
+repeat their price. A combination passes only when every artifact has an estimate
+and their sum is at or below the cap. Price eligibility is applied in both search
+passes before feasible ranges or ranked results are recorded.
+
 The exact search performs two passes over canonical combinations. The first pass
 filters on safe exposure when requested and discovers the feasible minimum and
 maximum for every positive-weight objective. The second pass normalizes each
@@ -134,3 +140,6 @@ It also covers the zero boundary for fully countered harmful properties,
 positive-value filtering when every objective is required, and exclusion of
 carrier stats from that requirement. Priority-control coverage checks exact
 normalized shares, neutral defaults, and the doubling between importance levels.
+Pricing coverage checks rarity-specific lookup, missing-tier behavior, ruble
+formatting, budget filtering, duplicate-price summation, and uncapped handling of
+unknown estimates.

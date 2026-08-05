@@ -21,7 +21,7 @@ const stat = (key: string, name: string, value: number, positive = true): Parsed
   percentage: key !== TEMPERATURE,
 });
 
-const candidate = (name: string, stats: ParsedStat[]): OptimizerCandidate => ({ name, stats });
+const candidate = (name: string, stats: ParsedStat[], price: number | null = null): OptimizerCandidate => ({ name, stats, price });
 const container: OptimizerContainer = {
   capacity: 2,
   protection: 0,
@@ -36,6 +36,7 @@ const settings = {
   safeOnly: true,
   noNegativeEffects: false,
   requireAllObjectives: false,
+  maxTotalPrice: null,
 };
 
 describe("artifact optimizer", () => {
@@ -167,5 +168,30 @@ describe("artifact optimizer", () => {
     expect(result.feasibleCombinations).toBe(1);
     expect(result.results[0].indices).toEqual([1]);
     expect(result.results[0].values).toEqual([37]);
+  });
+
+  it("filters combinations by total median price before deriving feasible ranges", () => {
+    const candidates = [
+      candidate("Fast and expensive", [stat(MOVEMENT, "Movement speed", 5)], 60),
+      candidate("Affordable", [stat(MOVEMENT, "Movement speed", 2)], 20),
+      candidate("Unknown price", [stat(MOVEMENT, "Movement speed", 10)]),
+    ];
+
+    const result = optimizeArtifactCombinations(container, candidates, [
+      { key: MOVEMENT, weight: 100 },
+    ], { ...settings, maxTotalPrice: 50 });
+
+    expect(result.feasibleCombinations).toBe(1);
+    expect(result.ranges).toEqual([{ key: MOVEMENT, min: 4, max: 4 }]);
+    expect(result.results[0]).toMatchObject({ indices: [1, 1], totalPrice: 40 });
+  });
+
+  it("keeps unknown-price candidates eligible when no budget is set", () => {
+    const result = optimizeArtifactCombinations({ ...container, capacity: 1 }, [
+      candidate("Known", [stat(MOVEMENT, "Movement speed", 1)], 10),
+      candidate("Unknown", [stat(MOVEMENT, "Movement speed", 2)]),
+    ], [{ key: MOVEMENT, weight: 100 }], settings);
+
+    expect(result.results[0]).toMatchObject({ indices: [1], totalPrice: null });
   });
 });

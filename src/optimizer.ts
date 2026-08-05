@@ -28,6 +28,7 @@ export type OptimizerObjective = {
 export type OptimizerCandidate = {
   name: string;
   stats: ParsedStat[];
+  price: number | null;
 };
 
 export type OptimizerContainer = {
@@ -45,6 +46,7 @@ export type OptimizerSettings = {
   safeOnly: boolean;
   noNegativeEffects: boolean;
   requireAllObjectives: boolean;
+  maxTotalPrice: number | null;
   resultLimit?: number;
   combinationLimit?: number;
 };
@@ -59,6 +61,7 @@ export type OptimizerResult = {
   indices: number[];
   score: number;
   values: number[];
+  totalPrice: number | null;
 };
 
 export type OptimizerSearchResult = {
@@ -169,10 +172,25 @@ export function optimizeArtifactCombinations(
     return finalizeValue(key, index, sums[index]) * direction <= EPSILON;
   });
   const hasEveryObjective = (sums: Float64Array) => objectiveIndexes.every((index) => sums[index] > EPSILON);
-  const eligible = (sums: Float64Array) =>
+  const totalPrice = (indices: Int32Array) => {
+    let total = 0;
+    for (const candidateIndex of indices) {
+      const price = candidates[candidateIndex].price;
+      if (price === null) return null;
+      total += price;
+    }
+    return total;
+  };
+  const withinBudget = (indices: Int32Array) => {
+    if (settings.maxTotalPrice === null) return true;
+    const price = totalPrice(indices);
+    return price !== null && price <= settings.maxTotalPrice + EPSILON;
+  };
+  const eligible = (sums: Float64Array, indices: Int32Array) =>
     (!settings.safeOnly || safe(sums))
     && (!settings.noNegativeEffects || hasNoNegativeEffects(sums))
-    && (!settings.requireAllObjectives || hasEveryObjective(sums));
+    && (!settings.requireAllObjectives || hasEveryObjective(sums))
+    && withinBudget(indices);
 
   const mins = new Float64Array(activeObjectives.length).fill(Number.POSITIVE_INFINITY);
   const maxes = new Float64Array(activeObjectives.length).fill(Number.NEGATIVE_INFINITY);
@@ -184,8 +202,8 @@ export function optimizeArtifactCombinations(
     combinations,
     "ranges",
     onProgress,
-    (sums) => {
-      if (!eligible(sums)) return;
+    (sums, indices) => {
+      if (!eligible(sums, indices)) return;
       feasibleCombinations += 1;
       objectiveIndexes.forEach((index, objectiveIndex) => {
         const value = finalizeValue(activeObjectives[objectiveIndex].key, index, sums[index]);
@@ -215,7 +233,7 @@ export function optimizeArtifactCombinations(
     "ranking",
     onProgress,
     (sums, indices) => {
-      if (!eligible(sums)) return;
+      if (!eligible(sums, indices)) return;
       const values = objectiveIndexes.map((index, objectiveIndex) =>
         finalizeValue(activeObjectives[objectiveIndex].key, index, sums[index]));
       const score = values.reduce((sum, value, objectiveIndex) => {
@@ -223,7 +241,12 @@ export function optimizeArtifactCombinations(
         const normalized = Math.abs(span) <= EPSILON ? 1 : (value - mins[objectiveIndex]) / span;
         return sum + normalized * activeObjectives[objectiveIndex].weight;
       }, 0) / totalWeight;
-      insertResult(results, { indices: [...indices], score, values }, resultLimit);
+      insertResult(results, {
+        indices: [...indices],
+        score,
+        values,
+        totalPrice: totalPrice(indices),
+      }, resultLimit);
     },
   );
 

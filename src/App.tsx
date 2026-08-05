@@ -59,6 +59,12 @@ import {
   OBJECTIVE_PRIORITIES,
   objectiveWeightPercentage,
 } from "./objective-priorities";
+import {
+  artifactPrice,
+  formatPrice,
+  PRICING_REGION,
+  PRICING_SNAPSHOT,
+} from "./pricing";
 import type {
   ArtifactConfig,
   ArtifactData,
@@ -192,6 +198,7 @@ function Picker({
         <div className="picker-list">
           {filtered.map((entry) => {
             const isLoading = selecting === entry.data;
+            const price = state.kind === "artifact" ? artifactPrice(entry, 0) : null;
             return (
               <button
                 className="picker-row"
@@ -208,6 +215,11 @@ function Picker({
                       ? "Container"
                       : entry.data.split("/").at(-2)?.replaceAll("_", " ")}
                 </span>
+                {state.kind === "artifact" && (
+                  <span className="picker-row__price" title={`Ordinary median from ${price?.samples ?? 0} completed sales`}>
+                    {price ? formatPrice(price.median) : "No price"}
+                  </span>
+                )}
                 {isLoading ? <LoaderCircle className="spin" size={18} /> : <ChevronRight size={18} />}
               </button>
             );
@@ -219,7 +231,7 @@ function Picker({
             </div>
           )}
         </div>
-        <p className="picker-footer">Item names, properties, and icons load live from EXBO Studio.</p>
+        <p className="picker-footer">Items load live from EXBO Studio. Artifact prices are saved {PRICING_REGION} auction medians.</p>
       </section>
     </div>
   );
@@ -300,6 +312,9 @@ function ContainerPanel({
                       <span className="artifact-slot__name">
                         <strong>{artifact.name}</strong>
                         <small>+{artifact.level} · {artifact.quality}% · {RARITY_NAMES[artifact.rarityIndex]}</small>
+                      </span>
+                      <span className="artifact-slot__price">
+                        {formatPrice(artifactPrice(artifact.entry, artifact.rarityIndex)?.median ?? null)}
                       </span>
                     </>
                   ) : (
@@ -400,7 +415,7 @@ function ArtifactEditor({
         <ItemImage entry={artifact.entry} size="large" />
         <div>
           <h3>{artifact.name}</h3>
-          <p>{artifact.entry.data.split("/").at(-2)?.replaceAll("_", " ")}</p>
+          <p>{artifact.entry.data.split("/").at(-2)?.replaceAll("_", " ")} · {formatPrice(artifactPrice(artifact.entry, artifact.rarityIndex)?.median ?? null)}</p>
         </div>
         <button className="text-button" onClick={onReplace}>Replace</button>
       </div>
@@ -583,6 +598,7 @@ function OptimizerPanel({
   const [safeOnly, setSafeOnly] = useState(true);
   const [noNegativeEffects, setNoNegativeEffects] = useState(false);
   const [requireAllObjectives, setRequireAllObjectives] = useState(false);
+  const [maxTotalPrice, setMaxTotalPrice] = useState("");
   const [state, setState] = useState<"idle" | "loading" | "searching" | "done" | "error">("idle");
   const [loadProgress, setLoadProgress] = useState({ completed: 0, total: 0 });
   const [searchProgress, setSearchProgress] = useState<OptimizerProgress | null>(null);
@@ -601,6 +617,7 @@ function OptimizerPanel({
     safeOnly,
     noNegativeEffects,
     requireAllObjectives,
+    maxTotalPrice,
   });
   const signatureRef = useRef(searchSignature);
 
@@ -623,6 +640,9 @@ function OptimizerPanel({
     : 0;
   const oversized = estimatedCombinations > OPTIMIZER_COMBINATION_LIMIT;
   const activeObjectives = objectives.filter((objective) => objective.weight > 0);
+  const parsedMaxTotalPrice = maxTotalPrice === "" ? null : Number(maxTotalPrice);
+  const invalidMaxTotalPrice = parsedMaxTotalPrice !== null
+    && (!Number.isFinite(parsedMaxTotalPrice) || parsedMaxTotalPrice <= 0);
 
   const updateQuality = (value: number) => {
     const nextQuality = clamp(Number(value.toFixed(2)), 0, 190);
@@ -664,7 +684,7 @@ function OptimizerPanel({
   };
 
   const startSearch = async () => {
-    if (!catalog || !container || oversized || activeObjectives.length === 0) return;
+    if (!catalog || !container || oversized || activeObjectives.length === 0 || invalidMaxTotalPrice) return;
     const runId = runIdRef.current + 1;
     runIdRef.current = runId;
     workerRef.current?.terminate();
@@ -690,6 +710,7 @@ function OptimizerPanel({
       rarityIndex,
       bonuses: [],
     }));
+    const candidatePrices = loaded.items.map((artifact) => artifactPrice(artifact.entry, rarityIndex)?.median ?? null);
     const actualCombinations = combinationCount(candidateConfigs.length, container.capacity, allowDuplicates);
     if (actualCombinations > OPTIMIZER_COMBINATION_LIMIT) {
       setError(`The ${actualCombinations.toLocaleString()}-combination search exceeds the current exact-search limit.`);
@@ -734,7 +755,11 @@ function OptimizerPanel({
         effectiveness: container.effectiveness,
         stats: container.stats,
       },
-      candidates: candidateConfigs.map((candidate) => ({ name: candidate.name, stats: candidate.stats })),
+      candidates: candidateConfigs.map((candidate, index) => ({
+        name: candidate.name,
+        stats: candidate.stats,
+        price: candidatePrices[index],
+      })),
       objectives: activeObjectives,
       settings: {
         quality,
@@ -744,6 +769,7 @@ function OptimizerPanel({
         safeOnly,
         noNegativeEffects,
         requireAllObjectives,
+        maxTotalPrice: parsedMaxTotalPrice,
         combinationLimit: OPTIMIZER_COMBINATION_LIMIT,
       },
     });
@@ -828,12 +854,18 @@ function OptimizerPanel({
                 <label><input type="checkbox" checked={requireAllObjectives} onChange={(event) => setRequireAllObjectives(event.target.checked)} /><span><strong>Require every objective</strong><small>Artifacts must contribute to every objective</small></span></label>
                 <label><input type="checkbox" checked={allowDuplicates} onChange={(event) => setAllowDuplicates(event.target.checked)} /><span><strong>Allow duplicate artifacts</strong><small>Enumerate combinations with replacement</small></span></label>
               </div>
+              <label className="optimizer-budget">
+                <span>Maximum total price</span>
+                <input aria-label="Maximum total price" type="number" min="1" step="1000" placeholder="No limit" value={maxTotalPrice} onChange={(event) => setMaxTotalPrice(event.target.value)} />
+                <small>Median completed-sale estimates, {PRICING_REGION} snapshot {PRICING_SNAPSHOT}. Unknown-price artifacts are excluded when enabled.</small>
+              </label>
               <div className={`search-estimate ${oversized ? "search-estimate--danger" : ""}`}>
                 <span>SEARCH SPACE</span><strong>{estimatedCombinations.toLocaleString()}</strong><small>canonical combinations</small>
               </div>
               {oversized && <p className="optimizer-error">This exceeds the current {OPTIMIZER_COMBINATION_LIMIT.toLocaleString()}-combination exact-search limit. Choose a carrier with fewer slots.</p>}
               {activeObjectives.length === 0 && <p className="optimizer-error">At least one objective needs a positive weight.</p>}
-              <button className="optimizer-search" disabled={!catalog || oversized || activeObjectives.length === 0 || state === "loading" || state === "searching"} onClick={startSearch}>
+              {invalidMaxTotalPrice && <p className="optimizer-error">Maximum total price must be greater than zero.</p>}
+              <button className="optimizer-search" disabled={!catalog || oversized || activeObjectives.length === 0 || invalidMaxTotalPrice || state === "loading" || state === "searching"} onClick={startSearch}>
                 {state === "loading" ? `Loading artifacts ${loadProgress.completed}/${loadProgress.total}` : state === "searching" ? `Searching ${progressPercent.toFixed(0)}%` : `Search ${estimatedCombinations.toLocaleString()} combinations`}
               </button>
               {(state === "loading" || state === "searching") && <div className="optimizer-progress"><span style={{ width: `${state === "loading" ? (loadProgress.completed / Math.max(1, loadProgress.total)) * 100 : progressPercent}%` }} /></div>}
@@ -859,8 +891,11 @@ function OptimizerPanel({
                     const resultTotals = calculateTotals(container, selected);
                     return (
                       <article className="optimizer-result" key={result.indices.join("-")}>
-                        <div className="optimizer-result__top"><span>#{resultIndex + 1}</span><strong>{(result.score * 100).toFixed(1)} score</strong><small className={resultTotals.warnings.length ? "unsafe" : "safe"}>{resultTotals.warnings.length ? "Unsafe" : "Safe"}</small></div>
-                        <div className="optimizer-artifacts">{selected.map((artifact, index) => <span key={`${artifact.entry.data}-${index}`} title={artifact.name}><ItemImage entry={artifact.entry} /><small>{artifact.name}</small></span>)}</div>
+                        <div className="optimizer-result__top"><span>#{resultIndex + 1}</span><strong>{(result.score * 100).toFixed(1)} score</strong><span className="optimizer-result__price">{formatPrice(result.totalPrice)}</span><small className={resultTotals.warnings.length ? "unsafe" : "safe"}>{resultTotals.warnings.length ? "Unsafe" : "Safe"}</small></div>
+                        <div className="optimizer-artifacts">{selected.map((artifact, index) => {
+                          const estimate = artifactPrice(artifact.entry, rarityIndex);
+                          return <span key={`${artifact.entry.data}-${index}`} title={`${artifact.name} · ${formatPrice(estimate?.median ?? null)}`}><ItemImage entry={artifact.entry} /><small>{artifact.name}</small><em>{formatPrice(estimate?.median ?? null)}</em></span>;
+                        })}</div>
                         <div className="optimizer-metrics">
                           {run.objectives.map((objective, objectiveIndex) => {
                             const option = OPTIMIZER_STAT_OPTIONS.find(([key]) => key === objective.key)!;
@@ -1067,6 +1102,7 @@ export default function App() {
       <footer>
         <span>FIELD KIT · Browser-side artifact planning</span>
         <a href={EXBO_REPOSITORY} target="_blank" rel="noreferrer">Data by EXBO Studio <ExternalLink size={13} /></a>
+        <a href="https://stalzone.wiki/" target="_blank" rel="noreferrer">Auction history by STALZONE WIKI <ExternalLink size={13} /></a>
       </footer>
 
       {picker && catalog && <Picker state={picker} catalog={catalog} onClose={() => setPicker(null)} onChoose={chooseItem} selecting={selecting} />}
