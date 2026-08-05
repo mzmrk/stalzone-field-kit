@@ -25,7 +25,7 @@ flowchart LR
     Picker --> Build["In-memory build state"]
     Build --> Calculator["Pure calculation module"]
     Calculator --> Results["Totals and warnings"]
-    Build <--> Storage["localStorage: field-kit-build-v1"]
+    Build <--> Storage["localStorage: build and optimizer settings"]
     Catalog -->|all artifact JSON on search| Optimizer["Brute-force or MILP Web Worker"]
     PriceIndex --> Optimizer
     Optimizer --> Ranked["Weighted ranked builds"]
@@ -100,6 +100,14 @@ version `1`; invalid JSON or other versions are ignored. The saved record includ
 the selected raw item data and parsed stats, allowing an existing build to render
 when catalog loading fails. Reset clears both state and the storage key.
 
+Optimizer controls are stored separately under `field-kit-optimizer-v1`: shared
+level, enabled rarities, positive objectives and minimums, harmful policies and
+limits, and the price cap. Loading merges saved rows by stat key with the current
+supported lists and falls back field-by-field when stored data is invalid, so a
+catalog/UI update does not require an all-or-nothing settings migration. Reset
+filters restores the current defaults and cancels an active optimizer run without
+changing the manual carrier or artifacts.
+
 Generated UI IDs prefer `crypto.randomUUID()` and fall back to a timestamp plus
 `Math.random()` when that Web Crypto helper is unavailable. These IDs only
 identify local artifact and bonus rows; they are not credentials or security
@@ -147,8 +155,7 @@ ranges and rankings are derived, so normalization reflects the affordable search
 space. Repeated artifacts are always eligible, including copies of the same
 artifact at different enabled rarities.
 
-Optimizer settings and results are transient. Loading a ranked result clones its
-artifacts into the persisted manual build, where individual values can be edited.
-Artifact files that fail to load are excluded and counted in the result summary,
-so a partially available upstream catalog cannot be mistaken for a complete
-search.
+Optimizer results are transient. Loading a ranked result clones its artifacts
+into the persisted manual build, where individual values can be edited. Artifact
+files that fail to load are excluded and counted in the result summary, so a
+partially available upstream catalog cannot be mistaken for a complete search.

@@ -86,6 +86,7 @@ import type {
 } from "./types";
 
 const STORAGE_KEY = "field-kit-build-v1";
+const OPTIMIZER_STORAGE_KEY = "field-kit-optimizer-v1";
 const CATEGORY_ORDER = [
   "Mobility & utility",
   "Survivability",
@@ -114,6 +115,15 @@ type NegativeFilter = {
   limit: string;
 };
 
+type PersistedOptimizerSettings = {
+  version: 1;
+  level: number;
+  selectedRarities: number[];
+  positiveFilters: PositiveFilter[];
+  negativeFilters: NegativeFilter[];
+  maxTotalPrice: string;
+};
+
 const DEFAULT_POSITIVE_FILTERS: PositiveFilter[] = OPTIMIZER_STAT_OPTIONS.map(([key]) => ({
   key,
   enabled: DEFAULT_OBJECTIVE_WEIGHTS.has(key),
@@ -126,6 +136,75 @@ const DEFAULT_NEGATIVE_FILTERS: NegativeFilter[] = OPTIMIZER_HARMFUL_OPTIONS.map
   policy: option.safeLimit === null ? "strict" : "safe",
   limit: "",
 }));
+
+function defaultOptimizerSettings(): PersistedOptimizerSettings {
+  return {
+    version: 1,
+    level: 0,
+    selectedRarities: [0],
+    positiveFilters: DEFAULT_POSITIVE_FILTERS.map((filter) => ({ ...filter })),
+    negativeFilters: DEFAULT_NEGATIVE_FILTERS.map((filter) => ({ ...filter })),
+    maxTotalPrice: "",
+  };
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function loadSavedOptimizerSettings(): PersistedOptimizerSettings {
+  const defaults = defaultOptimizerSettings();
+  try {
+    const value = localStorage.getItem(OPTIMIZER_STORAGE_KEY);
+    if (!value) return defaults;
+    const parsed: unknown = JSON.parse(value);
+    if (!isRecord(parsed) || parsed.version !== 1) return defaults;
+
+    const rawPositiveFilters = Array.isArray(parsed.positiveFilters) ? parsed.positiveFilters : [];
+    const positiveFilters = defaults.positiveFilters.map((fallback) => {
+      const saved = rawPositiveFilters.find((filter) => isRecord(filter) && filter.key === fallback.key);
+      return !isRecord(saved) ? fallback : {
+        key: fallback.key,
+        enabled: typeof saved.enabled === "boolean" ? saved.enabled : fallback.enabled,
+        weight: typeof saved.weight === "number" && OBJECTIVE_PRIORITIES.some((priority) => priority.weight === saved.weight)
+          ? saved.weight
+          : fallback.weight,
+        minimum: typeof saved.minimum === "string" ? saved.minimum : fallback.minimum,
+      };
+    });
+
+    const rawNegativeFilters = Array.isArray(parsed.negativeFilters) ? parsed.negativeFilters : [];
+    const validPolicies: NegativeEffectPolicy[] = ["allow", "safe", "strict", "custom"];
+    const negativeFilters = defaults.negativeFilters.map((fallback) => {
+      const saved = rawNegativeFilters.find((filter) => isRecord(filter) && filter.key === fallback.key);
+      return !isRecord(saved) ? fallback : {
+        key: fallback.key,
+        policy: typeof saved.policy === "string" && validPolicies.includes(saved.policy as NegativeEffectPolicy)
+          ? saved.policy as NegativeEffectPolicy
+          : fallback.policy,
+        limit: typeof saved.limit === "string" ? saved.limit : fallback.limit,
+      };
+    });
+
+    const selectedRarities = Array.isArray(parsed.selectedRarities)
+      ? [...new Set(parsed.selectedRarities.filter((rarity): rarity is number =>
+        Number.isInteger(rarity) && rarity >= 0 && rarity < RARITY_NAMES.length))].sort((left, right) => left - right)
+      : defaults.selectedRarities;
+
+    return {
+      version: 1,
+      level: typeof parsed.level === "number" && Number.isFinite(parsed.level)
+        ? clamp(Math.round(parsed.level), 0, 15)
+        : defaults.level,
+      selectedRarities,
+      positiveFilters,
+      negativeFilters,
+      maxTotalPrice: typeof parsed.maxTotalPrice === "string" ? parsed.maxTotalPrice : defaults.maxTotalPrice,
+    };
+  } catch {
+    return defaults;
+  }
+}
 
 type PickerState =
   | { kind: "container" }
@@ -626,11 +705,12 @@ function OptimizerPanel({
   container: ContainerData | null;
   onApply: (artifacts: ArtifactConfig[]) => void;
 }) {
-  const [level, setLevel] = useState(0);
-  const [selectedRarities, setSelectedRarities] = useState<number[]>([0]);
-  const [positiveFilters, setPositiveFilters] = useState<PositiveFilter[]>(DEFAULT_POSITIVE_FILTERS);
-  const [negativeFilters, setNegativeFilters] = useState<NegativeFilter[]>(DEFAULT_NEGATIVE_FILTERS);
-  const [maxTotalPrice, setMaxTotalPrice] = useState("");
+  const savedSettings = useMemo(loadSavedOptimizerSettings, []);
+  const [level, setLevel] = useState(savedSettings.level);
+  const [selectedRarities, setSelectedRarities] = useState<number[]>(savedSettings.selectedRarities);
+  const [positiveFilters, setPositiveFilters] = useState<PositiveFilter[]>(savedSettings.positiveFilters);
+  const [negativeFilters, setNegativeFilters] = useState<NegativeFilter[]>(savedSettings.negativeFilters);
+  const [maxTotalPrice, setMaxTotalPrice] = useState(savedSettings.maxTotalPrice);
   const [activeEngine, setActiveEngine] = useState<OptimizerEngine | null>(null);
   const [state, setState] = useState<"idle" | "loading" | "searching" | "done" | "error">("idle");
   const [loadProgress, setLoadProgress] = useState({ completed: 0, total: 0 });
@@ -651,6 +731,17 @@ function OptimizerPanel({
   const signatureRef = useRef(searchSignature);
 
   useEffect(() => () => workerRef.current?.terminate(), []);
+  useEffect(() => {
+    const settings: PersistedOptimizerSettings = {
+      version: 1,
+      level,
+      selectedRarities,
+      positiveFilters,
+      negativeFilters,
+      maxTotalPrice,
+    };
+    localStorage.setItem(OPTIMIZER_STORAGE_KEY, JSON.stringify(settings));
+  }, [level, selectedRarities, positiveFilters, negativeFilters, maxTotalPrice]);
   useEffect(() => {
     if (signatureRef.current === searchSignature) return;
     signatureRef.current = searchSignature;
@@ -828,6 +919,23 @@ function OptimizerPanel({
     });
   };
 
+  const resetOptimizerSettings = () => {
+    const defaults = defaultOptimizerSettings();
+    runIdRef.current += 1;
+    workerRef.current?.terminate();
+    workerRef.current = null;
+    setLevel(defaults.level);
+    setSelectedRarities(defaults.selectedRarities);
+    setPositiveFilters(defaults.positiveFilters);
+    setNegativeFilters(defaults.negativeFilters);
+    setMaxTotalPrice(defaults.maxTotalPrice);
+    setRun(null);
+    setError(null);
+    setSearchProgress(null);
+    setActiveEngine(null);
+    setState("idle");
+  };
+
   const applyResult = (resultIndex: number) => {
     if (!run) return;
     const result = run.search.results[resultIndex];
@@ -855,7 +963,10 @@ function OptimizerPanel({
           <h2>Weighted combination search</h2>
           <p>Enumerate every canonical loadout, derive feasible stat ranges, then rank the exact tradeoffs.</p>
         </div>
-        <SlidersHorizontal size={24} />
+        <div className="optimizer-heading-actions">
+          <button type="button" className="optimizer-reset" aria-label="Reset optimizer filters" onClick={resetOptimizerSettings}><RotateCcw size={14} /> Reset filters</button>
+          <SlidersHorizontal size={24} />
+        </div>
       </div>
 
       {!container ? (

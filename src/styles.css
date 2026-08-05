@@ -220,7 +220,10 @@ input[type="range"]::-webkit-slider-thumb { appearance: none; width: 14px; heigh
 .optimizer-heading h2 { margin: 0; font: 600 27px/1 "Barlow Condensed", sans-serif; text-transform: uppercase; }
 .optimizer-heading .eyebrow { margin-bottom: 8px; color: var(--acid); font-size: 8px; }
 .optimizer-heading p:last-child { max-width: 700px; margin: 9px 0 0; color: var(--muted); font-size: 9px; line-height: 1.55; }
-.optimizer-heading > svg { color: #6c7772; flex: 0 0 auto; }
+.optimizer-heading-actions { display: flex; align-items: center; gap: 14px; }
+.optimizer-heading-actions > svg { color: #6c7772; flex: 0 0 auto; }
+.optimizer-reset { min-height: 32px; padding: 0 10px; display: flex; align-items: center; gap: 6px; border: 1px solid var(--line); background: transparent; color: var(--muted); cursor: pointer; font-size: 7px; text-transform: uppercase; }
+.optimizer-reset:hover { border-color: var(--line-strong); color: var(--text); }
 .optimizer-empty { min-height: 190px; display: flex; align-items: center; justify-content: center; gap: 12px; color: var(--muted); font-size: 10px; }
 .optimizer-body { display: grid; grid-template-columns: minmax(380px, .78fr) minmax(540px, 1.22fr); align-items: start; }
 .optimizer-settings { border-right: 1px solid var(--line); }
@@ -365,6 +368,8 @@ footer a:hover { color: var(--acid); }
   .optimizer-panel { scroll-margin-top: 110px; }
   .optimizer-heading { padding: 18px; }
   .optimizer-heading h2 { font-size: 23px; }
+  .optimizer-reset { padding: 0 8px; }
+  .optimizer-reset svg { display: none; }
   .optimizer-body { display: block; }
   .optimizer-assumptions { grid-template-columns: 1fr; }
   .optimizer-rarity-list { grid-template-columns: 1fr; }

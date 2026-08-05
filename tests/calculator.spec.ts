@@ -45,7 +45,7 @@ test("keeps the calculator usable at a phone viewport", async ({ page }) => {
 });
 
 test("exhaustively ranks and loads a four-slot weighted build", async ({ page }) => {
-  test.setTimeout(60_000);
+  test.setTimeout(90_000);
   await page.goto("/");
   await expect(page.getByText(/EXBO LIVE/)).toBeVisible({ timeout: 20_000 });
 
@@ -111,6 +111,14 @@ test("exhaustively ranks and loads a four-slot weighted build", async ({ page })
   await expect(page.getByText("Maximum total price must be greater than zero.")).toBeVisible();
   await page.getByLabel("Maximum total price").fill("999999999999");
   await expect(searchButton).toBeEnabled();
+  await expect.poll(() => page.evaluate(() => localStorage.getItem("field-kit-optimizer-v1"))).toContain("999999999999");
+  await page.reload();
+  await expect(page.getByText(/EXBO LIVE/)).toBeVisible({ timeout: 20_000 });
+  await expect(movementRow.getByRole("button", { name: /Essential/ })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByLabel("Optimize Running speed")).not.toBeChecked();
+  await expect(page.getByLabel("Minimum Movement speed from artifacts")).toHaveValue("0.1");
+  await expect(page.getByLabel("Maximum total price")).toHaveValue("999999999999");
+  await expect(page.getByLabel("Temperature policy")).toHaveValue("safe");
   await searchButton.click();
   await expect(page.getByText(/combinations evaluated/)).toBeVisible({ timeout: 45_000 });
   await expect(page.getByRole("button", { name: "Load into calculator" }).first()).toBeVisible();
@@ -119,6 +127,12 @@ test("exhaustively ranks and loads a four-slot weighted build", async ({ page })
   await page.screenshot({ path: "test-results/optimizer.png", fullPage: true });
 
   await page.getByRole("button", { name: "Load into calculator" }).first().click();
+  await expect(page.getByText("4 / 4")).toBeVisible();
+  await page.getByRole("button", { name: "Reset optimizer filters" }).click();
+  await expect(movementRow.getByRole("button", { name: /Important/ })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByLabel("Optimize Running speed")).toBeChecked();
+  await expect(page.getByLabel("Maximum total price")).toHaveValue("");
+  await expect(page.getByLabel("Search Ordinary rarity")).toBeChecked();
   await expect(page.getByText("4 / 4")).toBeVisible();
 });
 
