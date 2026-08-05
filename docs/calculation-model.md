@@ -112,6 +112,8 @@ final values after artifact counter-effects, inner protection, and carrier
 properties. The Allow all, Game-safe, and Counter all buttons are bulk policy
 setters, not additional constraints. All numerical constraints are applied before
 feasible ranges are discovered, so normalization uses only qualifying builds.
+Every harmful-property row defaults to `No negative`; users must explicitly relax
+individual policies or apply a less strict bulk preset.
 
 When a maximum total price is supplied, each candidate uses the generated median
 completed-sale estimate for the optimizer's selected rarity. Duplicate artifacts

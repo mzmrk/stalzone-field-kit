@@ -116,7 +116,7 @@ const DEFAULT_POSITIVE_FILTERS: PositiveFilter[] = OPTIMIZER_STAT_OPTIONS.map(([
 
 const DEFAULT_NEGATIVE_FILTERS: NegativeFilter[] = OPTIMIZER_HARMFUL_OPTIONS.map((option) => ({
   key: option.key,
-  policy: option.safeLimit === null ? "allow" : "safe",
+  policy: "strict",
   limit: "",
 }));
 
