@@ -47,6 +47,8 @@ type PreparedProblem = {
   constraints: LinearConstraint[];
   upperBounds: number[];
   protection: number;
+  capacity: number;
+  allowDuplicates: boolean;
 };
 
 export async function optimizeArtifactCombinationsMilp(
@@ -66,10 +68,11 @@ export async function optimizeArtifactCombinationsMilp(
   }
 
   const prepared = prepareProblem(container, candidates, activeObjectives, settings);
-  const solveCount = activeObjectives.length * 2 + 1;
+  const resultLimit = settings.resultLimit ?? 10;
+  const solveCount = activeObjectives.length * 2 + resultLimit;
   let completed = 0;
-  const solve = (coefficients: Float64Array, maximize: boolean) => {
-    const result = solver.solve(buildLp(prepared, coefficients, maximize), {
+  const solve = (coefficients: Float64Array, maximize: boolean, excludedSelections: number[][] = []) => {
+    const result = solver.solve(buildLp(prepared, coefficients, maximize, excludedSelections), {
       output_flag: false,
       log_to_console: false,
       mip_rel_gap: 0,
@@ -114,30 +117,33 @@ export async function optimizeArtifactCombinationsMilp(
     });
   });
 
-  const best = solve(scoreCoefficients, true);
-  if (best.Status === "Infeasible") {
-    return { combinations, feasibleCombinations: 0, ranges, results: [] };
+  const results: OptimizerResult[] = [];
+  const excludedSelections: number[][] = [];
+  for (let resultIndex = 0; resultIndex < resultLimit; resultIndex += 1) {
+    const solution = solve(scoreCoefficients, true, excludedSelections);
+    if (solution.Status === "Infeasible") break;
+    assertOptimal(solution);
+    const indices = selectedIndices(solution, candidates.length, container.capacity);
+    const values = activeObjectives.map((_, objectiveIndex) =>
+      selectedObjectiveValue(indices, prepared, objectiveIndex));
+    const score = values.reduce((sum, value, objectiveIndex) => {
+      const span = ranges[objectiveIndex].max - ranges[objectiveIndex].min;
+      const normalized = Math.abs(span) <= EPSILON ? 1 : (value - ranges[objectiveIndex].min) / span;
+      return sum + normalized * activeObjectives[objectiveIndex].weight;
+    }, 0) / totalWeight;
+    const totalPrice = indices.reduce<number | null>((total, index) => {
+      const price = candidates[index].price;
+      return total === null || price === null ? null : total + price;
+    }, 0);
+    results.push({ indices, score, values, totalPrice });
+    excludedSelections.push(indices);
   }
-  assertOptimal(best);
-  const indices = selectedIndices(best, candidates.length, container.capacity);
-  const values = activeObjectives.map((_, objectiveIndex) =>
-    selectedObjectiveValue(indices, prepared, objectiveIndex));
-  const score = values.reduce((sum, value, objectiveIndex) => {
-    const span = ranges[objectiveIndex].max - ranges[objectiveIndex].min;
-    const normalized = Math.abs(span) <= EPSILON ? 1 : (value - ranges[objectiveIndex].min) / span;
-    return sum + normalized * activeObjectives[objectiveIndex].weight;
-  }, 0) / totalWeight;
-  const totalPrice = indices.reduce<number | null>((total, index) => {
-    const price = candidates[index].price;
-    return total === null || price === null ? null : total + price;
-  }, 0);
-  const result: OptimizerResult = { indices, score, values, totalPrice };
 
   return {
     combinations,
     feasibleCombinations: null,
     ranges,
-    results: [result],
+    results,
   };
 }
 
@@ -256,6 +262,8 @@ function prepareProblem(
         ? 0
         : settings.allowDuplicates ? container.capacity : 1),
     protection: container.protection,
+    capacity: container.capacity,
+    allowDuplicates: settings.allowDuplicates,
   };
 }
 
@@ -306,7 +314,12 @@ function selectedIndices(solution: MilpSolution, candidateCount: number, capacit
   return indices;
 }
 
-function buildLp(prepared: PreparedProblem, objective: Float64Array, maximize: boolean) {
+function buildLp(
+  prepared: PreparedProblem,
+  objective: Float64Array,
+  maximize: boolean,
+  excludedSelections: number[][],
+) {
   const lines = [maximize ? "Maximize" : "Minimize", ` obj: ${expression(objective)}`, "Subject To"];
   for (const constraint of prepared.constraints) {
     if (!Number.isFinite(constraint.rhs)) {
@@ -315,9 +328,47 @@ function buildLp(prepared: PreparedProblem, objective: Float64Array, maximize: b
       lines.push(` ${constraint.name}: ${expression(constraint.coefficients)} ${constraint.sense} ${number(constraint.rhs)}`);
     }
   }
+  const exclusionVariables: string[] = [];
+  excludedSelections.forEach((selection, exclusionIndex) => {
+    const counts = new Int32Array(prepared.vectors.length);
+    selection.forEach((candidateIndex) => { counts[candidateIndex] += 1; });
+    if (!prepared.allowDuplicates) {
+      const selected = [...counts]
+        .map((count, candidateIndex) => count > 0 ? candidateIndex : -1)
+        .filter((candidateIndex) => candidateIndex >= 0);
+      const coefficients = new Float64Array(prepared.vectors.length);
+      selected.forEach((candidateIndex) => { coefficients[candidateIndex] = 1; });
+      lines.push(` exclude_${exclusionIndex}: ${expression(coefficients)} <= ${prepared.capacity - 1}`);
+      return;
+    }
+
+    const indicators: string[] = [];
+    counts.forEach((count, candidateIndex) => {
+      const upper = prepared.upperBounds[candidateIndex];
+      if (count > 0) {
+        const variable = `lo_${exclusionIndex}_${candidateIndex}`;
+        indicators.push(variable);
+        exclusionVariables.push(variable);
+        lines.push(` exclude_${exclusionIndex}_lo_${candidateIndex}: x${candidateIndex} + ${prepared.capacity + 1} ${variable} <= ${count + prepared.capacity}`);
+      }
+      if (count < upper) {
+        const variable = `hi_${exclusionIndex}_${candidateIndex}`;
+        indicators.push(variable);
+        exclusionVariables.push(variable);
+        lines.push(` exclude_${exclusionIndex}_hi_${candidateIndex}: x${candidateIndex} - ${prepared.capacity + 1} ${variable} >= ${count - prepared.capacity}`);
+      }
+    });
+    lines.push(` exclude_${exclusionIndex}: ${indicators.join(" + ")} >= 1`);
+  });
   lines.push("Bounds");
   prepared.upperBounds.forEach((upper, index) => lines.push(` 0 <= x${index} <= ${upper}`));
-  lines.push("Generals", ...prepared.upperBounds.map((_, index) => ` x${index}`), "End");
+  exclusionVariables.forEach((variable) => lines.push(` 0 <= ${variable} <= 1`));
+  lines.push(
+    "Generals",
+    ...prepared.upperBounds.map((_, index) => ` x${index}`),
+    ...exclusionVariables.map((variable) => ` ${variable}`),
+    "End",
+  );
   return lines.join("\n");
 }
 

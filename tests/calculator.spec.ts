@@ -104,7 +104,7 @@ test("uses MILP to optimize a carrier beyond the brute-force limit", async ({ pa
   await expect(searchButton).toBeEnabled();
   await searchButton.click();
 
-  await expect(page.getByText("MILP optimal")).toBeVisible({ timeout: 45_000 });
+  await expect(page.getByText("MILP exact")).toBeVisible({ timeout: 45_000 });
   await expect(page.getByText(/possible combinations were not enumerated/)).toBeVisible();
-  await expect(page.getByRole("button", { name: "Load into calculator" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Load into calculator" })).toHaveCount(10);
 });

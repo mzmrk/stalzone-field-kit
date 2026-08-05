@@ -71,6 +71,58 @@ describe("MILP artifact optimizer", () => {
     expect(milp.feasibleCombinations).toBeNull();
   });
 
+  it.each([
+    ["with duplicate artifacts", true],
+    ["without duplicate artifacts", false],
+  ])("matches brute force's ordered top ten %s when scores are distinct", async (_, allowDuplicates) => {
+    const candidates = [1, 7, 31, 127, 521].map((value, index) =>
+      candidate(`Artifact ${index}`, [stat(MOVEMENT, value)]));
+    const comparisonContainer = { ...container, capacity: 3 };
+    const comparisonSettings = { ...settings, allowDuplicates, safeOnly: false };
+    const objectives = [{ key: MOVEMENT, weight: 1 }];
+
+    const bruteForce = optimizeArtifactCombinations(
+      comparisonContainer,
+      candidates,
+      objectives,
+      comparisonSettings,
+    );
+    const milp = await optimizeArtifactCombinationsMilp(
+      solver,
+      comparisonContainer,
+      candidates,
+      objectives,
+      comparisonSettings,
+    );
+
+    expect(milp.results).toHaveLength(10);
+    expect(milp.results.map((result) => result.indices)).toEqual(
+      bruteForce.results.map((result) => result.indices),
+    );
+    expect(milp.results.map((result) => result.values)).toEqual(
+      bruteForce.results.map((result) => result.values),
+    );
+    milp.results.forEach((result, index) => {
+      expect(result.score).toBeCloseTo(bruteForce.results[index].score, 10);
+    });
+  });
+
+  it("returns ten unique optimal builds when more than ten builds tie", async () => {
+    const tiedCandidates = Array.from({ length: 12 }, (_, index) =>
+      candidate(`Artifact ${index}`, [stat(MOVEMENT, 1)]));
+    const result = await optimizeArtifactCombinationsMilp(
+      solver,
+      { ...container, capacity: 1 },
+      tiedCandidates,
+      [{ key: MOVEMENT, weight: 1 }],
+      { ...settings, allowDuplicates: false },
+    );
+
+    expect(result.results).toHaveLength(10);
+    expect(new Set(result.results.map((item) => item.indices.join(","))).size).toBe(10);
+    expect(result.results.every((item) => item.score === 1)).toBe(true);
+  });
+
   it("matches combined safety, counter-effect, objective, and budget constraints", async () => {
     const candidates = [
       candidate("Hot sprinter", [stat(MOVEMENT, 5), stat(TEMPERATURE, 1, false)], 60),

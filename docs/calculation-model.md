@@ -105,8 +105,8 @@ builds.
 When a maximum total price is supplied, each candidate uses the generated median
 completed-sale estimate for the optimizer's selected rarity. Duplicate artifacts
 repeat their price. A combination passes only when every artifact has an estimate
-and their sum is at or below the cap. Price eligibility is applied in both search
-passes before feasible ranges or ranked results are recorded.
+and their sum is at or below the cap. Both engines apply price eligibility before
+deriving feasible ranges or ranked results.
 
 Both optimizer engines first derive the feasible minimum and maximum for every
 positive-weight objective, then normalize each objective as:
@@ -126,11 +126,13 @@ score below `100%`. Brute force obtains those ranges in its first complete
 enumeration and ranks in a second enumeration. It retains the ten highest-scoring
 builds and breaks equal-score ties by canonical artifact order. The MILP engine
 solves one minimum and one maximum integer program per objective, then one
-normalized weighted program. HiGHS is configured for zero MIP gap and only an
-`Optimal` status is accepted, so the single returned build is a proven optimum
-rather than a heuristic result. MILP does not enumerate alternatives, count
-feasible builds, or reproduce brute force's canonical tie order when several
-builds share the same score.
+normalized weighted program per result. After each result it adds an exact
+count-vector exclusion, including when duplicate artifacts are allowed, and
+solves again until ten builds are ranked or no feasible alternative remains.
+HiGHS is configured for zero MIP gap and only an `Optimal` status is accepted, so
+each returned build is proven next-best rather than heuristic. MILP does not
+count feasible builds or reproduce brute force's canonical order when more than
+ten builds share the same score; either tied subset is equally optimal.
 
 ## Verification expectations
 
@@ -150,5 +152,6 @@ normalized shares, neutral defaults, and the doubling between importance levels.
 Pricing coverage checks rarity-specific lookup, missing-tier behavior, ruble
 formatting, budget filtering, duplicate-price summation, and uncapped handling of
 unknown estimates. MILP coverage runs the actual WebAssembly solver, compares its
-ranges and optimum with brute force under combined constraints, and verifies that
-the enumeration guard is not applied.
+ordered top ten with brute force both with and without duplicates, checks tied
+result uniqueness and combined constraints, and verifies that the enumeration
+guard is not applied.

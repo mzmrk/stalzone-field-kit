@@ -46,8 +46,8 @@ by `npx playwright install-deps chromium`; that command modifies the container a
 may require root privileges. The Playwright suite starts its own Vite server on
 port `4173`, selects a live EXBO-backed Berloga-6 and Bracelet build, verifies
 persistence after reload, checks phone-width overflow, runs the live
-4,967,690-combination Errand Junior brute-force flow, and verifies a six-slot
-Berloga MILP result in the browser.
+4,967,690-combination Errand Junior brute-force flow, and verifies ten ranked
+six-slot Berloga MILP results in the browser.
 
 Type-check and produce the static artifact with:
 

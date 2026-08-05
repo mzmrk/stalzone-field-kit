@@ -858,9 +858,9 @@ function OptimizerPanel({
                 <span>Optimization engine</span>
                 <select aria-label="Optimization engine" value={engine} onChange={(event) => setEngine(event.target.value as "brute-force" | "milp")}>
                   <option value="brute-force">Brute force · top 10</option>
-                  <option value="milp">MILP beta · best build</option>
+                  <option value="milp">MILP beta · top 10</option>
                 </select>
-                <small>MILP proves one optimal build without enumerating the full search space and supports larger carriers.</small>
+                <small>MILP repeatedly excludes each previous build to prove an exact top 10 without enumerating the full search space.</small>
               </label>
               <div className="optimizer-rules">
                 <label><input type="checkbox" checked={safeOnly} onChange={(event) => setSafeOnly(event.target.checked)} /><span><strong>Safe exposure only</strong><small>Reject builds above damage thresholds</small></span></label>
@@ -896,7 +896,7 @@ function OptimizerPanel({
             ) : (
               <>
                 <div className="optimizer-summary">
-                  {run.engine === "milp" ? <><strong>MILP optimal</strong> · {run.search.combinations.toLocaleString()} possible combinations were not enumerated</> : <><strong>{run.search.combinations.toLocaleString()}</strong> combinations evaluated · <strong>{run.search.feasibleCombinations?.toLocaleString()}</strong> feasible</>}
+                  {run.engine === "milp" ? <><strong>MILP exact</strong> · {run.search.results.length} ranked builds · {run.search.combinations.toLocaleString()} possible combinations were not enumerated</> : <><strong>{run.search.combinations.toLocaleString()}</strong> combinations evaluated · <strong>{run.search.feasibleCombinations?.toLocaleString()}</strong> feasible</>}
                   {run.failedItems > 0 && <span> · {run.failedItems} artifact file{run.failedItems === 1 ? "" : "s"} unavailable</span>}
                 </div>
                 <div className="optimizer-result-list">
