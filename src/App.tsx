@@ -18,7 +18,6 @@ import {
   SlidersHorizontal,
   Sparkles,
   Trash2,
-  Weight,
   X,
 } from "lucide-react";
 import {
@@ -84,6 +83,7 @@ const CATEGORY_ORDER = [
   "Other effects",
 ];
 const OPTIMIZER_COMBINATION_LIMIT = 10_000_000;
+const CARRY_WEIGHT_KEY = "stalker.artefact_properties.factor.max_weight_bonus";
 const DEFAULT_OPTIMIZER_OBJECTIVES: OptimizerObjective[] = [
   { key: "stalker.artefact_properties.factor.speed_modifier", weight: NEUTRAL_OBJECTIVE_WEIGHT },
   { key: "stalker.artefact_properties.factor.stamina_regeneration_bonus", weight: NEUTRAL_OBJECTIVE_WEIGHT },
@@ -256,6 +256,8 @@ function ContainerPanel({
   onRemove: (index: number) => void;
   onCopy: (index: number) => void;
 }) {
+  const carrierCarryWeight = container?.stats.find((stat) => stat.key === CARRY_WEIGHT_KEY)?.max;
+
   return (
     <section className="panel loadout-panel" id="loadout">
       <div className="panel-heading">
@@ -290,6 +292,7 @@ function ContainerPanel({
             <StatPill label="SLOTS" value={String(container.capacity)} />
             <StatPill label="PROTECTION" value={`${container.protection.toFixed(1)}%`} />
             <StatPill label="EFFECT" value={`${container.effectiveness.toFixed(1)}%`} />
+            {carrierCarryWeight !== undefined && <StatPill label="CARRY WEIGHT" value={`+${carrierCarryWeight.toFixed(2)} kg`} />}
           </div>
           <div className="slot-heading">
             <span>Artifact slots</span>
@@ -501,12 +504,10 @@ function ResultPanel({
   container,
   totals,
   warnings,
-  mass,
 }: {
   container: ContainerData | null;
   totals: TotalStat[];
   warnings: TotalStat[];
-  mass: number;
 }) {
   const grouped = CATEGORY_ORDER.map((category) => ({
     category,
@@ -540,11 +541,6 @@ function ResultPanel({
               <span><strong>{warning.name}</strong> is high enough to cause damage ({formatNumber(warning.value, false)}).</span>
             </div>
           ))}
-          <div className="summary-strip">
-            <div><Weight size={17} /><span>{container.entry.data.includes("/backpacks/") ? "Backpack weight" : "Container weight"}</span><strong>{container.weight.toFixed(2)} kg</strong></div>
-            <div><Weight size={17} /><span>Artifact weight</span><strong>{mass.toFixed(2)} kg</strong></div>
-            <div><ShieldCheck size={17} /><span>Inner protection</span><strong>{container.protection.toFixed(1)}%</strong></div>
-          </div>
           {grouped.length ? grouped.map(({ category, stats }) => (
             <div className="result-group" key={category}>
               <div className="section-label"><span>{category}</span><span>{stats.length}</span></div>
@@ -949,7 +945,7 @@ export default function App() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(build));
   }, [container, artifacts]);
 
-  const { totals, warnings, mass } = useMemo(
+  const { totals, warnings } = useMemo(
     () => calculateTotals(container, artifacts),
     [container, artifacts],
   );
@@ -1088,7 +1084,7 @@ export default function App() {
             onChange={updateArtifact}
             onReplace={() => activeIndex !== null && setPicker({ kind: "artifact", index: activeIndex })}
           />
-          <ResultPanel container={container} totals={totals} warnings={warnings} mass={mass} />
+          <ResultPanel container={container} totals={totals} warnings={warnings} />
         </div>
         <OptimizerPanel
           catalog={catalog}

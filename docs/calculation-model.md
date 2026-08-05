@@ -66,7 +66,7 @@ Warnings occur only when the final value is strictly greater than its threshold:
 
 Exact equality is considered safe by the current implementation.
 
-## Additional properties and mass
+## Additional properties and carry weight
 
 EXBO's public item repository does not expose each artifact's random additional
 property pool. At levels `+5`, `+10`, and `+15`, the UI unlocks one manual row in
@@ -75,10 +75,11 @@ The entered value is added directly; quality, level, and effectiveness are not
 applied again. The supported manual stat list lives in
 [`STAT_OPTIONS`](../src/calculations.ts).
 
-Artifact weight is the simple sum of selected artifacts' raw weight properties.
-It does not include the selected carrier's own raw weight. The readout presents
-these as separate artifact and backpack/container values; neither is folded into
-calculated stat totals.
+Carry weight is the `max_weight_bonus` capacity stat, not physical equipment
+mass. A carrier's built-in value is shown with its slots, protection, and
+effectiveness and is also included in calculated totals. `calculateTotals` still
+returns the sum of selected artifact mass for domain use, but the UI does not
+display backpack/container or artifact mass.
 
 ## Weighted optimizer
 
