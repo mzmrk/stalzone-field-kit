@@ -56,6 +56,20 @@ export type OptimizerConstraint = {
   scope: "artifact" | "final";
 };
 
+export const MINIMUM_POSITIVE_CONTRIBUTION = 1e-6;
+
+export function requiredPositiveEffectConstraint(
+  key: string,
+  minimum: number | null,
+): OptimizerConstraint {
+  return {
+    key,
+    minimum: minimum ?? MINIMUM_POSITIVE_CONTRIBUTION,
+    maximum: null,
+    scope: "artifact",
+  };
+}
+
 export function harmfulEffectConstraint(
   option: OptimizerHarmfulOption,
   policy: NegativeEffectPolicy,

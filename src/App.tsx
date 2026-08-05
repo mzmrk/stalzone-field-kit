@@ -55,6 +55,7 @@ import {
   OPTIMIZER_HARMFUL_OPTIONS,
   OPTIMIZER_STAT_OPTIONS,
   optimizerEngineFor,
+  requiredPositiveEffectConstraint,
   type OptimizerConstraint,
   type OptimizerEngine,
   type OptimizerObjective,
@@ -769,13 +770,11 @@ function OptimizerPanel({
     filter.policy === "custom" && (filter.limit === "" || !Number.isFinite(Number(filter.limit)) || Number(filter.limit) < 0));
   const constraints: OptimizerConstraint[] = [
     ...positiveFilters
-      .filter((filter) => filter.enabled && filter.minimum !== "" && !invalidPositiveMinimum)
-      .map((filter) => ({
-        key: filter.key,
-        minimum: Number(filter.minimum),
-        maximum: null,
-        scope: "artifact" as const,
-      })),
+      .filter((filter) => filter.enabled)
+      .map((filter) => requiredPositiveEffectConstraint(
+        filter.key,
+        filter.minimum !== "" && !invalidPositiveMinimum ? Number(filter.minimum) : null,
+      )),
     ...negativeFilters.flatMap((filter) => {
       const option = OPTIMIZER_HARMFUL_OPTIONS.find((item) => item.key === filter.key)!;
       const constraint = harmfulEffectConstraint(
@@ -1012,7 +1011,7 @@ function OptimizerPanel({
                         {filter.enabled && <span className="objective-share">{objectiveWeightPercentage(filter.weight, objectiveWeights).toFixed(1).replace(".0", "")}%</span>}
                         {filter.enabled && <label className="positive-filter__minimum">
                           <span>Minimum</span>
-                          <input aria-label={`Minimum ${option[1]} from artifacts`} type="number" min="0" step="0.01" placeholder="No min" value={filter.minimum} onChange={(event) => setPositiveFilters((current) => current.map((item) => item.key === filter.key ? { ...item, minimum: event.target.value } : item))} />
+                          <input aria-label={`Minimum ${option[1]} from artifacts`} type="number" min="0" step="0.01" placeholder="Any > 0" value={filter.minimum} onChange={(event) => setPositiveFilters((current) => current.map((item) => item.key === filter.key ? { ...item, minimum: event.target.value } : item))} />
                         </label>}
                       </div>
                       {filter.enabled && (
@@ -1024,7 +1023,7 @@ function OptimizerPanel({
                   );
                 })}
               </div>
-              <p className="field-note">Minimums require artifact contribution; built-in carrier bonuses do not satisfy them.</p>
+              <p className="field-note">Every enabled benefit requires positive net artifact contribution. Enter a minimum to require more; built-in carrier bonuses do not count.</p>
             </div>
 
             <div className="optimizer-block">

@@ -9,6 +9,7 @@ import {
   OPTIMIZER_STAT_OPTIONS,
   optimizerEngineFor,
   optimizeArtifactCombinations,
+  requiredPositiveEffectConstraint,
   type OptimizerCandidate,
   type OptimizerContainer,
 } from "./optimizer";
@@ -109,6 +110,25 @@ describe("artifact optimizer", () => {
     expect(optimizerEngineFor(BRUTE_FORCE_COMBINATION_LIMIT - 1)).toBe("brute-force");
     expect(optimizerEngineFor(BRUTE_FORCE_COMBINATION_LIMIT)).toBe("brute-force");
     expect(optimizerEngineFor(BRUTE_FORCE_COMBINATION_LIMIT + 1)).toBe("milp");
+  });
+
+  it("requires an enabled positive effect to be present on the selected artifacts", () => {
+    const required = requiredPositiveEffectConstraint(MOVEMENT, null);
+    const result = optimizeArtifactCombinations(
+      { ...container, capacity: 1 },
+      [candidate("No movement", []), candidate("Movement", [stat(MOVEMENT, "Movement", 1)])],
+      [{ key: MOVEMENT, weight: 1 }],
+      { ...settings, constraints: [required] },
+    );
+
+    expect(required).toEqual({
+      key: MOVEMENT,
+      minimum: 1e-6,
+      maximum: null,
+      scope: "artifact",
+    });
+    expect(result.results.map((entry) => entry.indices)).toEqual([[1]]);
+    expect(requiredPositiveEffectConstraint(MOVEMENT, 2).minimum).toBe(2);
   });
 
   it("counts rarity variants while keeping artifact identities unique", () => {

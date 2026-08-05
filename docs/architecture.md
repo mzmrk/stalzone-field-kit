@@ -134,10 +134,11 @@ uses the midpoint of that rarity's unstudied stat range; random additional
 properties are excluded. It fills every carrier slot, allows repeated artifact
 types, exposes every supported positive stat and harmful property without
 add/remove controls, and applies independent numerical requirements before
-ranking. Enabled positive rows can participate in scoring and optionally require
-a minimum artifact contribution. Each harmful-property row can be unrestricted,
-fully countered, or limited to a custom accepted penalty; the five environmental
-exposures with published warning thresholds can also use a game-safe policy.
+ranking. Every enabled positive row participates in scoring and requires positive
+net artifact contribution; an entered minimum raises that eligibility floor.
+Each harmful-property row can be unrestricted, fully countered, or limited to a
+custom accepted penalty; the five environmental exposures with published warning
+thresholds can also use a game-safe policy.
 
 The app selects between two exact engines from the canonical search-space size.
 Searches up to and including ten million combinations use brute force; larger
