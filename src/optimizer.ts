@@ -1,6 +1,5 @@
 import {
   calculateStat,
-  EXPOSURE_KEYS,
   PROTECTED_EXPOSURE_KEYS,
   WARNING_LIMITS,
 } from "./calculations";
@@ -20,9 +19,24 @@ export const OPTIMIZER_STAT_OPTIONS = [
   ["stalker.artefact_properties.factor.tear_dmg_factor", "Laceration protection", false],
 ] as const;
 
+export const OPTIMIZER_HARMFUL_OPTIONS = [
+  ["stalker.artefact_properties.factor.radiation_accumulation", "Radiation", WARNING_LIMITS["stalker.artefact_properties.factor.radiation_accumulation"]],
+  ["stalker.artefact_properties.factor.biological_accumulation", "Biological infection", WARNING_LIMITS["stalker.artefact_properties.factor.biological_accumulation"]],
+  ["stalker.artefact_properties.factor.psycho_accumulation", "Psy-emissions", WARNING_LIMITS["stalker.artefact_properties.factor.psycho_accumulation"]],
+  ["stalker.artefact_properties.factor.thermal_accumulation", "Temperature", WARNING_LIMITS["stalker.artefact_properties.factor.thermal_accumulation"]],
+  ["stalker.artefact_properties.factor.frost_accumulation", "Frost", WARNING_LIMITS["stalker.artefact_properties.factor.frost_accumulation"]],
+] as const;
+
 export type OptimizerObjective = {
   key: string;
   weight: number;
+};
+
+export type OptimizerConstraint = {
+  key: string;
+  minimum: number | null;
+  maximum: number | null;
+  scope: "artifact" | "final";
 };
 
 export type OptimizerCandidate = {
@@ -43,9 +57,7 @@ export type OptimizerSettings = {
   level: number;
   rarityIndex: number;
   allowDuplicates: boolean;
-  safeOnly: boolean;
-  noNegativeEffects: boolean;
-  requireAllObjectives: boolean;
+  constraints: OptimizerConstraint[];
   maxTotalPrice: number | null;
   resultLimit?: number;
   combinationLimit?: number;
@@ -115,25 +127,12 @@ export function optimizeArtifactCombinations(
   if (combinations > combinationLimit) throw new SearchSpaceTooLargeError(combinations, combinationLimit);
   if (combinations === 0) return { combinations, feasibleCombinations: 0, ranges: [], results: [] };
 
-  const exposureKeys = [...EXPOSURE_KEYS];
-  const harmfulDirections = new Map<string, number>();
-  const registerHarmfulDirection = (stat: ParsedStat) => {
-    if (stat.positive || harmfulDirections.has(stat.key)) return;
-    const endpoint = Math.abs(stat.max) >= Math.abs(stat.min) ? stat.max : stat.min;
-    const direction = Math.sign(endpoint);
-    if (direction !== 0) harmfulDirections.set(stat.key, direction);
-  };
-  container.stats.forEach(registerHarmfulDirection);
-  candidates.forEach((candidate) => candidate.stats.forEach(registerHarmfulDirection));
-
   const relevantKeys = [...new Set([
     ...activeObjectives.map((objective) => objective.key),
-    ...exposureKeys,
-    ...harmfulDirections.keys(),
+    ...settings.constraints.map((constraint) => constraint.key),
   ])];
   const keyIndexes = new Map(relevantKeys.map((key, index) => [key, index]));
   const objectiveIndexes = activeObjectives.map((objective) => keyIndexes.get(objective.key)!);
-  const exposureIndexes = exposureKeys.map((key) => keyIndexes.get(key)!);
   const carrierValues = new Float64Array(relevantKeys.length);
   for (const stat of container.stats) {
     const index = keyIndexes.get(stat.key);
@@ -163,15 +162,14 @@ export function optimizeArtifactCombinations(
     return protectedValue + carrierValues[index];
   };
 
-  const safe = (sums: Float64Array) => exposureKeys.every((key, exposureIndex) => {
-    const index = exposureIndexes[exposureIndex];
-    return finalizeValue(key, index, sums[index]) <= WARNING_LIMITS[key];
+  const satisfiesConstraints = (sums: Float64Array) => settings.constraints.every((constraint) => {
+    const index = keyIndexes.get(constraint.key)!;
+    const value = constraint.scope === "artifact"
+      ? sums[index]
+      : finalizeValue(constraint.key, index, sums[index]);
+    return (constraint.minimum === null || value >= constraint.minimum - EPSILON)
+      && (constraint.maximum === null || value <= constraint.maximum + EPSILON);
   });
-  const hasNoNegativeEffects = (sums: Float64Array) => [...harmfulDirections].every(([key, direction]) => {
-    const index = keyIndexes.get(key)!;
-    return finalizeValue(key, index, sums[index]) * direction <= EPSILON;
-  });
-  const hasEveryObjective = (sums: Float64Array) => objectiveIndexes.every((index) => sums[index] > EPSILON);
   const totalPrice = (indices: Int32Array) => {
     let total = 0;
     for (const candidateIndex of indices) {
@@ -187,9 +185,7 @@ export function optimizeArtifactCombinations(
     return price !== null && price <= settings.maxTotalPrice + EPSILON;
   };
   const eligible = (sums: Float64Array, indices: Int32Array) =>
-    (!settings.safeOnly || safe(sums))
-    && (!settings.noNegativeEffects || hasNoNegativeEffects(sums))
-    && (!settings.requireAllObjectives || hasEveryObjective(sums))
+    satisfiesConstraints(sums)
     && withinBudget(indices);
 
   const mins = new Float64Array(activeObjectives.length).fill(Number.POSITIVE_INFINITY);

@@ -1,8 +1,6 @@
 import {
   calculateStat,
-  EXPOSURE_KEYS,
   PROTECTED_EXPOSURE_KEYS,
-  WARNING_LIMITS,
 } from "./calculations";
 import {
   combinationCount,
@@ -13,10 +11,8 @@ import {
   type OptimizerSearchResult,
   type OptimizerSettings,
 } from "./optimizer";
-import type { ParsedStat } from "./types";
 
 const EPSILON = 1e-10;
-const REQUIRED_OBJECTIVE_MIN = 1e-7;
 
 export type MilpProgress = {
   completed: number;
@@ -153,20 +149,9 @@ function prepareProblem(
   objectives: OptimizerObjective[],
   settings: OptimizerSettings,
 ): PreparedProblem {
-  const harmfulDirections = new Map<string, number>();
-  const registerHarmfulDirection = (stat: ParsedStat) => {
-    if (stat.positive || harmfulDirections.has(stat.key)) return;
-    const endpoint = Math.abs(stat.max) >= Math.abs(stat.min) ? stat.max : stat.min;
-    const direction = Math.sign(endpoint);
-    if (direction !== 0) harmfulDirections.set(stat.key, direction);
-  };
-  container.stats.forEach(registerHarmfulDirection);
-  candidates.forEach((candidate) => candidate.stats.forEach(registerHarmfulDirection));
-
   const keys = [...new Set([
     ...objectives.map((objective) => objective.key),
-    ...EXPOSURE_KEYS,
-    ...harmfulDirections.keys(),
+    ...settings.constraints.map((constraint) => constraint.key),
   ])];
   const keyIndexes = new Map(keys.map((key, index) => [key, index]));
   const carrierValues = new Float64Array(keys.length);
@@ -200,48 +185,31 @@ function prepareProblem(
     return Float64Array.from(vectors, (vector) => vector[index]);
   };
 
-  if (settings.safeOnly) {
-    for (const key of EXPOSURE_KEYS) {
-      const index = keyIndexes.get(key)!;
-      const bound = rawUpperBound(key, WARNING_LIMITS[key], carrierValues[index], container.protection);
+  settings.constraints.forEach((constraint) => {
+    const index = keyIndexes.get(constraint.key)!;
+    if (constraint.minimum !== null) {
+      const bound = constraint.scope === "artifact"
+        ? constraint.minimum
+        : rawLowerBound(constraint.key, constraint.minimum, carrierValues[index], container.protection);
+      constraints.push({
+        name: `minimum_${constraints.length}`,
+        coefficients: coefficientsFor(constraint.key),
+        sense: ">=",
+        rhs: bound ?? Number.POSITIVE_INFINITY,
+      });
+    }
+    if (constraint.maximum !== null) {
+      const bound = constraint.scope === "artifact"
+        ? constraint.maximum
+        : rawUpperBound(constraint.key, constraint.maximum, carrierValues[index], container.protection);
       if (bound !== null) constraints.push({
-        name: `safe_${constraints.length}`,
-        coefficients: coefficientsFor(key),
+        name: `maximum_${constraints.length}`,
+        coefficients: coefficientsFor(constraint.key),
         sense: "<=",
         rhs: bound,
       });
     }
-  }
-  if (settings.noNegativeEffects) {
-    for (const [key, direction] of harmfulDirections) {
-      const index = keyIndexes.get(key)!;
-      if (direction > 0) {
-        const bound = rawUpperBound(key, EPSILON, carrierValues[index], container.protection);
-        if (bound !== null) constraints.push({
-          name: `nonnegative_${constraints.length}`,
-          coefficients: coefficientsFor(key),
-          sense: "<=",
-          rhs: bound,
-        });
-      } else {
-        const bound = rawLowerBound(key, -EPSILON, carrierValues[index], container.protection);
-        constraints.push({
-          name: `nonnegative_${constraints.length}`,
-          coefficients: coefficientsFor(key),
-          sense: ">=",
-          rhs: bound ?? Number.POSITIVE_INFINITY,
-        });
-      }
-    }
-  }
-  if (settings.requireAllObjectives) {
-    objectives.forEach((objective) => constraints.push({
-      name: `required_${constraints.length}`,
-      coefficients: coefficientsFor(objective.key),
-      sense: ">=",
-      rhs: REQUIRED_OBJECTIVE_MIN,
-    }));
-  }
+  });
   if (settings.maxTotalPrice !== null) {
     constraints.push({
       name: "budget",

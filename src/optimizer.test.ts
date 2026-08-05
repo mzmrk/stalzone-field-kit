@@ -33,9 +33,7 @@ const settings = {
   level: 0,
   rarityIndex: 0,
   allowDuplicates: true,
-  safeOnly: true,
-  noNegativeEffects: false,
-  requireAllObjectives: false,
+  constraints: [{ key: TEMPERATURE, minimum: null, maximum: 0.5, scope: "final" as const }],
   maxTotalPrice: null,
 };
 
@@ -116,14 +114,17 @@ describe("artifact optimizer", () => {
 
     const result = optimizeArtifactCombinations(container, candidates, [
       { key: MOVEMENT, weight: 100 },
-    ], { ...settings, safeOnly: false, noNegativeEffects: true });
+    ], {
+      ...settings,
+      constraints: [{ key: TEMPERATURE, minimum: null, maximum: 0, scope: "final" }],
+    });
 
     expect(result.feasibleCombinations).toBe(3);
     expect(result.results[0].indices).toEqual([0, 2]);
     expect(result.results[0].values[0]).toBe(3);
   });
 
-  it("can require every positive-weight objective to finish above zero", () => {
+  it("enforces independent artifact minimums for positive effects", () => {
     const candidates = [
       candidate("Sprinter", [stat(MOVEMENT, "Movement speed", 5)]),
       candidate("Balanced", [
@@ -142,14 +143,17 @@ describe("artifact optimizer", () => {
 
     const required = optimizeArtifactCombinations(container, candidates, objectives, {
       ...settings,
-      requireAllObjectives: true,
+      constraints: [
+        { key: MOVEMENT, minimum: 0.000001, maximum: null, scope: "artifact" },
+        { key: STAMINA, minimum: 0.000001, maximum: null, scope: "artifact" },
+      ],
     });
     expect(required.feasibleCombinations).toBe(2);
     expect(required.results[0].indices).toEqual([0, 1]);
     expect(required.results.every((result) => result.values.every((value) => value > 0))).toBe(true);
   });
 
-  it("does not let a carrier stat satisfy a required artifact objective", () => {
+  it("does not let a carrier stat satisfy an artifact minimum", () => {
     const carrier: OptimizerContainer = {
       capacity: 1,
       protection: 0,
@@ -163,7 +167,10 @@ describe("artifact optimizer", () => {
 
     const result = optimizeArtifactCombinations(carrier, candidates, [
       { key: CARRY_WEIGHT, weight: 100 },
-    ], { ...settings, requireAllObjectives: true });
+    ], {
+      ...settings,
+      constraints: [{ key: CARRY_WEIGHT, minimum: 0.000001, maximum: null, scope: "artifact" }],
+    });
 
     expect(result.feasibleCombinations).toBe(1);
     expect(result.results[0].indices).toEqual([1]);

@@ -37,9 +37,7 @@ const settings: OptimizerSettings = {
   level: 0,
   rarityIndex: 0,
   allowDuplicates: true,
-  safeOnly: true,
-  noNegativeEffects: false,
-  requireAllObjectives: false,
+  constraints: [{ key: TEMPERATURE, minimum: null, maximum: 0.5, scope: "final" }],
   maxTotalPrice: null,
 };
 
@@ -78,7 +76,7 @@ describe("MILP artifact optimizer", () => {
     const candidates = [1, 7, 31, 127, 521].map((value, index) =>
       candidate(`Artifact ${index}`, [stat(MOVEMENT, value)]));
     const comparisonContainer = { ...container, capacity: 3 };
-    const comparisonSettings = { ...settings, allowDuplicates, safeOnly: false };
+    const comparisonSettings = { ...settings, allowDuplicates, constraints: [] };
     const objectives = [{ key: MOVEMENT, weight: 1 }];
 
     const bruteForce = optimizeArtifactCombinations(
@@ -123,7 +121,7 @@ describe("MILP artifact optimizer", () => {
     expect(result.results.every((item) => item.score === 1)).toBe(true);
   });
 
-  it("matches combined safety, counter-effect, objective, and budget constraints", async () => {
+  it("matches combined maximum, minimum, and budget constraints", async () => {
     const candidates = [
       candidate("Hot sprinter", [stat(MOVEMENT, 5), stat(TEMPERATURE, 1, false)], 60),
       candidate("Affordable runner", [stat(MOVEMENT, 2), stat(STAMINA, 1)], 20),
@@ -136,8 +134,11 @@ describe("MILP artifact optimizer", () => {
     ];
     const constrained = {
       ...settings,
-      noNegativeEffects: true,
-      requireAllObjectives: true,
+      constraints: [
+        { key: TEMPERATURE, minimum: null, maximum: 0, scope: "final" as const },
+        { key: MOVEMENT, minimum: 5, maximum: null, scope: "artifact" as const },
+        { key: STAMINA, minimum: 0.1, maximum: null, scope: "artifact" as const },
+      ],
       maxTotalPrice: 70,
     };
 

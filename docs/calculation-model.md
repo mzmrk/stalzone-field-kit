@@ -84,23 +84,29 @@ display backpack/container or artifact mass.
 ## Weighted optimizer
 
 [`src/optimizer.ts`](../src/optimizer.ts) precomputes each catalog artifact's
-selected objective and exposure contributions with [`calculateStat`](../src/calculations.ts).
-At each complete combination it applies counter-effects before inner protection,
-then carrier stats and the same strict damage thresholds used by
-[`calculateTotals`](../src/calculations.ts). Random additional properties are not
-searched because EXBO does not publish their pools.
+selected objective and constrained-stat contributions with
+[`calculateStat`](../src/calculations.ts). At each complete combination it applies
+counter-effects before inner protection, then carrier stats and the configured
+per-effect limits. Random additional properties are not searched because EXBO
+does not publish their pools.
 
-The safe-only constraint accepts exposure values at or below their damage
-thresholds. The stricter no-negative-effects constraint identifies every stat
-key that has a harmful EXBO property and requires its final net value to reach
-zero or cross into the beneficial direction. Artifact counter-effects therefore
-combine before this check; an exactly countered harmful property passes.
-The require-every-objective constraint accepts only builds whose artifacts
-contribute a value greater than zero to every positive-weight objective. Carrier
-properties do not satisfy this requirement; for example, a backpack's built-in
-carry weight cannot stand in for artifact carry weight. The constraint is applied
-before feasible ranges are discovered, so normalization uses only qualifying
-builds.
+Every supported positive stat remains visible. Enabling its Optimize control
+adds it to weighted scoring; an optional minimum instead creates an artifact-only
+hard constraint and works whether scoring is enabled or not. Carrier properties
+therefore cannot satisfy a positive minimum—for example, built-in backpack carry
+weight cannot stand in for artifact carry weight. Movement speed and stamina
+regeneration start enabled at Neutral; every other row starts visible, disabled,
+and retains Neutral as the priority used if enabled.
+
+Every supported harmful exposure also remains visible. `Allow` adds no constraint;
+`Game-safe` caps an exposure at its damage threshold; `No negative` caps its
+final value at zero; and `Custom maximum` uses the entered cap. Game-safe is only
+available where [`WARNING_LIMITS`](../src/calculations.ts) defines a threshold.
+Harmful limits evaluate final values after artifact counter-effects, inner
+protection, and carrier properties. The Allow all, Game-safe, and Counter all
+buttons are bulk policy setters, not additional constraints. All numerical
+constraints are applied before feasible ranges are discovered, so normalization
+uses only qualifying builds.
 
 When a maximum total price is supplied, each candidate uses the generated median
 completed-sale estimate for the optimizer's selected rarity. Duplicate artifacts
@@ -118,15 +124,15 @@ positive-weight objective, then normalize each objective as:
 A zero-width range receives normalized value `1`. The final score is the weighted
 average of normalized objectives. The UI expresses each independent weight as
 one of five importance levels: Minor (`0.25×`), Low (`0.5×`), Neutral (`1×`),
-Important (`2×`), or Essential (`4×`). Every initial or newly added objective
-starts Neutral. Changing one priority leaves every other priority unchanged; the
-UI derives and displays their resulting percentage shares. Independent objective
-maxima need not be simultaneously achievable, so even the best compromise may
-score below `100%`. Brute force obtains those ranges in its first complete
-enumeration and ranks in a second enumeration. It retains the ten highest-scoring
-builds and breaks equal-score ties by canonical artifact order. The MILP engine
-solves one minimum and one maximum integer program per objective, then one
-normalized weighted program per result. After each result it adds an exact
+Important (`2×`), or Essential (`4×`). Enabling a previously inactive objective
+uses its Neutral priority. Changing one priority leaves every other priority
+unchanged; the UI derives and displays their resulting percentage shares.
+Independent objective maxima need not be simultaneously achievable, so even the
+best compromise may score below `100%`. Brute force obtains those ranges in its
+first complete enumeration and ranks in a second enumeration. It retains the ten
+highest-scoring builds and breaks equal-score ties by canonical artifact order.
+The MILP engine solves one minimum and one maximum integer program per objective,
+then one normalized weighted program per result. After each result it adds an exact
 count-vector exclusion, including when duplicate artifacts are allowed, and
 solves again until ten builds are ranked or no feasible alternative remains.
 HiGHS is configured for zero MIP gap and only an `Optimal` status is accepted, so
@@ -144,11 +150,11 @@ mass, and strict warning thresholds. Changes to the user workflow or persistence
 should also update the Playwright flow in
 [`tests/calculator.spec.ts`](../tests/calculator.spec.ts).
 Optimizer coverage checks combination counts, weight-sensitive ranking,
-search-size rejection, feasible-range normalization, and safe-only filtering.
-It also covers the zero boundary for fully countered harmful properties,
-positive-value filtering when every objective is required, and exclusion of
-carrier stats from that requirement. Priority-control coverage checks exact
-normalized shares, neutral defaults, and the doubling between importance levels.
+search-size rejection, feasible-range normalization, independent final maximums,
+and artifact-only positive minimums. It also covers the zero boundary for fully
+countered harmful properties and exclusion of carrier stats from artifact
+minimums. Priority-control coverage checks exact normalized shares, neutral
+defaults, enabled-row highlighting, and the doubling between importance levels.
 Pricing coverage checks rarity-specific lookup, missing-tier behavior, ruble
 formatting, budget filtering, duplicate-price summation, and uncapped handling of
 unknown estimates. MILP coverage runs the actual WebAssembly solver, compares its
