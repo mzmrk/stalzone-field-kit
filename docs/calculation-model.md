@@ -95,9 +95,8 @@ separately priced variant of every artifact and uses the midpoint quality of its
 unstudied range: `92.5`, `107.5`, `122.5`, `137.5`, `152.5`, `167.5`, or `182.5`.
 These are deterministic estimates for ranged market artifacts rather than claims
 about their eventual researched quality. Variants retain a shared artifact
-identity, so disabling duplicates prevents two rarities of the same artifact from
-appearing together. Enabling duplicates allows multiple copies, including copies
-with different rarities.
+identity for canonical counting. Searches always allow multiple copies, including
+copies of the same artifact with different rarities.
 
 Every supported positive stat remains visible. Enabling its Optimize control
 adds it to weighted scoring and reveals an optional artifact-only minimum. Turning

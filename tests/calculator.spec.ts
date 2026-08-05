@@ -56,6 +56,7 @@ test("exhaustively ranks and loads a four-slot weighted build", async ({ page })
   await expect(page.getByText("4,967,690").first()).toBeVisible();
   await expect(page.getByText(/Brute force selected automatically/)).toBeVisible();
   await expect(page.getByLabel("Optimization engine")).toHaveCount(0);
+  await expect(page.getByText("Allow duplicate artifacts")).toHaveCount(0);
   await expect(page.locator(".container-specs")).toContainText("CARRY WEIGHT");
   await expect(page.locator(".container-specs")).toContainText("+35.00 kg");
   const movementRow = page.locator(".positive-filter").filter({ hasText: "Movement speed" });

@@ -630,7 +630,6 @@ function OptimizerPanel({
   const [selectedRarities, setSelectedRarities] = useState<number[]>([0]);
   const [positiveFilters, setPositiveFilters] = useState<PositiveFilter[]>(DEFAULT_POSITIVE_FILTERS);
   const [negativeFilters, setNegativeFilters] = useState<NegativeFilter[]>(DEFAULT_NEGATIVE_FILTERS);
-  const [allowDuplicates, setAllowDuplicates] = useState(true);
   const [maxTotalPrice, setMaxTotalPrice] = useState("");
   const [activeEngine, setActiveEngine] = useState<OptimizerEngine | null>(null);
   const [state, setState] = useState<"idle" | "loading" | "searching" | "done" | "error">("idle");
@@ -647,7 +646,6 @@ function OptimizerPanel({
     selectedRarities,
     positiveFilters,
     negativeFilters,
-    allowDuplicates,
     maxTotalPrice,
   });
   const signatureRef = useRef(searchSignature);
@@ -667,7 +665,7 @@ function OptimizerPanel({
   }, [searchSignature]);
 
   const estimatedCombinations = catalog && container
-    ? groupedCombinationCount(catalog.artifacts.length, selectedRarities.length, container.capacity, allowDuplicates)
+    ? groupedCombinationCount(catalog.artifacts.length, selectedRarities.length, container.capacity, true)
     : 0;
   const estimatedEngine = optimizerEngineFor(estimatedCombinations);
   const activeObjectives: OptimizerObjective[] = positiveFilters
@@ -772,7 +770,7 @@ function OptimizerPanel({
       quality: candidate.quality,
       rarityIndex: candidate.rarityIndex,
     }));
-    const actualCombinations = candidateCombinationCount(optimizerCandidates, container.capacity, allowDuplicates);
+    const actualCombinations = candidateCombinationCount(optimizerCandidates, container.capacity, true);
     const selectedEngine = optimizerEngineFor(actualCombinations);
     setActiveEngine(selectedEngine);
 
@@ -822,7 +820,7 @@ function OptimizerPanel({
         quality: 100,
         level,
         rarityIndex: 0,
-        allowDuplicates,
+        allowDuplicates: true,
         constraints,
         maxTotalPrice: parsedMaxTotalPrice,
         combinationLimit: BRUTE_FORCE_COMBINATION_LIMIT,
@@ -946,9 +944,6 @@ function OptimizerPanel({
 
             <div className="optimizer-block">
               <div className="section-label"><span>Search rules</span><span>Exact</span></div>
-              <div className="optimizer-rules">
-                <label><input type="checkbox" checked={allowDuplicates} onChange={(event) => setAllowDuplicates(event.target.checked)} /><span><strong>Allow duplicate artifacts</strong><small>Enumerate combinations with replacement</small></span></label>
-              </div>
               <label className="optimizer-budget">
                 <span>Maximum total price</span>
                 <input aria-label="Maximum total price" type="number" min="1" step="1000" placeholder="No limit" value={maxTotalPrice} onChange={(event) => setMaxTotalPrice(event.target.value)} />

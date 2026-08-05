@@ -123,8 +123,8 @@ stale and are not active-lot quotes or guarantees.
 The optimizer is a theoretical catalog search: every artifact receives one shared
 upgrade level and one candidate variant for each user-enabled rarity. Each variant
 uses the midpoint of that rarity's unstudied stat range; random additional
-properties are excluded. It fills every carrier slot, optionally allows duplicate
-artifact types, exposes every supported positive stat and harmful property without
+properties are excluded. It fills every carrier slot, allows repeated artifact
+types, exposes every supported positive stat and harmful property without
 add/remove controls, and applies independent numerical requirements before
 ranking. Enabled positive rows can participate in scoring and optionally require
 a minimum artifact contribution. Each harmful-property row can be unrestricted,
@@ -144,8 +144,8 @@ An optional maximum-total-price constraint uses each selected variant's
 rarity-specific median estimate. When enabled, combinations containing an unknown
 price or exceeding the cap are infeasible. This filtering happens before objective
 ranges and rankings are derived, so normalization reflects the affordable search
-space. Rarity variants share their artifact identity: disabling duplicates permits
-at most one color of a given artifact type in a build.
+space. Repeated artifacts are always eligible, including copies of the same
+artifact at different enabled rarities.
 
 Optimizer settings and results are transient. Loading a ranked result clones its
 artifacts into the persisted manual build, where individual values can be edited.
