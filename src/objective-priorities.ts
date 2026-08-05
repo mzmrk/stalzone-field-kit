@@ -7,6 +7,7 @@ export const OBJECTIVE_PRIORITIES = [
 ] as const;
 
 export const NEUTRAL_OBJECTIVE_WEIGHT = 4;
+export const IMPORTANT_OBJECTIVE_WEIGHT = 8;
 
 export function objectiveWeightPercentage(weight: number, weights: number[]) {
   const total = weights.reduce((sum, value) => sum + value, 0);

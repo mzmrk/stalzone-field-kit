@@ -5,6 +5,7 @@ import {
   groupedCombinationCount,
   harmfulEffectConstraint,
   OPTIMIZER_HARMFUL_OPTIONS,
+  OPTIMIZER_STAT_OPTIONS,
   optimizeArtifactCombinations,
   type OptimizerCandidate,
   type OptimizerContainer,
@@ -42,6 +43,22 @@ const settings = {
 };
 
 describe("artifact optimizer", () => {
+  it("orders positive filters by broad general-use demand", () => {
+    expect(OPTIMIZER_STAT_OPTIONS.map((option) => option[1])).toEqual([
+      "Movement speed",
+      "Bullet resistance",
+      "Vitality",
+      "Running speed",
+      "Stamina regeneration",
+      "Healing effectiveness",
+      "Health regeneration",
+      "Carry weight",
+      "Stamina",
+      "Laceration protection",
+      "Explosion protection",
+    ]);
+  });
+
   it("covers every harmful property published by the current artifact catalog", () => {
     expect(OPTIMIZER_HARMFUL_OPTIONS.map((option) => option.name)).toEqual([
       "Radiation",

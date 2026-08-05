@@ -7,16 +7,16 @@ import type { ParsedStat } from "./types";
 
 export const OPTIMIZER_STAT_OPTIONS = [
   ["stalker.artefact_properties.factor.speed_modifier", "Movement speed", true],
-  ["stalker.artefact_properties.factor.sprint_speed_modifier", "Running speed", true],
-  ["stalker.artefact_properties.factor.stamina_bonus", "Stamina", true],
-  ["stalker.artefact_properties.factor.stamina_regeneration_bonus", "Stamina regeneration", true],
-  ["stalker.artefact_properties.factor.max_weight_bonus", "Carry weight", false],
-  ["stalker.artefact_properties.factor.health_bonus", "Vitality", true],
-  ["stalker.artefact_properties.factor.regeneration_bonus", "Health regeneration", true],
-  ["stalker.artefact_properties.factor.heal_efficiency", "Healing effectiveness", true],
   ["stalker.artefact_properties.factor.bullet_dmg_factor", "Bullet resistance", false],
-  ["stalker.artefact_properties.factor.explosion_dmg_factor", "Explosion protection", false],
+  ["stalker.artefact_properties.factor.health_bonus", "Vitality", true],
+  ["stalker.artefact_properties.factor.sprint_speed_modifier", "Running speed", true],
+  ["stalker.artefact_properties.factor.stamina_regeneration_bonus", "Stamina regeneration", true],
+  ["stalker.artefact_properties.factor.heal_efficiency", "Healing effectiveness", true],
+  ["stalker.artefact_properties.factor.regeneration_bonus", "Health regeneration", true],
+  ["stalker.artefact_properties.factor.max_weight_bonus", "Carry weight", false],
+  ["stalker.artefact_properties.factor.stamina_bonus", "Stamina", true],
   ["stalker.artefact_properties.factor.tear_dmg_factor", "Laceration protection", false],
+  ["stalker.artefact_properties.factor.explosion_dmg_factor", "Explosion protection", false],
 ] as const;
 
 export type OptimizerHarmfulOption = {

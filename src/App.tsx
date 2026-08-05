@@ -61,6 +61,7 @@ import {
 } from "./optimizer";
 import type { MilpProgress } from "./milp-optimizer";
 import {
+  IMPORTANT_OBJECTIVE_WEIGHT,
   NEUTRAL_OBJECTIVE_WEIGHT,
   OBJECTIVE_PRIORITIES,
   objectiveWeightPercentage,
@@ -91,9 +92,11 @@ const CATEGORY_ORDER = [
 ];
 const OPTIMIZER_COMBINATION_LIMIT = 10_000_000;
 const CARRY_WEIGHT_KEY = "stalker.artefact_properties.factor.max_weight_bonus";
-const DEFAULT_OBJECTIVE_KEYS = new Set([
-  "stalker.artefact_properties.factor.speed_modifier",
-  "stalker.artefact_properties.factor.stamina_regeneration_bonus",
+const DEFAULT_OBJECTIVE_WEIGHTS = new Map<string, number>([
+  ["stalker.artefact_properties.factor.speed_modifier", IMPORTANT_OBJECTIVE_WEIGHT],
+  ["stalker.artefact_properties.factor.sprint_speed_modifier", NEUTRAL_OBJECTIVE_WEIGHT],
+  ["stalker.artefact_properties.factor.stamina_regeneration_bonus", NEUTRAL_OBJECTIVE_WEIGHT],
+  ["stalker.artefact_properties.factor.bullet_dmg_factor", NEUTRAL_OBJECTIVE_WEIGHT],
 ]);
 
 type PositiveFilter = {
@@ -111,8 +114,8 @@ type NegativeFilter = {
 
 const DEFAULT_POSITIVE_FILTERS: PositiveFilter[] = OPTIMIZER_STAT_OPTIONS.map(([key]) => ({
   key,
-  enabled: DEFAULT_OBJECTIVE_KEYS.has(key),
-  weight: NEUTRAL_OBJECTIVE_WEIGHT,
+  enabled: DEFAULT_OBJECTIVE_WEIGHTS.has(key),
+  weight: DEFAULT_OBJECTIVE_WEIGHTS.get(key) ?? NEUTRAL_OBJECTIVE_WEIGHT,
   minimum: "",
 }));
 

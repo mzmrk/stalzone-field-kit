@@ -103,9 +103,13 @@ Every supported positive stat remains visible. Enabling its Optimize control
 adds it to weighted scoring and reveals an optional artifact-only minimum. Turning
 the row off clears and removes that minimum. Carrier properties therefore cannot
 satisfy a positive minimum—for example, built-in backpack carry weight cannot
-stand in for artifact carry weight. Movement speed and stamina regeneration start
-enabled at Neutral; every other row starts visible, disabled, and retains Neutral
-as the priority used if enabled.
+stand in for artifact carry weight. The general-purpose default enables Movement
+speed at Important (`2×`) plus Running speed, Bullet resistance, and Stamina
+regeneration at Neutral (`1×`). Remaining rows start visible and disabled, and
+retain Neutral as the priority used if enabled. The visible order favors broadly
+used mobility and survivability objectives before specialized healing, utility,
+and damage-type protection stats; it is a usability default rather than a claim
+that one build archetype is universally optimal.
 
 All 13 properties that appear as harmful on artifacts in the current EXBO Global
 catalog remain visible. `Allow` adds no constraint. `No negative` requires a final
