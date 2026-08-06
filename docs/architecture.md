@@ -134,8 +134,11 @@ uses the midpoint of that rarity's unstudied stat range; random additional
 properties are excluded. It fills every carrier slot, allows repeated artifact
 types, exposes every supported positive stat and harmful property without
 add/remove controls, and applies independent numerical requirements before
-ranking. Every enabled positive row participates in scoring and requires positive
-net artifact contribution; an entered minimum raises that eligibility floor.
+ranking. The positive list covers all 31 green property keys in the current EXBO
+Global artifact catalog. Every enabled row participates in scoring and requires
+beneficial net artifact contribution; an entered minimum or minimum magnitude
+raises that eligibility floor. Ordinary benefits prefer higher values, while
+countering and reduction goals prefer stronger negative values.
 Each harmful-property row can be unrestricted, fully countered, or limited to a
 custom accepted penalty; the five environmental exposures with published warning
 thresholds can also use a game-safe policy.

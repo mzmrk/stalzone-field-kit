@@ -7,18 +7,40 @@ import {
 import type { ParsedStat } from "./types";
 
 export const OPTIMIZER_STAT_OPTIONS = [
-  ["stalker.artefact_properties.factor.speed_modifier", "Movement speed", true],
-  ["stalker.artefact_properties.factor.bullet_dmg_factor", "Bullet resistance", false],
-  ["stalker.artefact_properties.factor.health_bonus", "Vitality", true],
-  ["stalker.artefact_properties.factor.sprint_speed_modifier", "Running speed", true],
-  ["stalker.artefact_properties.factor.stamina_regeneration_bonus", "Stamina regeneration", true],
-  ["stalker.artefact_properties.factor.heal_efficiency", "Healing effectiveness", true],
-  ["stalker.artefact_properties.factor.regeneration_bonus", "Health regeneration", true],
-  [CARRY_WEIGHT_KEY, "Carry weight", false],
-  ["stalker.artefact_properties.factor.stamina_bonus", "Stamina", true],
-  ["stalker.artefact_properties.factor.tear_dmg_factor", "Laceration protection", false],
-  ["stalker.artefact_properties.factor.explosion_dmg_factor", "Explosion protection", false],
+  ["stalker.artefact_properties.factor.speed_modifier", "Movement speed", true, 1],
+  ["stalker.artefact_properties.factor.bullet_dmg_factor", "Bullet resistance", false, 1],
+  ["stalker.artefact_properties.factor.health_bonus", "Vitality", true, 1],
+  ["stalker.artefact_properties.factor.artefakt_heal", "Periodic healing", true, 1],
+  ["stalker.artefact_properties.factor.sprint_speed_modifier", "Running speed", true, 1],
+  ["stalker.artefact_properties.factor.stamina_regeneration_bonus", "Stamina regeneration", true, 1],
+  ["stalker.artefact_properties.factor.heal_efficiency", "Healing effectiveness", true, 1],
+  ["stalker.artefact_properties.factor.regeneration_bonus", "Health regeneration", true, 1],
+  [CARRY_WEIGHT_KEY, "Carry weight", false, 1],
+  ["stalker.artefact_properties.factor.stamina_bonus", "Stamina", true, 1],
+  ["stalker.artefact_properties.factor.tear_dmg_factor", "Laceration protection", false, 1],
+  ["stalker.artefact_properties.factor.explosion_dmg_factor", "Explosion protection", false, 1],
+  ["stalker.artefact_properties.factor.bleeding_protection", "Bleeding protection", true, 1],
+  ["stalker.artefact_properties.factor.stopping_protection", "Stability", true, 1],
+  ["stalker.artefact_properties.factor.reaction_to_burn", "Reaction to burns", true, 1],
+  ["stalker.artefact_properties.factor.reaction_to_chemical_burn", "Reaction to chemical burns", true, 1],
+  ["stalker.artefact_properties.factor.reaction_to_electroshock", "Reaction to electricity", true, 1],
+  ["stalker.artefact_properties.factor.reaction_to_tear", "Reaction to laceration", true, 1],
+  ["stalker.artefact_properties.factor.electra_dmg_factor", "Electricity resistance", false, 1],
+  ["stalker.artefact_properties.factor.burn_dmg_factor", "Fire resistance", false, 1],
+  ["stalker.artefact_properties.factor.biological_protection", "Bioinfection protection", false, 1],
+  ["stalker.artefact_properties.factor.psycho_protection", "Psy-emission protection", false, 1],
+  ["stalker.artefact_properties.factor.radiation_protection", "Radiation protection", false, 1],
+  ["stalker.artefact_properties.factor.thermal_protection", "Thermal protection", false, 1],
+  ["stalker.artefact_properties.factor.radiation_accumulation", "Radiation countering", false, -1],
+  ["stalker.artefact_properties.factor.biological_accumulation", "Biological infection countering", false, -1],
+  ["stalker.artefact_properties.factor.psycho_accumulation", "Psy-emission countering", false, -1],
+  ["stalker.artefact_properties.factor.thermal_accumulation", "Temperature countering", false, -1],
+  ["stalker.artefact_properties.factor.bleeding_accumulation", "Bleeding countering", false, -1],
+  ["stalker.artefact_properties.factor.combustion_accumulation", "Burning countering", false, -1],
+  ["stalker.artefact_properties.factor.recoil_bonus", "Recoil reduction", true, -1],
 ] as const;
+
+export type ObjectiveDirection = 1 | -1;
 
 export type OptimizerHarmfulOption = {
   key: string;
@@ -48,6 +70,7 @@ export const OPTIMIZER_HARMFUL_OPTIONS: readonly OptimizerHarmfulOption[] = [
 export type OptimizerObjective = {
   key: string;
   weight: number;
+  direction?: ObjectiveDirection;
 };
 
 export type OptimizerConstraint = {
@@ -62,13 +85,28 @@ export const MINIMUM_POSITIVE_CONTRIBUTION = 1e-6;
 export function requiredPositiveEffectConstraint(
   key: string,
   minimum: number | null,
+  direction: ObjectiveDirection = 1,
 ): OptimizerConstraint {
+  const magnitude = minimum ?? MINIMUM_POSITIVE_CONTRIBUTION;
   return {
     key,
-    minimum: minimum ?? MINIMUM_POSITIVE_CONTRIBUTION,
-    maximum: null,
+    minimum: direction === 1 ? magnitude : null,
+    maximum: direction === -1 ? -magnitude : null,
     scope: "artifact",
   };
+}
+
+export function normalizedObjectiveValue(
+  value: number,
+  minimum: number,
+  maximum: number,
+  direction: ObjectiveDirection = 1,
+) {
+  const span = maximum - minimum;
+  if (Math.abs(span) <= EPSILON) return 1;
+  return direction === 1
+    ? (value - minimum) / span
+    : (maximum - value) / span;
 }
 
 export function harmfulEffectConstraint(
@@ -334,8 +372,12 @@ export function optimizeArtifactCombinations(
       const values = objectiveIndexes.map((index, objectiveIndex) =>
         finalizeValue(activeObjectives[objectiveIndex].key, index, sums[index]));
       const score = values.reduce((sum, value, objectiveIndex) => {
-        const span = maxes[objectiveIndex] - mins[objectiveIndex];
-        const normalized = Math.abs(span) <= EPSILON ? 1 : (value - mins[objectiveIndex]) / span;
+        const normalized = normalizedObjectiveValue(
+          value,
+          mins[objectiveIndex],
+          maxes[objectiveIndex],
+          activeObjectives[objectiveIndex].direction,
+        );
         return sum + normalized * activeObjectives[objectiveIndex].weight;
       }, 0) / totalWeight;
       insertResult(results, {

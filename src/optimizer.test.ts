@@ -51,6 +51,7 @@ describe("artifact optimizer", () => {
       "Movement speed",
       "Bullet resistance",
       "Vitality",
+      "Periodic healing",
       "Running speed",
       "Stamina regeneration",
       "Healing effectiveness",
@@ -59,6 +60,36 @@ describe("artifact optimizer", () => {
       "Stamina",
       "Laceration protection",
       "Explosion protection",
+      "Bleeding protection",
+      "Stability",
+      "Reaction to burns",
+      "Reaction to chemical burns",
+      "Reaction to electricity",
+      "Reaction to laceration",
+      "Electricity resistance",
+      "Fire resistance",
+      "Bioinfection protection",
+      "Psy-emission protection",
+      "Radiation protection",
+      "Thermal protection",
+      "Radiation countering",
+      "Biological infection countering",
+      "Psy-emission countering",
+      "Temperature countering",
+      "Bleeding countering",
+      "Burning countering",
+      "Recoil reduction",
+    ]);
+    expect(OPTIMIZER_STAT_OPTIONS).toHaveLength(31);
+    expect(new Set(OPTIMIZER_STAT_OPTIONS.map((option) => option[0])).size).toBe(31);
+    expect(OPTIMIZER_STAT_OPTIONS.filter((option) => option[3] === -1).map((option) => option[1])).toEqual([
+      "Radiation countering",
+      "Biological infection countering",
+      "Psy-emission countering",
+      "Temperature countering",
+      "Bleeding countering",
+      "Burning countering",
+      "Recoil reduction",
     ]);
   });
 
@@ -129,6 +160,32 @@ describe("artifact optimizer", () => {
     });
     expect(result.results.map((entry) => entry.indices)).toEqual([[1]]);
     expect(requiredPositiveEffectConstraint(MOVEMENT, 2).minimum).toBe(2);
+    expect(requiredPositiveEffectConstraint(TEMPERATURE, null, -1)).toEqual({
+      key: TEMPERATURE,
+      minimum: null,
+      maximum: -1e-6,
+      scope: "artifact",
+    });
+  });
+
+  it("ranks stronger negative counter-effects above weaker ones", () => {
+    const candidates = [
+      candidate("Weak counter", [stat(TEMPERATURE, "Temperature", -1)]),
+      candidate("Strong counter", [stat(TEMPERATURE, "Temperature", -2)]),
+    ];
+    const result = optimizeArtifactCombinations(
+      { ...container, capacity: 1 },
+      candidates,
+      [{ key: TEMPERATURE, weight: 1, direction: -1 }],
+      {
+        ...settings,
+        constraints: [requiredPositiveEffectConstraint(TEMPERATURE, null, -1)],
+      },
+    );
+
+    expect(result.ranges).toEqual([{ key: TEMPERATURE, min: -2, max: -1 }]);
+    expect(result.results[0].indices).toEqual([1]);
+    expect(result.results[0].score).toBe(1);
   });
 
   it("counts rarity variants while keeping artifact identities unique", () => {

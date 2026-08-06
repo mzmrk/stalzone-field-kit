@@ -70,6 +70,27 @@ describe("MILP artifact optimizer", () => {
     expect(milp.feasibleCombinations).toBeNull();
   });
 
+  it("matches brute force for a lower-is-better countering objective", async () => {
+    const candidates = [
+      candidate("Weak counter", [stat(TEMPERATURE, -1)]),
+      candidate("Strong counter", [stat(TEMPERATURE, -2)]),
+    ];
+    const counterContainer = { ...container, capacity: 1 };
+    const objectives = [{ key: TEMPERATURE, weight: 1, direction: -1 as const }];
+    const counterSettings = {
+      ...settings,
+      constraints: [{ key: TEMPERATURE, minimum: null, maximum: -1e-6, scope: "artifact" as const }],
+    };
+
+    const bruteForce = optimizeArtifactCombinations(counterContainer, candidates, objectives, counterSettings);
+    const milp = await optimizeArtifactCombinationsMilp(solver, counterContainer, candidates, objectives, counterSettings);
+
+    expect(bruteForce.results[0].indices).toEqual([1]);
+    expect(milp.results[0].indices).toEqual([1]);
+    expect(milp.ranges).toEqual(bruteForce.ranges);
+    expect(milp.results[0].score).toBeCloseTo(bruteForce.results[0].score, 10);
+  });
+
   it("excludes carrier carry weight from both exact engines", async () => {
     const carrier = { ...container, capacity: 1, stats: [stat(CARRY_WEIGHT, 35)] };
     const candidates = [candidate("Artifact carry weight", [stat(CARRY_WEIGHT, 2)])];

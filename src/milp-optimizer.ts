@@ -5,6 +5,7 @@ import {
 } from "./calculations";
 import {
   candidateCombinationCount,
+  normalizedObjectiveValue,
   type OptimizerCandidate,
   type OptimizerContainer,
   type OptimizerObjective,
@@ -109,8 +110,9 @@ export async function optimizeArtifactCombinationsMilp(
     const span = ranges[objectiveIndex].max - ranges[objectiveIndex].min;
     if (Math.abs(span) <= EPSILON) return;
     const vectorIndex = prepared.objectiveIndexes[objectiveIndex];
+    const direction = objective.direction ?? 1;
     prepared.vectors.forEach((vector, candidateIndex) => {
-      scoreCoefficients[candidateIndex] += vector[vectorIndex] * objective.weight / span / totalWeight;
+      scoreCoefficients[candidateIndex] += vector[vectorIndex] * direction * objective.weight / span / totalWeight;
     });
   });
 
@@ -124,8 +126,12 @@ export async function optimizeArtifactCombinationsMilp(
     const values = activeObjectives.map((_, objectiveIndex) =>
       selectedObjectiveValue(indices, prepared, objectiveIndex));
     const score = values.reduce((sum, value, objectiveIndex) => {
-      const span = ranges[objectiveIndex].max - ranges[objectiveIndex].min;
-      const normalized = Math.abs(span) <= EPSILON ? 1 : (value - ranges[objectiveIndex].min) / span;
+      const normalized = normalizedObjectiveValue(
+        value,
+        ranges[objectiveIndex].min,
+        ranges[objectiveIndex].max,
+        activeObjectives[objectiveIndex].direction,
+      );
       return sum + normalized * activeObjectives[objectiveIndex].weight;
     }, 0) / totalWeight;
     const totalPrice = indices.reduce<number | null>((total, index) => {

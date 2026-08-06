@@ -101,18 +101,25 @@ about their eventual researched quality. Variants retain a shared artifact
 identity for canonical counting. Searches always allow multiple copies, including
 copies of the same artifact with different rarities.
 
-Every supported positive stat remains visible. Enabling its Optimize control
-adds it to weighted scoring and requires the selected artifacts to contribute a
-net positive amount of that stat. The optional artifact-only minimum raises this
-requirement above mere presence. Turning the row off clears and removes that
-minimum. Carrier properties cannot satisfy the requirement—for example, built-in
-backpack carry weight cannot stand in for artifact carry weight. The general-purpose
-default enables Movement speed at Important (`2×`) plus Running speed, Bullet
-resistance, and Stamina regeneration at Neutral (`1×`). Remaining rows start
-visible and disabled, and retain Neutral as the priority used if enabled. The
-visible order favors broadly used mobility and survivability objectives before
-specialized healing, utility, and damage-type protection stats; it is a usability
-default rather than a claim that one build archetype is universally optimal.
+All 31 green property keys in the current EXBO Global artifact catalog remain
+visible. Enabling a row adds it to weighted scoring and requires the selected
+artifacts to contribute that benefit. Higher-is-better objectives require a net
+positive value. Radiation, biological infection, psy-emission, temperature,
+bleeding, and burning countering plus recoil reduction are lower-is-better; they
+require a net negative value and rank a stronger negative value higher. Their
+optional input is a positive magnitude, so `2` requires a value at or below
+`-2`. Other objectives use the entered value as an ordinary positive minimum.
+Turning a row off clears its requirement. Carrier properties cannot satisfy it—for
+example, built-in backpack carry weight cannot stand in for artifact carry
+weight.
+
+The general-purpose default enables Movement speed at Important (`2×`) plus
+Running speed, Bullet resistance, and Stamina regeneration at Neutral (`1×`).
+Remaining rows start visible and disabled, and retain Neutral as the priority used
+if enabled. The visible order favors broadly used mobility and survivability
+objectives before specialized healing, utility, protection, and countering stats;
+it is a usability default rather than a claim that one build archetype is
+universally optimal.
 
 All 13 properties that appear as harmful on artifacts in the current EXBO Global
 catalog remain visible. `Allow` adds no constraint. `No negative` requires a final
@@ -138,11 +145,17 @@ of each chosen variant. A combination passes only when every artifact has an
 estimate and their sum is at or below the cap. Both engines apply price eligibility
 before deriving feasible ranges or ranked results.
 
-Both optimizer engines first derive the feasible minimum and maximum for every
-positive-weight objective, then normalize each objective as:
+Both optimizer engines first derive the feasible numeric minimum and maximum for
+every positive-weight objective. Higher-is-better objectives normalize as:
 
 ```text
 (value - feasible minimum) / (feasible maximum - feasible minimum)
+```
+
+Lower-is-better objectives normalize in the opposite direction:
+
+```text
+(feasible maximum - value) / (feasible maximum - feasible minimum)
 ```
 
 A zero-width range receives normalized value `1`. The final score is the weighted
@@ -175,17 +188,18 @@ quality/level/effectiveness scaling, ordinary harmful-property quality scaling,
 the exposure effectiveness exception, rarity-boundary choices and resets,
 protection, counter-before-protection order, non-carry carrier and manual bonus
 addition, carrier carry-weight exclusion, mass, and strict warning thresholds.
-Changes to the user workflow or persistence should also update the Playwright flow in
-[`tests/calculator.spec.ts`](../tests/calculator.spec.ts).
+Changes to the user workflow or persistence should also update the Playwright
+flow in [`tests/calculator.spec.ts`](../tests/calculator.spec.ts).
 Optimizer coverage checks combination counts, automatic engine selection at the
 ten-million boundary, search-size rejection, weight-sensitive ranking,
 feasible-range normalization, independent final maximums,
 enabled-effect presence, and artifact-only positive minimums. It also covers both
 harmful directions, the zero boundary for fully countered harmful properties, the
-catalog's complete harmful-property filter list, and exclusion of carrier carry
-weight from objectives and artifact minimums. Priority-control coverage checks
-exact normalized shares, neutral defaults, enabled-row highlighting, and the
-doubling between importance levels.
+catalog's complete 31-property beneficial list and harmful-property filter list,
+lower-is-better ranking equivalence between both engines, and exclusion of carrier
+carry weight from objectives and artifact minimums. Priority-control coverage
+checks exact normalized shares, neutral defaults, enabled-row highlighting, and
+the doubling between importance levels.
 Rarity-variant coverage checks midpoint qualities, group-aware combination counts,
 per-candidate scaling, and artifact-identity constraints in both exact engines.
 Pricing coverage checks rarity-specific lookup, missing-tier behavior, ruble

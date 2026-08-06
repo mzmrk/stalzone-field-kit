@@ -55,6 +55,7 @@ import {
   harmfulEffectConstraint,
   OPTIMIZER_HARMFUL_OPTIONS,
   OPTIMIZER_STAT_OPTIONS,
+  normalizedObjectiveValue,
   optimizerEngineFor,
   requiredPositiveEffectConstraint,
   type OptimizerConstraint,
@@ -762,7 +763,10 @@ function OptimizerPanel({
   const estimatedEngine = optimizerEngineFor(estimatedCombinations);
   const activeObjectives: OptimizerObjective[] = positiveFilters
     .filter((filter) => filter.enabled)
-    .map((filter) => ({ key: filter.key, weight: filter.weight }));
+    .map((filter) => {
+      const option = OPTIMIZER_STAT_OPTIONS.find(([key]) => key === filter.key)!;
+      return { key: filter.key, weight: filter.weight, direction: option[3] };
+    });
   const objectiveWeights = activeObjectives.map((objective) => objective.weight);
   const invalidPositiveMinimum = positiveFilters.some((filter) =>
     filter.minimum !== "" && (!Number.isFinite(Number(filter.minimum)) || Number(filter.minimum) <= 0));
@@ -774,6 +778,7 @@ function OptimizerPanel({
       .map((filter) => requiredPositiveEffectConstraint(
         filter.key,
         filter.minimum !== "" && !invalidPositiveMinimum ? Number(filter.minimum) : null,
+        OPTIMIZER_STAT_OPTIONS.find(([key]) => key === filter.key)![3],
       )),
     ...negativeFilters.flatMap((filter) => {
       const option = OPTIMIZER_HARMFUL_OPTIONS.find((item) => item.key === filter.key)!;
@@ -1010,8 +1015,8 @@ function OptimizerPanel({
                         </label>
                         {filter.enabled && <span className="objective-share">{objectiveWeightPercentage(filter.weight, objectiveWeights).toFixed(1).replace(".0", "")}%</span>}
                         {filter.enabled && <label className="positive-filter__minimum">
-                          <span>Minimum</span>
-                          <input aria-label={`Minimum ${option[1]} from artifacts`} type="number" min="0" step="0.01" placeholder="Any > 0" value={filter.minimum} onChange={(event) => setPositiveFilters((current) => current.map((item) => item.key === filter.key ? { ...item, minimum: event.target.value } : item))} />
+                          <span>{option[3] === -1 ? "Min magnitude" : "Minimum"}</span>
+                          <input aria-label={`Minimum ${option[1]}${option[3] === -1 ? " magnitude" : ""} from artifacts`} type="number" min="0" step="0.01" placeholder={option[3] === -1 ? "Any < 0" : "Any > 0"} value={filter.minimum} onChange={(event) => setPositiveFilters((current) => current.map((item) => item.key === filter.key ? { ...item, minimum: event.target.value } : item))} />
                         </label>}
                       </div>
                       {filter.enabled && (
@@ -1023,7 +1028,7 @@ function OptimizerPanel({
                   );
                 })}
               </div>
-              <p className="field-note">Every enabled benefit requires positive net artifact contribution. Enter a minimum to require more; built-in carrier bonuses do not count.</p>
+              <p className="field-note">Every enabled benefit must be present in the artifact contribution. Countering and reduction goals prefer stronger negative values. Enter a minimum magnitude to require more; built-in carrier bonuses do not count.</p>
             </div>
 
             <div className="optimizer-block">
@@ -1102,9 +1107,9 @@ function OptimizerPanel({
                           {run.objectives.map((objective, objectiveIndex) => {
                             const option = OPTIMIZER_STAT_OPTIONS.find(([key]) => key === objective.key)!;
                             const range = run.search.ranges[objectiveIndex];
-                            const span = range.max - range.min;
-                            const normalized = Math.abs(span) < 1e-10 ? 1 : (result.values[objectiveIndex] - range.min) / span;
-                            return <div key={objective.key}><span>{option[1]}</span><strong>{formatNumber(result.values[objectiveIndex], option[2])}</strong><small>{(normalized * 100).toFixed(0)}% of feasible range · max {formatNumber(range.max, option[2])}</small></div>;
+                            const normalized = normalizedObjectiveValue(result.values[objectiveIndex], range.min, range.max, objective.direction);
+                            const best = objective.direction === -1 ? range.min : range.max;
+                            return <div key={objective.key}><span>{option[1]}</span><strong>{formatNumber(result.values[objectiveIndex], option[2])}</strong><small>{(normalized * 100).toFixed(0)}% of feasible range · best {formatNumber(best, option[2])}</small></div>;
                           })}
                         </div>
                         <button className="optimizer-apply" onClick={() => applyResult(resultIndex)}>Load into calculator</button>

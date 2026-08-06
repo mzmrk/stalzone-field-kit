@@ -67,6 +67,13 @@ test("exhaustively ranks and loads a four-slot weighted build", async ({ page })
   await expect(runningRow).toHaveClass(/positive-filter--enabled/);
   await expect(staminaRow).toHaveClass(/positive-filter--enabled/);
   await expect(bulletRow).toHaveClass(/positive-filter--enabled/);
+  const periodicHealingRow = page.locator(".positive-filter").filter({ hasText: "Periodic healing" });
+  const radiationCounteringRow = page.locator(".positive-filter").filter({ hasText: "Radiation countering" });
+  await expect(periodicHealingRow).toBeVisible();
+  await expect(radiationCounteringRow).toBeVisible();
+  await page.getByLabel("Optimize Radiation countering").check();
+  await expect(page.getByLabel("Minimum Radiation countering magnitude from artifacts")).toHaveAttribute("placeholder", "Any < 0");
+  await page.getByLabel("Optimize Radiation countering").uncheck();
   await expect(page.getByLabel("Radiation policy")).toHaveValue("safe");
   await expect(page.getByLabel("Vitality policy")).toHaveValue("strict");
   await expect(movementRow.getByRole("button", { name: /Important/ })).toHaveAttribute("aria-pressed", "true");
