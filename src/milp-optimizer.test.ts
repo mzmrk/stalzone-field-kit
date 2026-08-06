@@ -70,6 +70,26 @@ describe("MILP artifact optimizer", () => {
     expect(milp.feasibleCombinations).toBeNull();
   });
 
+  it("publishes each proven ranked result before the full search completes", async () => {
+    const candidates = [
+      candidate("Slow", [stat(MOVEMENT, 1)]),
+      candidate("Fast", [stat(MOVEMENT, 2)]),
+    ];
+    const snapshots: number[] = [];
+    const result = await optimizeArtifactCombinationsMilp(
+      solver,
+      { ...container, capacity: 1 },
+      candidates,
+      [{ key: MOVEMENT, weight: 1 }],
+      settings,
+      undefined,
+      (partial) => snapshots.push(partial.results.length),
+    );
+
+    expect(snapshots).toEqual([1, 2]);
+    expect(result.results).toHaveLength(2);
+  });
+
   it("matches brute force for a lower-is-better countering objective", async () => {
     const candidates = [
       candidate("Weak counter", [stat(TEMPERATURE, -1)]),

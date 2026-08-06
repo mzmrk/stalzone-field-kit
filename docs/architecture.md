@@ -63,7 +63,8 @@ unknown rather than falling back to another rarity.
 - [`src/milp-optimizer.ts`](../src/milp-optimizer.ts) expresses the same artifact
   choices and constraints as a mixed-integer linear program, derives objective
   ranges, and returns up to ten proven ranked builds. [`src/milp-optimizer.worker.ts`](../src/milp-optimizer.worker.ts)
-  loads the HiGHS WebAssembly solver away from the UI thread.
+  loads the HiGHS WebAssembly solver away from the UI thread and streams each
+  proven ranked build before the remaining ranks finish.
 - [`src/pricing.ts`](../src/pricing.ts) maps EXBO artifact IDs and rarity indices
   to bundled market estimates and owns ruble display formatting. Its generated
   index is authoritative at runtime; raw histories remain source inputs.
@@ -148,9 +149,10 @@ Searches up to and including ten million combinations use brute force; larger
 searches use MILP automatically. Brute force enumerates combinations without slot
 permutations and returns the ten best builds. MILP uses integer counts per
 artifact, repeatedly excludes each selected count vector to prove the next-best
-build without enumeration, and therefore supports larger carriers. Its displayed
-combination count describes the theoretical search space; MILP does not claim an
-evaluated or feasible-combination count.
+build without enumeration, and therefore supports larger carriers. Each proven
+result is displayed and can be loaded while the worker continues solving later
+ranks. Its displayed combination count describes the theoretical search space;
+MILP does not claim an evaluated or feasible-combination count.
 
 An optional maximum-total-price constraint uses each selected variant's
 rarity-specific median estimate. When enabled, combinations containing an unknown

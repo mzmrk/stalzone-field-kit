@@ -159,10 +159,23 @@ test("uses MILP to optimize a carrier beyond the brute-force limit", async ({ pa
   await expect(page.getByText(/MILP selected automatically/)).toBeVisible();
   const searchButton = page.getByRole("button", { name: "Find optimal build with MILP" });
   await expect(searchButton).toBeEnabled();
+  await page.evaluate(() => {
+    document.body.dataset.sawStreamingMilpResult = "false";
+    const observer = new MutationObserver(() => {
+      const hasResult = document.querySelectorAll(".optimizer-result").length > 0;
+      const stillSolving = document.querySelector(".optimizer-search")?.textContent?.includes("Solving MILP");
+      if (hasResult && stillSolving) {
+        document.body.dataset.sawStreamingMilpResult = "true";
+        observer.disconnect();
+      }
+    });
+    observer.observe(document.body, { childList: true, subtree: true, characterData: true });
+  });
   await searchButton.click();
 
   await expect(page.getByText("MILP exact")).toBeVisible({ timeout: 45_000 });
-  await expect(page.getByText(/possible combinations were not enumerated/)).toBeVisible();
+  await expect(page.getByText(/possible combinations were not enumerated/)).toBeVisible({ timeout: 45_000 });
+  expect(await page.evaluate(() => document.body.dataset.sawStreamingMilpResult)).toBe("true");
   await expect(page.getByRole("button", { name: "Load into calculator" })).toHaveCount(10);
   await expect(page.locator(".optimizer-artifacts small").first()).toContainText("Uncommon");
   await page.getByRole("button", { name: "Load into calculator" }).first().click();

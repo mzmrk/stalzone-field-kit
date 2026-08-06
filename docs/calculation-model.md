@@ -176,6 +176,9 @@ The MILP engine solves one minimum and one maximum integer program per objective
 then one normalized weighted program per result. After each result it adds an exact
 count-vector exclusion, including when duplicate artifacts are allowed, and
 solves again until ten builds are ranked or no feasible alternative remains.
+The MILP callback and worker publish a cumulative snapshot after every optimal
+rank, so UI streaming never exposes an unproven candidate and does not alter the
+final ordering.
 HiGHS is configured for zero MIP gap and only an `Optimal` status is accepted, so
 each returned build is proven next-best rather than heuristic. MILP does not
 count feasible builds or reproduce brute force's canonical order when more than
@@ -206,5 +209,5 @@ Pricing coverage checks rarity-specific lookup, missing-tier behavior, ruble
 formatting, budget filtering, duplicate-price summation, and uncapped handling of
 unknown estimates. MILP coverage runs the actual WebAssembly solver, compares its
 ordered top ten with brute force both with and without duplicates, checks tied
-result uniqueness and combined constraints, and verifies that the enumeration
-guard is not applied.
+result uniqueness, cumulative one-rank-at-a-time snapshots, and combined
+constraints, and verifies that the enumeration guard is not applied.

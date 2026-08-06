@@ -695,6 +695,7 @@ type OptimizerRun = {
 
 type OptimizerWorkerMessage =
   | { type: "progress"; progress: OptimizerProgress | MilpProgress }
+  | { type: "partial-result"; result: OptimizerSearchResult }
   | { type: "result"; result: OptimizerSearchResult }
   | { type: "error"; error: string };
 
@@ -878,6 +879,16 @@ function OptimizerPanel({
       if (runId !== runIdRef.current) return;
       if (event.data.type === "progress") {
         setSearchProgress(event.data.progress);
+        return;
+      }
+      if (event.data.type === "partial-result") {
+        setRun({
+          search: event.data.result,
+          candidates: candidateConfigs,
+          objectives: activeObjectives,
+          failedItems: loaded.failed,
+          engine: selectedEngine,
+        });
         return;
       }
       worker.terminate();
@@ -1089,7 +1100,7 @@ function OptimizerPanel({
             ) : (
               <>
                 <div className="optimizer-summary">
-                  {run.engine === "milp" ? <><strong>MILP exact</strong> · {run.search.results.length} ranked builds · {run.search.combinations.toLocaleString()} possible combinations were not enumerated</> : <><strong>{run.search.combinations.toLocaleString()}</strong> combinations evaluated · <strong>{run.search.feasibleCombinations?.toLocaleString()}</strong> feasible</>}
+                  {run.engine === "milp" ? state === "searching" ? <><strong>MILP exact</strong> · {run.search.results.length} of 10 ranked {run.search.results.length === 1 ? "build" : "builds"} proven · solving next</> : <><strong>MILP exact</strong> · {run.search.results.length} ranked builds · {run.search.combinations.toLocaleString()} possible combinations were not enumerated</> : <><strong>{run.search.combinations.toLocaleString()}</strong> combinations evaluated · <strong>{run.search.feasibleCombinations?.toLocaleString()}</strong> feasible</>}
                   {run.failedItems > 0 && <span> · {run.failedItems} artifact file{run.failedItems === 1 ? "" : "s"} unavailable</span>}
                 </div>
                 <div className="optimizer-result-list">

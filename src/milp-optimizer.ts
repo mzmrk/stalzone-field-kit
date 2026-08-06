@@ -56,6 +56,7 @@ export async function optimizeArtifactCombinationsMilp(
   objectives: OptimizerObjective[],
   settings: OptimizerSettings,
   onProgress?: (progress: MilpProgress) => void,
+  onResult?: (result: OptimizerSearchResult) => void,
 ): Promise<OptimizerSearchResult> {
   const activeObjectives = objectives.filter((objective) => objective.weight > 0);
   if (activeObjectives.length === 0) throw new Error("Add at least one objective with a positive weight.");
@@ -140,6 +141,12 @@ export async function optimizeArtifactCombinationsMilp(
     }, 0);
     results.push({ indices, score, values, totalPrice });
     excludedSelections.push(indices);
+    onResult?.({
+      combinations,
+      feasibleCombinations: null,
+      ranges,
+      results: [...results],
+    });
   }
 
   return {

@@ -28,6 +28,7 @@ self.onmessage = async (event: MessageEvent<SearchRequest>) => {
       event.data.objectives,
       event.data.settings,
       (progress: MilpProgress) => self.postMessage({ type: "progress", progress }),
+      (partialResult) => self.postMessage({ type: "partial-result", result: partialResult }),
     );
     self.postMessage({ type: "result", result });
   } catch (error) {
