@@ -246,11 +246,15 @@ function prepareProblem(
     }
   });
   if (settings.maxTotalPrice !== null) {
+    const budgetScale = Math.max(1, Math.abs(settings.maxTotalPrice));
     constraints.push({
       name: "budget",
-      coefficients: Float64Array.from(candidates, (candidate) => candidate.price ?? 0),
+      coefficients: Float64Array.from(
+        candidates,
+        (candidate) => (candidate.price ?? 0) / budgetScale,
+      ),
       sense: "<=",
-      rhs: settings.maxTotalPrice,
+      rhs: settings.maxTotalPrice / budgetScale,
     });
   }
 

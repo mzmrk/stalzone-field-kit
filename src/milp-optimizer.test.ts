@@ -227,6 +227,81 @@ describe("MILP artifact optimizer", () => {
     expect(milp.results[0].score).toBeCloseTo(bruteForce.results[0].score, 10);
   });
 
+  it("keeps realistic ruble budgets feasible as the maximum increases", async () => {
+    const candidates = [
+      candidate("Fast", [stat(MOVEMENT, 2), stat(STAMINA, 1)], 180_000),
+      candidate("Enduring", [stat(MOVEMENT, 1), stat(STAMINA, 4)], 120_000),
+      candidate("Balanced", [stat(MOVEMENT, 1.5), stat(STAMINA, 2.5)], 140_000),
+    ];
+    const objectives = [
+      { key: MOVEMENT, weight: 2 },
+      { key: STAMINA, weight: 1 },
+    ];
+    const budgetSettings = {
+      ...settings,
+      constraints: [
+        { key: MOVEMENT, minimum: 2, maximum: null, scope: "artifact" as const },
+        { key: STAMINA, minimum: 2, maximum: null, scope: "artifact" as const },
+      ],
+    };
+
+    const at300k = await optimizeArtifactCombinationsMilp(
+      solver,
+      container,
+      candidates,
+      objectives,
+      { ...budgetSettings, maxTotalPrice: 300_000 },
+    );
+    const at350k = await optimizeArtifactCombinationsMilp(
+      solver,
+      container,
+      candidates,
+      objectives,
+      { ...budgetSettings, maxTotalPrice: 350_000 },
+    );
+    const at400k = await optimizeArtifactCombinationsMilp(
+      solver,
+      container,
+      candidates,
+      objectives,
+      { ...budgetSettings, maxTotalPrice: 400_000 },
+    );
+
+    expect(at300k.results.length).toBeGreaterThan(0);
+    expect(at350k.results.length).toBeGreaterThan(0);
+    expect(at400k.results.length).toBeGreaterThan(0);
+    expect(at300k.results.every((result) => result.totalPrice! <= 300_000)).toBe(true);
+    expect(at350k.results.every((result) => result.totalPrice! <= 350_000)).toBe(true);
+    expect(at400k.results.every((result) => result.totalPrice! <= 400_000)).toBe(true);
+  });
+
+  it("normalizes the MILP budget row without rounding candidate prices", async () => {
+    const problems: string[] = [];
+    const captureSolver: MilpSolver = {
+      solve(problem) {
+        problems.push(problem);
+        return {
+          Status: "Optimal",
+          Columns: { x0: { Primal: 1 }, x1: { Primal: 0 } },
+        };
+      },
+    };
+
+    await optimizeArtifactCombinationsMilp(
+      captureSolver,
+      { ...container, capacity: 1 },
+      [
+        candidate("Half cap", [stat(MOVEMENT, 1)], 175_000),
+        candidate("Full cap", [stat(MOVEMENT, 2)], 350_000),
+      ],
+      [{ key: MOVEMENT, weight: 1 }],
+      { ...settings, constraints: [], maxTotalPrice: 350_000, resultLimit: 1 },
+    );
+
+    expect(problems).not.toHaveLength(0);
+    expect(problems.every((problem) => problem.includes("budget: 0.5 x0 + 1 x1 <= 1"))).toBe(true);
+  });
+
   it("does not apply the brute-force combination guard", async () => {
     const candidates = Array.from({ length: 20 }, (_, index) =>
       candidate(`Artifact ${index}`, [stat(MOVEMENT, index + 1)]));

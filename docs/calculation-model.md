@@ -143,7 +143,10 @@ When a maximum total price is supplied, each candidate uses the generated median
 completed-sale estimate for its own rarity. Duplicate artifacts repeat the price
 of each chosen variant. A combination passes only when every artifact has an
 estimate and their sum is at or below the cap. Both engines apply price eligibility
-before deriving feasible ranges or ranked results.
+before deriving feasible ranges or ranked results. The MILP divides every price
+and the cap by the cap's magnitude before sending the equivalent budget row to
+HiGHS. Keeping ruble amounts near the scale of stat coefficients prevents
+objective-dependent false infeasibility without changing which builds qualify.
 
 Both optimizer engines first derive the feasible numeric minimum and maximum for
 every positive-weight objective. Higher-is-better objectives normalize as:
@@ -207,7 +210,8 @@ Rarity-variant coverage checks midpoint qualities, group-aware combination count
 per-candidate scaling, and artifact-identity constraints in both exact engines.
 Pricing coverage checks rarity-specific lookup, missing-tier behavior, ruble
 formatting, budget filtering, duplicate-price summation, and uncapped handling of
-unknown estimates. MILP coverage runs the actual WebAssembly solver, compares its
-ordered top ten with brute force both with and without duplicates, checks tied
+unknown estimates. MILP coverage runs the actual WebAssembly solver, verifies
+feasibility remains stable as realistic ruble caps increase, compares its ordered
+top ten with brute force both with and without duplicates, checks tied
 result uniqueness, cumulative one-rank-at-a-time snapshots, and combined
 constraints, and verifies that the enumeration guard is not applied.
