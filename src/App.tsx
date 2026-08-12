@@ -1148,7 +1148,7 @@ function OptimizerPanel({
                   {run.failedItems > 0 && <span> · {run.failedItems} artifact file{run.failedItems === 1 ? "" : "s"} unavailable</span>}
                 </div>
                 {run.search.ranges.some((range) => range.approximate) && (
-                  <p className="optimizer-accuracy-note">Approximate best values: one or more objective solves did not finish within the 2-second limit. The affected stats show the maximum possible best-value error.</p>
+                  <p className="optimizer-accuracy-note">Approximate best values: one or more objective solves did not finish within the 10-second limit. The affected stats show the maximum possible best-value error.</p>
                 )}
                 <div className="optimizer-result-list">
                   {run.search.results.map((result, resultIndex) => {
@@ -1174,7 +1174,7 @@ function OptimizerPanel({
                             const range = run.search.ranges[objectiveIndex];
                             const normalized = normalizedObjectiveValue(result.values[objectiveIndex], range.min, range.max, objective.direction);
                             const best = objective.direction === -1 ? range.min : range.max;
-                            return <div key={objective.key}><span>{option[1]}</span><strong>{formatNumber(result.values[objectiveIndex], option[2])}</strong><small>{(normalized * 100).toFixed(0)}% of best possible · best {formatNumber(best, option[2])}{range.approximate ? range.errorPercent === undefined ? " · approximate best (2s limit, error unavailable)" : ` · approximate best (2s limit, ≤ ${formatAccuracy(range.errorPercent)}% error)` : " · proven best"}</small></div>;
+                            return <div key={objective.key}><span>{option[1]}</span><strong>{formatNumber(result.values[objectiveIndex], option[2])}</strong><small>{(normalized * 100).toFixed(0)}% of best possible · best {formatNumber(best, option[2])}{range.approximate ? range.errorPercent === undefined ? " · approximate best (10s limit, error unavailable)" : ` · approximate best (10s limit, ≤ ${formatAccuracy(range.errorPercent)}% error)` : " · proven best"}</small></div>;
                           })}
                         </div>
                         <button className="optimizer-apply" onClick={() => applyResult(resultIndex)}>Load into calculator</button>
