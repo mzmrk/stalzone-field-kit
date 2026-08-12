@@ -329,8 +329,7 @@ export function optimizeArtifactCombinations(
     satisfiesConstraints(sums)
     && withinBudget(indices);
 
-  const mins = new Float64Array(activeObjectives.length).fill(Number.POSITIVE_INFINITY);
-  const maxes = new Float64Array(activeObjectives.length).fill(Number.NEGATIVE_INFINITY);
+  const bestValues = new Float64Array(activeObjectives.length);
   let feasibleCombinations = 0;
   enumerateCombinations(
     vectors,
@@ -345,8 +344,9 @@ export function optimizeArtifactCombinations(
       feasibleCombinations += 1;
       objectiveIndexes.forEach((index, objectiveIndex) => {
         const value = finalizeValue(activeObjectives[objectiveIndex].key, index, sums[index]);
-        mins[objectiveIndex] = Math.min(mins[objectiveIndex], value);
-        maxes[objectiveIndex] = Math.max(maxes[objectiveIndex], value);
+        bestValues[objectiveIndex] = activeObjectives[objectiveIndex].direction === -1
+          ? Math.min(bestValues[objectiveIndex], value)
+          : Math.max(bestValues[objectiveIndex], value);
       });
     },
   );
@@ -378,8 +378,8 @@ export function optimizeArtifactCombinations(
       const score = values.reduce((sum, value, objectiveIndex) => {
         const normalized = normalizedObjectiveValue(
           value,
-          mins[objectiveIndex],
-          maxes[objectiveIndex],
+          activeObjectives[objectiveIndex].direction === -1 ? bestValues[objectiveIndex] : 0,
+          activeObjectives[objectiveIndex].direction === -1 ? 0 : bestValues[objectiveIndex],
           activeObjectives[objectiveIndex].direction,
         );
         return sum + normalized * activeObjectives[objectiveIndex].weight;
@@ -398,8 +398,8 @@ export function optimizeArtifactCombinations(
     feasibleCombinations,
     ranges: activeObjectives.map((objective, index) => ({
       key: objective.key,
-      min: mins[index],
-      max: maxes[index],
+      min: objective.direction === -1 ? bestValues[index] : 0,
+      max: objective.direction === -1 ? 0 : bestValues[index],
     })),
     results,
   };

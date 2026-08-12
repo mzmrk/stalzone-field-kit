@@ -58,7 +58,7 @@ describe("MILP artifact optimizer", () => {
     const boundedSolver: MilpSolver = {
       solve(_problem, solveOptions) {
         options.push(solveOptions ?? {});
-        const selected = call === 0 || call === 3 ? 0 : 1;
+        const selected = call < 2 ? 1 : 0;
         call += 1;
         return {
           Status: "Optimal",
@@ -82,11 +82,10 @@ describe("MILP artifact optimizer", () => {
 
     expect(options.map((item) => item.time_limit)).toEqual([
       MILP_RANGE_TIME_LIMIT_SECONDS,
-      MILP_RANGE_TIME_LIMIT_SECONDS,
       MILP_RANK_TIME_LIMIT_SECONDS,
       MILP_RANK_TIME_LIMIT_SECONDS,
     ]);
-    expect(options.map((item) => item.presolve)).toEqual(["on", "on", "on", "off"]);
+    expect(options.map((item) => item.presolve)).toEqual(["on", "on", "off"]);
   });
 
   it("reports bounded range and ranked-build uncertainty after time limits", async () => {
@@ -97,18 +96,9 @@ describe("MILP artifact optimizer", () => {
         if (index === 0) {
           return {
             Status: "Time limit reached",
-            Columns: { x0: { Primal: 1 }, x1: { Primal: 0 } },
-            Bound: 0.5,
-            Gap: 0.5,
-            HasFeasibleSolution: true,
-          };
-        }
-        if (index === 1) {
-          return {
-            Status: "Optimal",
             Columns: { x0: { Primal: 0 }, x1: { Primal: 1 } },
-            Bound: 2,
-            Gap: 0,
+            Bound: 3,
+            Gap: 0.5,
             HasFeasibleSolution: true,
           };
         }
@@ -135,18 +125,15 @@ describe("MILP artifact optimizer", () => {
   });
 
   it("treats a time-limited feasible solution with a zero gap as proven", async () => {
-    let call = 0;
     const boundedSolver: MilpSolver = {
       solve() {
-        const selected = call === 0 ? 0 : 1;
-        call += 1;
         return {
           Status: "Time limit reached",
           Columns: {
-            x0: { Primal: selected === 0 ? 1 : 0 },
-            x1: { Primal: selected === 1 ? 1 : 0 },
+            x0: { Primal: 0 },
+            x1: { Primal: 1 },
           },
-          Bound: selected === 0 ? 1 : 2,
+          Bound: 2,
           Gap: 0,
           HasFeasibleSolution: true,
         };
@@ -171,16 +158,16 @@ describe("MILP artifact optimizer", () => {
     const boundedSolver: MilpSolver = {
       solve() {
         const index = call++;
-        const selected = index === 0 ? 0 : index === 1 || index === 2 ? 3 : index === 3 ? 2 : 1;
+        const selected = index <= 1 ? 3 : index === 2 ? 2 : 1;
         return {
-          Status: index === 2 || index === 3 ? "Time limit reached" : "Optimal",
+          Status: index === 1 || index === 2 ? "Time limit reached" : "Optimal",
           Columns: {
-            x0: { Primal: selected === 0 ? 1 : 0 },
+            x0: { Primal: 0 },
             x1: { Primal: selected === 1 ? 1 : 0 },
             x2: { Primal: selected === 2 ? 1 : 0 },
             x3: { Primal: selected === 3 ? 1 : 0 },
           },
-          Gap: index === 2 || index === 3 ? 0.2 : 0,
+          Gap: index === 1 || index === 2 ? 0.2 : 0,
           HasFeasibleSolution: true,
         };
       },
@@ -218,15 +205,15 @@ describe("MILP artifact optimizer", () => {
     const boundedSolver: MilpSolver = {
       solve() {
         const index = call++;
-        const selected = index === 0 ? 0 : index === 1 || index === 3 ? 2 : 1;
+        const selected = index === 0 || index === 2 ? 2 : 1;
         return {
-          Status: index === 2 ? "Time limit reached" : "Optimal",
+          Status: index === 1 ? "Time limit reached" : "Optimal",
           Columns: {
-            x0: { Primal: selected === 0 ? 1 : 0 },
+            x0: { Primal: 0 },
             x1: { Primal: selected === 1 ? 1 : 0 },
             x2: { Primal: selected === 2 ? 1 : 0 },
           },
-          Gap: index === 2 ? 0.5 : 0,
+          Gap: index === 1 ? 0.5 : 0,
           HasFeasibleSolution: true,
         };
       },
@@ -346,7 +333,7 @@ describe("MILP artifact optimizer", () => {
     expect(milp.combinations).toBe(2);
   });
 
-  it("removes dominated rarity variants without changing original result indexes", async () => {
+  it("keeps every selected rarity variant in ranked results", async () => {
     const candidates = [
       { ...candidate("A ordinary", [stat(MOVEMENT, 1)], 20), identity: "A", quality: 92.5, rarityIndex: 0 },
       { ...candidate("A uncommon", [stat(MOVEMENT, 2)], 20), identity: "A", quality: 107.5, rarityIndex: 1 },
@@ -357,11 +344,11 @@ describe("MILP artifact optimizer", () => {
       { ...container, capacity: 1 },
       candidates,
       [{ key: MOVEMENT, weight: 1 }],
-      { ...settings, constraints: [], maxTotalPrice: 100, resultLimit: 2 },
+      { ...settings, constraints: [], maxTotalPrice: 100, resultLimit: 3 },
     );
 
     expect(result.combinations).toBe(3);
-    expect(result.results.map((entry) => entry.indices)).toEqual([[1], [2]]);
+    expect(result.results.map((entry) => entry.indices)).toEqual([[1], [2], [0]]);
   });
 
   it("reports an initial MILP progress snapshot before the first solve completes", async () => {
@@ -375,8 +362,8 @@ describe("MILP artifact optimizer", () => {
       (snapshot) => progress.push(snapshot),
     );
 
-    expect(progress[0]).toEqual({ completed: 0, total: 3 });
-    expect(progress.at(-1)).toEqual({ completed: 3, total: 3 });
+    expect(progress[0]).toEqual({ completed: 0, total: 2 });
+    expect(progress.at(-1)).toEqual({ completed: 2, total: 2 });
   });
 
   it.each([

@@ -183,9 +183,10 @@ describe("artifact optimizer", () => {
       },
     );
 
-    expect(result.ranges).toEqual([{ key: TEMPERATURE, min: -2, max: -1 }]);
+    expect(result.ranges).toEqual([{ key: TEMPERATURE, min: -2, max: 0 }]);
     expect(result.results[0].indices).toEqual([1]);
     expect(result.results[0].score).toBe(1);
+    expect(result.results[1].score).toBe(0.5);
   });
 
   it("counts rarity variants while keeping artifact identities unique", () => {
@@ -227,7 +228,7 @@ describe("artifact optimizer", () => {
       .toThrow(/6 combinations.*limit is 5/);
   });
 
-  it("normalizes against feasible ranges and follows objective weights", () => {
+  it("normalizes from neutral zero to each best value and follows objective weights", () => {
     const candidates = [
       candidate("Sprinter", [stat(MOVEMENT, "Movement speed", 2)]),
       candidate("Charger", [stat(STAMINA, "Stamina regeneration", 4)]),
@@ -247,12 +248,31 @@ describe("artifact optimizer", () => {
       { key: MOVEMENT, min: 0, max: 4 },
       { key: STAMINA, min: 0, max: 8 },
     ]);
+    expect(movementFirst.results.find((result) => result.indices.join(",") === "0,1")?.score).toBe(0.5);
 
     const staminaFirst = optimizeArtifactCombinations(container, candidates, [
       { key: MOVEMENT, weight: 30 },
       { key: STAMINA, weight: 70 },
     ], settings);
     expect(staminaFirst.results[0].indices).toEqual([1, 1]);
+  });
+
+  it("gives a minimum-qualified positive value proportional credit from zero", () => {
+    const result = optimizeArtifactCombinations(
+      { ...container, capacity: 1 },
+      [
+        candidate("Minimum", [stat(MOVEMENT, "Movement speed", 2)]),
+        candidate("Best", [stat(MOVEMENT, "Movement speed", 4)]),
+      ],
+      [{ key: MOVEMENT, weight: 1 }],
+      {
+        ...settings,
+        constraints: [{ key: MOVEMENT, minimum: 2, maximum: null, scope: "artifact" }],
+      },
+    );
+
+    expect(result.ranges).toEqual([{ key: MOVEMENT, min: 0, max: 4 }]);
+    expect(result.results.map((entry) => entry.score)).toEqual([1, 0.5]);
   });
 
   it("derives ranges and results only from exposure-safe combinations", () => {
@@ -270,7 +290,7 @@ describe("artifact optimizer", () => {
 
     expect(result.combinations).toBe(3);
     expect(result.feasibleCombinations).toBe(1);
-    expect(result.ranges[0]).toEqual({ key: MOVEMENT, min: 2, max: 2 });
+    expect(result.ranges[0]).toEqual({ key: MOVEMENT, min: 0, max: 2 });
     expect(result.results[0].indices).toEqual([1, 1]);
   });
 
@@ -352,7 +372,7 @@ describe("artifact optimizer", () => {
     expect(result.results[0].values).toEqual([2]);
   });
 
-  it("filters combinations by total median price before deriving feasible ranges", () => {
+  it("filters combinations by total median price before deriving best values", () => {
     const candidates = [
       candidate("Fast and expensive", [stat(MOVEMENT, "Movement speed", 5)], 60),
       candidate("Affordable", [stat(MOVEMENT, "Movement speed", 2)], 20),
@@ -364,7 +384,7 @@ describe("artifact optimizer", () => {
     ], { ...settings, maxTotalPrice: 50 });
 
     expect(result.feasibleCombinations).toBe(1);
-    expect(result.ranges).toEqual([{ key: MOVEMENT, min: 4, max: 4 }]);
+    expect(result.ranges).toEqual([{ key: MOVEMENT, min: 0, max: 4 }]);
     expect(result.results[0]).toMatchObject({ indices: [1, 1], totalPrice: 40 });
   });
 

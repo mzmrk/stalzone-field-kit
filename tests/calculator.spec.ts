@@ -178,6 +178,7 @@ test("uses MILP to optimize a carrier beyond the brute-force limit", async ({ pa
   expect(await page.evaluate(() => document.body.dataset.sawStreamingMilpResult)).toBe("true");
   await expect(page.getByRole("button", { name: "Load into calculator" })).toHaveCount(10);
   await expect(page.getByText("Proven optimal for this rank").first()).toBeVisible();
+  await expect(page.locator(".optimizer-metrics small").first()).toContainText("% of best possible");
   await expect(page.locator(".optimizer-artifacts small").first()).toContainText("Uncommon");
   await page.getByRole("button", { name: "Load into calculator" }).first().click();
   await expect(page.getByText(/107.5% · Uncommon/).first()).toBeVisible();

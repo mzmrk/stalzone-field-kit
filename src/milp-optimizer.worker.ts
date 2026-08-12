@@ -25,7 +25,7 @@ self.onmessage = async (event: MessageEvent<SearchRequest>) => {
       type: "progress",
       progress: {
         completed: 0,
-        total: event.data.objectives.filter((objective) => objective.weight > 0).length * 2
+        total: event.data.objectives.filter((objective) => objective.weight > 0).length
           + (event.data.settings.resultLimit ?? 10),
       },
     });

@@ -136,32 +136,36 @@ properties. The Allow all, Game-safe, and Counter all buttons are bulk policy
 setters, not additional constraints. `Game-safe` is also the initial profile:
 threshold-bearing exposures use their published safe cap, while every harmful
 property without a game threshold uses `No negative`. All numerical constraints
-are applied before feasible ranges are discovered, so normalization uses only
-qualifying builds.
+are applied before objective best values are discovered, so normalization uses
+only qualifying builds.
 
 When a maximum total price is supplied, each candidate uses the generated median
 completed-sale estimate for its own rarity. Duplicate artifacts repeat the price
 of each chosen variant. A combination passes only when every artifact has an
 estimate and their sum is at or below the cap. Both engines apply price eligibility
-before deriving feasible ranges or ranked results. The MILP divides every price
-and the cap by the cap's magnitude before sending the equivalent budget row to
-HiGHS. Keeping ruble amounts near the scale of stat coefficients prevents
+before deriving objective best values or ranked results. The MILP divides every
+price and the cap by the cap's magnitude before sending the equivalent budget row
+to HiGHS. Keeping ruble amounts near the scale of stat coefficients prevents
 objective-dependent false infeasibility without changing which builds qualify.
 
-Both optimizer engines first derive the feasible numeric minimum and maximum for
-every positive-weight objective. Higher-is-better objectives normalize as:
+Both optimizer engines use neutral zero as the scoring baseline and derive only
+the best feasible value for every positive-weight objective. Higher-is-better
+objectives normalize as:
 
 ```text
-(value - feasible minimum) / (feasible maximum - feasible minimum)
+value / best feasible value
 ```
 
-Lower-is-better objectives normalize in the opposite direction:
+Countering and reduction objectives use negative values and normalize their
+magnitudes in the same way:
 
 ```text
-(feasible maximum - value) / (feasible maximum - feasible minimum)
+(0 - value) / (0 - best feasible value)
 ```
 
-A zero-width range receives normalized value `1`. The final score is the weighted
+A value of zero therefore earns no credit, while the best achievable magnitude
+earns `100%`. Entered minimums remain hard eligibility requirements; satisfying a
+minimum does not redefine the scoring baseline. The final score is the weighted
 average of normalized objectives. The UI expresses each independent weight as
 one of five importance levels: Minor (`0.25×`), Low (`0.5×`), Neutral (`1×`),
 Important (`2×`), or Essential (`4×`). Enabling a previously inactive objective
@@ -172,42 +176,43 @@ best compromise may score below `100%`. Engine selection is automatic: a
 canonical search space of at most ten million combinations uses brute force, and
 any larger space uses MILP. The final dispatch uses the exact count after artifact
 files load, so unavailable catalog entries cannot leave the search on the wrong
-side of the cutoff. Brute force obtains those ranges in its
+side of the cutoff. Brute force obtains those best values in its
 first complete enumeration and ranks in a second enumeration. It retains the ten
 highest-scoring builds and breaks equal-score ties by canonical artifact order.
-The MILP engine solves one minimum and one maximum integer program per objective,
-then one normalized weighted program per result. Every range endpoint has a
-one-second solver limit, and every ranked build has a ten-second limit. Strict
-zero relative and absolute gaps remain requested: a zero gap proves optimality
-even if the clock expires at that instant, while any other time-limited feasible
-incumbent is retained with the solver's proven bound and gap. If a range endpoint
-times out, normalization uses the best feasible endpoint found and the UI reports
-the maximum possible error in the complete range span implied by its bound. A
-time-limited ranked build is marked as the best build found within ten seconds
-and displays its possible relative objective error. That ranking gap applies to
-the fixed ranges actually used; approximate range uncertainty is reported
-separately.
+The MILP engine solves one best-value integer program per objective, maximizing
+ordinary benefits or minimizing countering values, then one normalized weighted
+program per result. Every best-value solve has a one-second solver limit, and
+every ranked build has a ten-second limit. Strict zero relative and absolute gaps
+remain requested: a zero gap proves optimality even if the clock expires at that
+instant. Any other time-limited feasible incumbent is retained with the solver's
+proven bound and gap. If a best-value solve
+times out, normalization uses its best feasible value and the UI reports the
+maximum possible best-value error implied by the solver bound. A time-limited
+ranked build is marked as the best build found within ten seconds and displays
+its possible relative objective error. That ranking gap applies to the fixed best
+values actually used; approximate best-value uncertainty is
+reported separately.
 
 After each result MILP adds an exact count-vector exclusion, including when
 duplicate artifacts are allowed, and solves again until ten builds are ranked or
-no feasible alternative remains. HiGHS presolve stays enabled for ranges and the
-first rank. It is disabled once an exclusion exists: with accumulated big-M
-count-vector exclusions, presolve has returned a weaker result as `Optimal` even
-though a later feasible build had a better objective. Disabling it for rank two
-onward preserves descending top-N ordering. A proven result also certifies the
-immediately preceding timed-out result when the preceding result's exact score is
-at least as high. This proof propagates backward across any continuous no-worse
-chain because the later solve optimizes the complete remaining set after each
-earlier build was excluded.
+no feasible alternative remains. HiGHS presolve stays enabled for best-value
+solves and the first rank. It is disabled once an exclusion exists: with
+accumulated big-M count-vector exclusions, presolve has returned a weaker result
+as `Optimal` even though a later feasible build had a better objective. Disabling
+it for rank two onward preserves descending top-N ordering. A proven result also
+certifies the immediately preceding timed-out result when the preceding result's
+exact score is at least as high. This proof propagates backward across any
+continuous no-worse chain because the later solve optimizes the complete remaining
+set after each earlier build was excluded.
 
-Before building the solver model, MILP removes same-artifact rarity variants that
-are dominated across every active objective, hard constraint, and enabled budget
-dimension; returned result indexes still refer to the original candidate list
-used by the UI. The worker publishes an initial progress snapshot before the
-first solve and a cumulative result snapshot after every usable rank. Results
-are kept in descending score order as later bounded solves finish. MILP does not
-count feasible builds or reproduce brute force's canonical order when more than
-ten builds share the same score; either tied subset is equally optimal.
+MILP keeps every selected artifact-rarity variant in the model. This preserves
+the literal top-ten search after earlier count vectors are excluded, including
+lower-rarity mixtures that would be absent after dominance pruning. The worker
+publishes an initial progress snapshot before the first solve and a cumulative
+result snapshot after every usable rank. Results are kept in descending score
+order as later bounded solves finish. MILP does not count feasible builds or
+reproduce brute force's canonical order when more than ten builds share the same
+score; either tied subset is equally optimal.
 
 ## Verification expectations
 
@@ -220,7 +225,7 @@ Changes to the user workflow or persistence should also update the Playwright
 flow in [`tests/calculator.spec.ts`](../tests/calculator.spec.ts).
 Optimizer coverage checks combination counts, automatic engine selection at the
 ten-million boundary, search-size rejection, weight-sensitive ranking,
-feasible-range normalization, independent final maximums,
+zero-baseline normalization, independent final best values,
 enabled-effect presence, and artifact-only positive minimums. It also covers both
 harmful directions, the zero boundary for fully countered harmful properties, the
 catalog's complete 31-property beneficial list and harmful-property filter list,
@@ -234,13 +239,13 @@ Pricing coverage checks rarity-specific lookup, missing-tier behavior, ruble
 formatting, budget filtering, duplicate-price summation, and uncapped handling of
 unknown estimates. MILP coverage runs the actual WebAssembly solver, verifies
 feasibility remains stable as realistic ruble caps increase, compares its ordered
-top ten with brute force both with and without duplicates, checks tied
-same-artifact dominated-rarity pruning, and combined constraints, and verifies
-that the enumeration guard is not applied. Bounded-solve coverage verifies the
+top ten with brute force both with and without duplicates, checks preservation
+of every selected rarity variant and combined constraints, and verifies that the
+enumeration guard is not applied. Bounded-solve coverage verifies the
 one- and ten-second options, the rank-two presolve boundary, and uncertainty
-metadata for time-limited ranges and builds.
+metadata for time-limited best values and builds.
 The solver migration gate additionally runs previous and current HiGHS wrappers
 against the same calculator-shaped model and brute-force oracle. It compares
-objective ranges and scores within floating-point tolerance, exact selections
-for unique optima, and solution validity rather than artifact identity for tied
-optima.
+normalization endpoints and scores within floating-point tolerance, exact
+selections for unique optima, and solution validity rather than artifact identity
+for tied optima.

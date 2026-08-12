@@ -1017,7 +1017,7 @@ function OptimizerPanel({
         <div>
           <p className="eyebrow">04 / OPTIMIZE</p>
           <h2>Weighted combination search</h2>
-          <p>Enumerate every canonical loadout, derive feasible stat ranges, then rank the exact tradeoffs.</p>
+          <p>Evaluate every canonical loadout against neutral zero, derive each best possible stat value, then rank the tradeoffs.</p>
         </div>
         <div className="optimizer-heading-actions">
           <button type="button" className="optimizer-reset" aria-label="Reset optimizer filters" onClick={resetOptimizerSettings}><RotateCcw size={14} /> Reset filters</button>
@@ -1138,7 +1138,7 @@ function OptimizerPanel({
           <div className="optimizer-results">
             <div className="section-label"><span>Ranked results</span><span>{run ? `${run.search.results.length} shown` : "Waiting"}</span></div>
             {!run ? (
-              <div className="optimizer-results-empty"><CircleGauge size={31} /><strong>Configure and run a bounded search</strong><span>Weights are normalized automatically against the safe minimum and maximum found for each objective.</span></div>
+              <div className="optimizer-results-empty"><CircleGauge size={31} /><strong>Configure and run a bounded search</strong><span>Weights compare each build against neutral zero and the best possible value found for every objective.</span></div>
             ) : run.search.results.length === 0 ? (
               <div className="optimizer-results-empty"><AlertTriangle size={31} /><strong>No feasible combinations</strong><span>Relax a minimum, negative-effect policy, budget, or artifact assumption.</span></div>
             ) : (
@@ -1148,7 +1148,7 @@ function OptimizerPanel({
                   {run.failedItems > 0 && <span> · {run.failedItems} artifact file{run.failedItems === 1 ? "" : "s"} unavailable</span>}
                 </div>
                 {run.search.ranges.some((range) => range.approximate) && (
-                  <p className="optimizer-accuracy-note">Approximate normalization ranges: one or more endpoints did not finish within the 1-second limit. The affected stats show the maximum possible span error.</p>
+                  <p className="optimizer-accuracy-note">Approximate best values: one or more objective solves did not finish within the 1-second limit. The affected stats show the maximum possible best-value error.</p>
                 )}
                 <div className="optimizer-result-list">
                   {run.search.results.map((result, resultIndex) => {
@@ -1174,7 +1174,7 @@ function OptimizerPanel({
                             const range = run.search.ranges[objectiveIndex];
                             const normalized = normalizedObjectiveValue(result.values[objectiveIndex], range.min, range.max, objective.direction);
                             const best = objective.direction === -1 ? range.min : range.max;
-                            return <div key={objective.key}><span>{option[1]}</span><strong>{formatNumber(result.values[objectiveIndex], option[2])}</strong><small>{(normalized * 100).toFixed(0)}% of feasible range · best {formatNumber(best, option[2])}{range.approximate ? range.errorPercent === undefined ? " · approximate range (1s limit, error unavailable)" : ` · approximate range (1s limit, ≤ ${formatAccuracy(range.errorPercent)}% span error)` : " · exact range"}</small></div>;
+                            return <div key={objective.key}><span>{option[1]}</span><strong>{formatNumber(result.values[objectiveIndex], option[2])}</strong><small>{(normalized * 100).toFixed(0)}% of best possible · best {formatNumber(best, option[2])}{range.approximate ? range.errorPercent === undefined ? " · approximate best (1s limit, error unavailable)" : ` · approximate best (1s limit, ≤ ${formatAccuracy(range.errorPercent)}% error)` : " · proven best"}</small></div>;
                           })}
                         </div>
                         <button className="optimizer-apply" onClick={() => applyResult(resultIndex)}>Load into calculator</button>

@@ -170,7 +170,8 @@ End`;
     expect(nextResult.ranges[0].max).toBeCloseTo(stableResult.ranges[0].max, 10);
     for (const result of [stableResult, nextResult]) {
       expect(result.ranges[0].key).toBe(MOVEMENT);
-      expect(result.ranges[0].min).toBeCloseTo(result.ranges[0].max, 10);
+      expect(result.ranges[0].min).toBe(0);
+      expect(result.ranges[0].max).toBeGreaterThan(0);
       expect(result.results).toHaveLength(3);
       expect(new Set(result.results.map((entry) => entry.indices.join(","))).size).toBe(3);
       expect(result.results.every((entry) => entry.score === 1)).toBe(true);

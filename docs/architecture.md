@@ -57,14 +57,16 @@ unknown rather than falling back to another rarity.
 - [`src/calculations.ts`](../src/calculations.ts) is the pure domain layer. UI or
   optimizer work should call this layer instead of duplicating formulas.
 - [`src/optimizer.ts`](../src/optimizer.ts) owns canonical-combination counts,
-  exact enumeration, feasible-range discovery, and top-ten weighted ranking.
+  exact enumeration, objective best-value discovery, and top-ten weighted
+  ranking.
 - [`src/optimizer.worker.ts`](../src/optimizer.worker.ts) runs that synchronous
   search away from the UI thread and reports progress and results.
 - [`src/milp-optimizer.ts`](../src/milp-optimizer.ts) expresses the same artifact
-  choices and constraints as a mixed-integer linear program, derives objective
-  ranges, and returns up to ten bounded ranked builds. [`src/highs-solver.ts`](../src/highs-solver.ts)
-  adapts the persistent HiGHS API and retains feasibility, bound, and gap
-  diagnostics. [`src/milp-optimizer.worker.ts`](../src/milp-optimizer.worker.ts)
+  choices and constraints as a mixed-integer linear program, derives the best
+  possible value for each objective, and returns up to ten bounded ranked builds.
+  [`src/highs-solver.ts`](../src/highs-solver.ts) adapts the persistent HiGHS API
+  and retains feasibility, bound, and gap diagnostics.
+  [`src/milp-optimizer.worker.ts`](../src/milp-optimizer.worker.ts)
   loads the WebAssembly solver away from the UI thread and streams each ranked
   build before the remaining ranks finish.
 - [`src/pricing.ts`](../src/pricing.ts) maps EXBO artifact IDs and rarity indices
@@ -164,8 +166,8 @@ timeout is a responsiveness boundary, not a claim that no valid build exists.
 An optional maximum-total-price constraint uses each selected variant's
 rarity-specific median estimate. When enabled, combinations containing an unknown
 price or exceeding the cap are infeasible. This filtering happens before objective
-ranges and rankings are derived, so normalization reflects the affordable search
-space. Repeated artifacts are always eligible, including copies of the same
+best values and rankings are derived, so normalization reflects the affordable
+search space. Repeated artifacts are always eligible, including copies of the same
 artifact at different enabled rarities.
 
 The carrier card displays its built-in carry-weight bonus as reference data, but

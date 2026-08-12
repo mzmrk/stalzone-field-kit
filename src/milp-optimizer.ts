@@ -55,11 +55,6 @@ type PreparedProblem = {
   allowDuplicates: boolean;
 };
 
-type CandidateSet = {
-  candidates: OptimizerCandidate[];
-  originalIndexes: number[];
-};
-
 export async function optimizeArtifactCombinationsMilp(
   solver: MilpSolver,
   container: OptimizerContainer,
@@ -77,19 +72,9 @@ export async function optimizeArtifactCombinationsMilp(
     return { combinations, feasibleCombinations: 0, ranges: [], results: [] };
   }
 
-  const candidateSet = reduceDominatedCandidates(container, candidates, activeObjectives, settings);
-  if (candidateSet.candidates.length === 0) {
-    return {
-      combinations,
-      feasibleCombinations: 0,
-      ranges: activeObjectives.map((objective) => ({ key: objective.key, min: 0, max: 0 })),
-      results: [],
-    };
-  }
-
-  const prepared = prepareProblem(container, candidateSet.candidates, activeObjectives, settings);
+  const prepared = prepareProblem(container, candidates, activeObjectives, settings);
   const resultLimit = settings.resultLimit ?? 10;
-  const solveCount = activeObjectives.length * 2 + resultLimit;
+  const solveCount = activeObjectives.length + resultLimit;
   let completed = 0;
   onProgress?.({ completed, total: solveCount });
   const solve = (
@@ -115,8 +100,9 @@ export async function optimizeArtifactCombinationsMilp(
   const ranges = [] as OptimizerSearchResult["ranges"];
   for (let objectiveIndex = 0; objectiveIndex < activeObjectives.length; objectiveIndex += 1) {
     const coefficients = objectiveCoefficients(prepared, objectiveIndex);
-    const minimum = solve(coefficients, false);
-    if (minimum.Status === "Infeasible") {
+    const direction = activeObjectives[objectiveIndex].direction ?? 1;
+    const bestSolution = solve(coefficients, direction === 1);
+    if (bestSolution.Status === "Infeasible") {
       return {
         combinations,
         feasibleCombinations: 0,
@@ -124,25 +110,21 @@ export async function optimizeArtifactCombinationsMilp(
         results: [],
       };
     }
-    assertUsableSolution(minimum, "range");
-    const maximum = solve(coefficients, true);
-    assertUsableSolution(maximum, "range");
-    const min = objectiveValue(minimum, prepared, objectiveIndex);
-    const max = objectiveValue(maximum, prepared, objectiveIndex);
-    const minBound = objectiveBound(minimum, prepared, objectiveIndex, min);
-    const maxBound = objectiveBound(maximum, prepared, objectiveIndex, max);
-    const exact = isProvenOptimal(minimum) && isProvenOptimal(maximum);
-    const span = Math.max(0, max - min);
-    const possibleSpan = Math.max(0, maxBound - minBound);
+    assertUsableSolution(bestSolution, "range");
+    const best = objectiveValue(bestSolution, prepared, objectiveIndex);
+    const bound = objectiveBound(bestSolution, prepared, objectiveIndex, best);
+    const exact = isProvenOptimal(bestSolution);
+    const bestMagnitude = Math.abs(best);
+    const possibleMagnitude = Math.abs(bound);
     const range = {
       key: activeObjectives[objectiveIndex].key,
-      min,
-      max,
+      min: direction === -1 ? best : 0,
+      max: direction === -1 ? 0 : best,
     } as OptimizerSearchResult["ranges"][number];
     if (!exact) {
       range.approximate = true;
-      if (span > EPSILON && Number.isFinite(minimum.Bound) && Number.isFinite(maximum.Bound)) {
-        range.errorPercent = Math.max(0, (possibleSpan / span - 1) * 100);
+      if (bestMagnitude > EPSILON && Number.isFinite(bestSolution.Bound)) {
+        range.errorPercent = Math.max(0, (possibleMagnitude / bestMagnitude - 1) * 100);
       }
     }
     ranges.push(range);
@@ -167,9 +149,9 @@ export async function optimizeArtifactCombinationsMilp(
     const solution = solve(scoreCoefficients, true, excludedSelections, "ranking");
     if (solution.Status === "Infeasible") break;
     assertUsableSolution(solution, "ranking");
-    const reducedIndices = selectedIndices(solution, candidateSet.candidates.length, container.capacity);
+    const selected = selectedIndices(solution, candidates.length, container.capacity);
     const values = activeObjectives.map((_, objectiveIndex) =>
-      selectedObjectiveValue(reducedIndices, prepared, objectiveIndex));
+      selectedObjectiveValue(selected, prepared, objectiveIndex));
     const score = values.reduce((sum, value, objectiveIndex) => {
       const normalized = normalizedObjectiveValue(
         value,
@@ -179,13 +161,12 @@ export async function optimizeArtifactCombinationsMilp(
       );
       return sum + normalized * activeObjectives[objectiveIndex].weight;
     }, 0) / totalWeight;
-    const totalPrice = reducedIndices.reduce<number | null>((total, index) => {
-      const price = candidateSet.candidates[index].price;
+    const totalPrice = selected.reduce<number | null>((total, index) => {
+      const price = candidates[index].price;
       return total === null || price === null ? null : total + price;
     }, 0);
-    const indices = reducedIndices.map((index) => candidateSet.originalIndexes[index]);
     const result: OptimizerResult = {
-      indices,
+      indices: selected,
       score,
       values,
       totalPrice,
@@ -200,7 +181,7 @@ export async function optimizeArtifactCombinationsMilp(
     propagateRankProofs(solveOrderResults);
     results.push(result);
     results.sort((left, right) => right.score - left.score);
-    excludedSelections.push(reducedIndices);
+    excludedSelections.push(selected);
     onResult?.({
       combinations,
       feasibleCombinations: null,
@@ -215,105 +196,6 @@ export async function optimizeArtifactCombinationsMilp(
     ranges,
     results,
   };
-}
-
-function reduceDominatedCandidates(
-  container: OptimizerContainer,
-  candidates: OptimizerCandidate[],
-  objectives: OptimizerObjective[],
-  settings: OptimizerSettings,
-): CandidateSet {
-  const eligible = candidates
-    .map((candidate, originalIndex) => ({ candidate, originalIndex }))
-    .filter(({ candidate }) => settings.maxTotalPrice === null || candidate.price !== null);
-  if (eligible.length < 2) {
-    return {
-      candidates: eligible.map(({ candidate }) => candidate),
-      originalIndexes: eligible.map(({ originalIndex }) => originalIndex),
-    };
-  }
-
-  const keys = [...new Set([
-    ...objectives.map((objective) => objective.key),
-    ...settings.constraints.map((constraint) => constraint.key),
-  ])];
-  const keyIndexes = new Map(keys.map((key, index) => [key, index]));
-  const vectors = eligible.map(({ candidate }) => {
-    const values = new Float64Array(keys.length);
-    for (const stat of candidate.stats) {
-      const index = keyIndexes.get(stat.key);
-      if (index === undefined) continue;
-      values[index] += calculateStat(
-        stat,
-        candidate.quality ?? settings.quality,
-        settings.level,
-        candidate.rarityIndex ?? settings.rarityIndex,
-        container.effectiveness,
-      );
-    }
-    return values;
-  });
-  const dimensions = [
-    ...objectives.map((objective) => ({ kind: "stat" as const, key: objective.key, direction: objective.direction ?? 1 })),
-    ...settings.constraints.flatMap((constraint) => [
-      ...(constraint.minimum === null ? [] : [{ kind: "stat" as const, key: constraint.key, direction: 1 as const }]),
-      ...(constraint.maximum === null ? [] : [{ kind: "stat" as const, key: constraint.key, direction: -1 as const }]),
-    ]),
-    ...(settings.maxTotalPrice === null ? [] : [{ kind: "price" as const, direction: -1 as const }]),
-  ];
-
-  const dominated = new Uint8Array(eligible.length);
-  for (let target = 0; target < eligible.length; target += 1) {
-    for (let challenger = 0; challenger < eligible.length; challenger += 1) {
-      if (target === challenger) continue;
-      const targetIdentity = eligible[target].candidate.identity ?? `candidate-${target}`;
-      const challengerIdentity = eligible[challenger].candidate.identity ?? `candidate-${challenger}`;
-      if (targetIdentity !== challengerIdentity) continue;
-      if (dominates(
-        vectors[challenger],
-        eligible[challenger].candidate.price,
-        vectors[target],
-        eligible[target].candidate.price,
-        dimensions,
-        keyIndexes,
-      )) {
-        dominated[target] = 1;
-        break;
-      }
-    }
-  }
-
-  return {
-    candidates: eligible.filter((_, index) => !dominated[index]).map(({ candidate }) => candidate),
-    originalIndexes: eligible.filter((_, index) => !dominated[index]).map(({ originalIndex }) => originalIndex),
-  };
-}
-
-function dominates(
-  challenger: Float64Array,
-  challengerPrice: number | null,
-  target: Float64Array,
-  targetPrice: number | null,
-  dimensions: Array<
-    | { kind: "stat"; key: string; direction: 1 | -1 }
-    | { kind: "price"; direction: -1 }
-  >,
-  keyIndexes: Map<string, number>,
-) {
-  let better = false;
-  for (const dimension of dimensions) {
-    const challengerValue = dimension.kind === "price"
-      ? challengerPrice
-      : challenger[keyIndexes.get(dimension.key)!];
-    const targetValue = dimension.kind === "price"
-      ? targetPrice
-      : target[keyIndexes.get(dimension.key)!];
-    if (challengerValue === null || targetValue === null) return false;
-    const difference = (challengerValue - targetValue) * dimension.direction;
-    if (difference < -EPSILON) return false;
-    if (difference > EPSILON) better = true;
-  }
-  return better;
 }
 
 function prepareProblem(
@@ -589,7 +471,7 @@ function assertUsableSolution(solution: MilpSolution, phase: "range" | "ranking"
   if (isProvenOptimal(solution)) return;
   if (solution.Status === "Time limit reached" && solution.HasFeasibleSolution) return;
   if (solution.Status === "Time limit reached") {
-    throw new Error(`${phase === "range" ? "A feasible range" : "A ranked build"} could not be found within the time limit.`);
+    throw new Error(`${phase === "range" ? "A best objective value" : "A ranked build"} could not be found within the time limit.`);
   }
   throw new Error(`MILP solver stopped with status: ${solution.Status}.`);
 }
