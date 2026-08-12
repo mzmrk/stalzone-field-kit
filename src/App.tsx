@@ -1379,7 +1379,6 @@ export default function App() {
       <footer>
         <span>FIELD KIT · Browser-side artifact planning</span>
         <a href={EXBO_REPOSITORY} target="_blank" rel="noreferrer">Data by EXBO Studio <ExternalLink size={13} /></a>
-        <a href="https://stalzone.wiki/" target="_blank" rel="noreferrer">Auction history by STALZONE WIKI <ExternalLink size={13} /></a>
       </footer>
 
       {picker && catalog && <Picker state={picker} catalog={catalog} onClose={() => setPicker(null)} onChoose={chooseItem} selecting={selecting} />}

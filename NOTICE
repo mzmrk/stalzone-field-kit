@@ -5,9 +5,6 @@ The database is provided by EXBO Studio under the Apache License 2.0.
 No EXBO database files are redistributed by this application; they are requested
 from the public repository by the user's browser.
 
-The application includes a static EU auction-history snapshot obtained from
-STALZONE WIKI and derives rarity-specific median sale-price estimates from it:
-https://stalzone.wiki/
-
-STALZONE WIKI is operated by the STALZONE LAB community. The snapshot is
-historical market data and is not an endorsement or guarantee of current prices.
+The application includes a static EU auction-history snapshot and derives
+rarity-specific median sale-price estimates from it. The snapshot is historical
+market data and is not a guarantee of current prices.

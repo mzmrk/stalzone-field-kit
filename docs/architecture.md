@@ -18,7 +18,7 @@ is [`src/main.tsx`](../src/main.tsx), and
 ```mermaid
 flowchart LR
     EXBO["EXBO Global repository"] -->|listing.json| Catalog["Filtered catalog"]
-    Snapshot["Saved STALZONE EU auction history"] --> PriceIndex["Generated rarity medians"]
+    Snapshot["Saved EU auction history"] --> PriceIndex["Generated rarity medians"]
     Catalog --> Picker["Container and artifact pickers"]
     EXBO -->|selected item JSON and icons| Picker
     PriceIndex --> Picker

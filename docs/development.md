@@ -86,8 +86,8 @@ belong in a separate generated file rather than edits to these responses.
 
 Validate a capture by comparing its filenames with the current Global artifact
 listing, parsing every response, and checking for a numeric `total` plus a
-`prices` array. Acquisition may require STALZONE's browser request contract, but
-request credentials must never be written to the repository.
+`prices` array. Acquisition request credentials must never be written to the
+repository.
 
 Regenerate the bundled price index from the newest EU snapshot with:
 
