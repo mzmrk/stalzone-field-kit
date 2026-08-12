@@ -1,5 +1,5 @@
-import loadHighsNext from "highs-next";
-import loadHighsStable from "highs";
+import loadHighsNext from "highs";
+import loadHighsStable from "highs-stable";
 import { beforeAll, describe, expect, it } from "vitest";
 import {
   optimizeArtifactCombinationsMilp,

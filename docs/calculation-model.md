@@ -220,7 +220,7 @@ top ten with brute force both with and without duplicates, checks tied
 result uniqueness, initial progress plus cumulative one-rank-at-a-time snapshots,
 same-artifact dominated-rarity pruning, and combined constraints, and verifies
 that the enumeration guard is not applied.
-The solver migration gate additionally runs stable and candidate HiGHS wrappers
+The solver migration gate additionally runs previous and current HiGHS wrappers
 against the same calculator-shaped model and brute-force oracle. It compares
 objective ranges and scores within floating-point tolerance, exact selections
 for unique optima, and solution validity rather than artifact identity for tied

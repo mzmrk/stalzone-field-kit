@@ -34,9 +34,9 @@ npm test
 ```
 
 [`src/highs-migration.test.ts`](../src/highs-migration.test.ts) is the gate for
-the planned solver-wrapper upgrade. The production dependency remains `highs`,
-while the exact prerelease under evaluation is installed as the development-only
-`highs-next` alias so both WebAssembly builds can run in one test process. The
+the solver-wrapper upgrade. Production `highs` is pinned to the tested
+prerelease, while the previous stable release is retained as the development-only
+`highs-stable` alias so both WebAssembly builds can run in one test process. The
 suite compares the one-shot integer API, a weighted calculator search against
 brute force, and tied optima where solver versions may validly choose different
 artifacts. Keep numeric assertions tolerant of insignificant floating-point
