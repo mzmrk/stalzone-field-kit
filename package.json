@@ -23,6 +23,7 @@
     "@types/react": "latest",
     "@types/react-dom": "latest",
     "@vitejs/plugin-react": "latest",
+    "highs-next": "npm:highs@1.15.3-pre.4",
     "typescript": "latest",
     "vite": "latest",
     "vitest": "latest"
