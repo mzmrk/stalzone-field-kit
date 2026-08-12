@@ -90,6 +90,8 @@ import type {
 
 const STORAGE_KEY = "field-kit-build-v1";
 const OPTIMIZER_STORAGE_KEY = "field-kit-optimizer-v1";
+const MILP_SLOW_NOTICE_MS = 15_000;
+const MILP_STALLED_TIMEOUT_MS = 60_000;
 const CATEGORY_ORDER = [
   "Mobility & utility",
   "Survivability",
@@ -718,11 +720,13 @@ function OptimizerPanel({
   const [state, setState] = useState<"idle" | "loading" | "searching" | "done" | "error">("idle");
   const [loadProgress, setLoadProgress] = useState({ completed: 0, total: 0 });
   const [searchProgress, setSearchProgress] = useState<OptimizerProgress | MilpProgress | null>(null);
+  const [milpNotice, setMilpNotice] = useState<"slow" | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [run, setRun] = useState<OptimizerRun | null>(null);
   const cache = useRef(new Map<string, ArtifactData>());
   const workerRef = useRef<Worker | null>(null);
   const runIdRef = useRef(0);
+  const lastSearchProgressAtRef = useRef(0);
   const searchSignature = JSON.stringify({
     carrier: container?.entry.data ?? null,
     level,
@@ -754,6 +758,7 @@ function OptimizerPanel({
     setRun(null);
     setError(null);
     setSearchProgress(null);
+    setMilpNotice(null);
     setActiveEngine(null);
     setState("idle");
   }, [searchSignature]);
@@ -837,6 +842,7 @@ function OptimizerPanel({
     setError(null);
     setRun(null);
     setSearchProgress(null);
+    setMilpNotice(null);
     setActiveEngine(null);
     setState("loading");
 
@@ -874,14 +880,19 @@ function OptimizerPanel({
       ? new Worker(new URL("./milp-optimizer.worker.ts", import.meta.url), { type: "module" })
       : new Worker(new URL("./optimizer.worker.ts", import.meta.url), { type: "module" });
     workerRef.current = worker;
+    lastSearchProgressAtRef.current = Date.now();
     setState("searching");
     worker.onmessage = (event: MessageEvent<OptimizerWorkerMessage>) => {
       if (runId !== runIdRef.current) return;
       if (event.data.type === "progress") {
+        lastSearchProgressAtRef.current = Date.now();
         setSearchProgress(event.data.progress);
+        setMilpNotice(null);
         return;
       }
       if (event.data.type === "partial-result") {
+        lastSearchProgressAtRef.current = Date.now();
+        setMilpNotice(null);
         setRun({
           search: event.data.result,
           candidates: candidateConfigs,
@@ -893,6 +904,7 @@ function OptimizerPanel({
       }
       worker.terminate();
       workerRef.current = null;
+      setMilpNotice(null);
       if (event.data.type === "error") {
         setError(event.data.error);
         setState("error");
@@ -910,6 +922,7 @@ function OptimizerPanel({
     worker.onerror = () => {
       worker.terminate();
       workerRef.current = null;
+      setMilpNotice(null);
       setError("The optimizer worker stopped unexpectedly.");
       setState("error");
     };
@@ -947,6 +960,7 @@ function OptimizerPanel({
     setRun(null);
     setError(null);
     setSearchProgress(null);
+    setMilpNotice(null);
     setActiveEngine(null);
     setState("idle");
   };
@@ -969,6 +983,26 @@ function OptimizerPanel({
       : (searchProgress.completed / searchProgress.total) * 100
     : 0;
   const displayedEngine = activeEngine ?? estimatedEngine;
+  useEffect(() => {
+    if (state !== "searching" || displayedEngine !== "milp") return;
+    const timer = window.setInterval(() => {
+      const quietMs = Date.now() - lastSearchProgressAtRef.current;
+      if (quietMs >= MILP_STALLED_TIMEOUT_MS) {
+        runIdRef.current += 1;
+        workerRef.current?.terminate();
+        workerRef.current = null;
+        setMilpNotice(null);
+        setSearchProgress(null);
+        setError("Search took too long. Try lowering the max price, selecting fewer rarities, or disabling less important required stats.");
+        setState("error");
+        return;
+      }
+      if (quietMs >= MILP_SLOW_NOTICE_MS) {
+        setMilpNotice("slow");
+      }
+    }, 1_000);
+    return () => window.clearInterval(timer);
+  }, [displayedEngine, state]);
 
   return (
     <section className="optimizer-panel" id="optimizer">
@@ -1084,9 +1118,12 @@ function OptimizerPanel({
               {invalidCustomLimit && <p className="optimizer-error">Every accepted penalty must be zero or greater.</p>}
               {invalidMaxTotalPrice && <p className="optimizer-error">Maximum total price must be greater than zero.</p>}
               <button className="optimizer-search" disabled={!catalog || selectedRarities.length === 0 || activeObjectives.length === 0 || invalidPositiveMinimum || invalidCustomLimit || invalidMaxTotalPrice || state === "loading" || state === "searching"} onClick={startSearch}>
-                {state === "loading" ? `Loading artifacts ${loadProgress.completed}/${loadProgress.total}` : state === "searching" ? `${displayedEngine === "milp" ? "Solving MILP" : "Searching"} ${progressPercent.toFixed(0)}%` : estimatedEngine === "milp" ? "Find optimal build with MILP" : `Search ${estimatedCombinations.toLocaleString()} combinations`}
+                {state === "loading" ? `Loading artifacts ${loadProgress.completed}/${loadProgress.total}` : state === "searching" ? `${displayedEngine === "milp" ? "Solving exact search" : "Searching"} ${progressPercent.toFixed(0)}%` : estimatedEngine === "milp" ? "Find optimal build with MILP" : `Search ${estimatedCombinations.toLocaleString()} combinations`}
               </button>
               {(state === "loading" || state === "searching") && <div className="optimizer-progress"><span style={{ width: `${state === "loading" ? (loadProgress.completed / Math.max(1, loadProgress.total)) * 100 : progressPercent}%` }} /></div>}
+              {state === "searching" && displayedEngine === "milp" && milpNotice === "slow" && (
+                <p className="optimizer-search-note">Still solving this large search. High price caps with many rarities can take much longer.</p>
+              )}
               {error && <p className="optimizer-error" role="alert">{error}</p>}
             </div>
           </div>

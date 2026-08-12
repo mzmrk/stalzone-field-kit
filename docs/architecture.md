@@ -153,6 +153,10 @@ build without enumeration, and therefore supports larger carriers. Each proven
 result is displayed and can be loaded while the worker continues solving later
 ranks. Its displayed combination count describes the theoretical search space;
 MILP does not claim an evaluated or feasible-combination count.
+During a MILP run, the UI reports exact-search progress from worker messages,
+shows a large-search note after fifteen seconds without fresh progress, and stops
+the worker after sixty quiet seconds with guidance to narrow the search. This
+timeout is a responsiveness boundary, not a claim that no valid build exists.
 
 An optional maximum-total-price constraint uses each selected variant's
 rarity-specific median estimate. When enabled, combinations containing an unknown

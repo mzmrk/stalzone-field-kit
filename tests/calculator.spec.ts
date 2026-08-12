@@ -163,7 +163,7 @@ test("uses MILP to optimize a carrier beyond the brute-force limit", async ({ pa
     document.body.dataset.sawStreamingMilpResult = "false";
     const observer = new MutationObserver(() => {
       const hasResult = document.querySelectorAll(".optimizer-result").length > 0;
-      const stillSolving = document.querySelector(".optimizer-search")?.textContent?.includes("Solving MILP");
+      const stillSolving = document.querySelector(".optimizer-search")?.textContent?.includes("Solving exact search");
       if (hasResult && stillSolving) {
         document.body.dataset.sawStreamingMilpResult = "true";
         observer.disconnect();
