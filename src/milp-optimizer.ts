@@ -16,7 +16,7 @@ import {
 
 const EPSILON = 1e-10;
 const SOLUTION_TOLERANCE = 1e-7;
-export const MILP_RANGE_TIME_LIMIT_SECONDS = 10;
+export const MILP_RANGE_TIME_LIMIT_SECONDS = 5;
 export const MILP_RANK_TIME_LIMIT_SECONDS = 10;
 
 export type MilpProgress = {

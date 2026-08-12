@@ -185,7 +185,7 @@ first complete enumeration and ranks in a second enumeration. It retains the ten
 highest-scoring builds and breaks equal-score ties by canonical artifact order.
 The MILP engine solves one best-value integer program per objective, maximizing
 ordinary benefits or minimizing countering values, then one normalized weighted
-program per result. Every best-value solve has a ten-second solver limit, and
+program per result. Every best-value solve has a five-second solver limit, and
 every ranked build has a ten-second limit. Strict zero relative and absolute gaps
 remain requested: a zero gap proves optimality even if the clock expires at that
 instant. Any other time-limited feasible incumbent is retained with the solver's
