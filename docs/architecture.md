@@ -141,9 +141,11 @@ types, exposes every supported positive stat and harmful property without
 add/remove controls, and applies independent numerical requirements before
 ranking. The positive list covers all 31 green property keys in the current EXBO
 Global artifact catalog. Every enabled row participates in scoring and requires
-beneficial net artifact contribution; an entered minimum or minimum magnitude
-raises that eligibility floor. Ordinary benefits prefer higher values, while
-countering and reduction goals prefer stronger negative values.
+beneficial net artifact contribution. The resulting final build must also remain
+on the objective's beneficial or neutral side after protection and carrier
+properties; an entered minimum or minimum magnitude raises the artifact-only
+eligibility floor. Ordinary benefits prefer higher values, while countering and
+reduction goals prefer stronger negative values.
 Each harmful-property row can be unrestricted, fully countered, or limited to a
 custom accepted penalty; the five environmental exposures with published warning
 thresholds can also use a game-safe policy.
@@ -157,7 +159,10 @@ artifact and repeatedly excludes each selected count vector to find the next
 build without enumeration, and therefore supports larger carriers. Each result
 is displayed and can be loaded while the worker continues solving later ranks.
 Its displayed combination count describes the theoretical search space;
-MILP does not claim an evaluated or feasible-combination count.
+MILP does not claim an evaluated or feasible-combination count. Search-space
+counts use exact integers even above JavaScript's safe-number limit, so very
+large multi-rarity searches cannot be rounded in the UI or misclassified at the
+engine boundary.
 During a MILP run, the UI reports bounded-search progress from worker messages,
 shows a large-search note after fifteen seconds without fresh progress, and stops
 the worker after sixty quiet seconds with guidance to narrow the search. This

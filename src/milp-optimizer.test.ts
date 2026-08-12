@@ -121,7 +121,109 @@ describe("MILP artifact optimizer", () => {
     );
 
     expect(result.ranges[0]).toMatchObject({ approximate: true, errorPercent: 50 });
-    expect(result.results[0]).toMatchObject({ approximate: true, errorPercent: 4 });
+    expect(result.results[0].approximate).toBe(true);
+    expect(result.results[0].errorPercent).toBeCloseTo(4, 10);
+  });
+
+  it("measures ranked uncertainty against the displayed score including carrier stats", async () => {
+    let call = 0;
+    const boundedSolver: MilpSolver = {
+      solve() {
+        const rangeSolve = call++ === 0;
+        return {
+          Status: rangeSolve ? "Optimal" : "Time limit reached",
+          Columns: {
+            x0: { Primal: rangeSolve ? 0 : 1 },
+            x1: { Primal: rangeSolve ? 1 : 0 },
+          },
+          Bound: rangeSolve ? 2 : 2 / 3,
+          Gap: rangeSolve ? 0 : 1,
+          HasFeasibleSolution: true,
+        };
+      },
+    };
+    const carrier = {
+      ...container,
+      capacity: 1,
+      stats: [stat(MOVEMENT, 1)],
+    };
+
+    const result = await optimizeArtifactCombinationsMilp(
+      boundedSolver,
+      carrier,
+      [candidate("Slow", [stat(MOVEMENT, 1)]), candidate("Fast", [stat(MOVEMENT, 2)])],
+      [{ key: MOVEMENT, weight: 1 }],
+      { ...settings, constraints: [], resultLimit: 1 },
+    );
+
+    expect(result.results[0].score).toBeCloseTo(2 / 3, 10);
+    expect(result.results[0].errorPercent).toBeCloseTo(50, 10);
+  });
+
+  it("accepts HiGHS Optimal status despite a tiny residual reported gap", async () => {
+    const optimalSolver: MilpSolver = {
+      solve() {
+        return {
+          Status: "Optimal",
+          Columns: { x0: { Primal: 1 } },
+          Bound: 1,
+          Gap: 5e-10,
+          HasFeasibleSolution: true,
+        };
+      },
+    };
+
+    const result = await optimizeArtifactCombinationsMilp(
+      optimalSolver,
+      { ...container, capacity: 1 },
+      [candidate("Only", [stat(MOVEMENT, 1)])],
+      [{ key: MOVEMENT, weight: 1 }],
+      { ...settings, constraints: [], resultLimit: 1 },
+    );
+
+    expect(result.results[0].approximate).toBeUndefined();
+  });
+
+  it("rejects a fractional artifact selection before publishing it", async () => {
+    const invalidSolver: MilpSolver = {
+      solve() {
+        return {
+          Status: "Optimal",
+          Columns: { x0: { Primal: 0.6 }, x1: { Primal: 0.4 } },
+          Gap: 0,
+          HasFeasibleSolution: true,
+        };
+      },
+    };
+
+    await expect(optimizeArtifactCombinationsMilp(
+      invalidSolver,
+      { ...container, capacity: 1 },
+      [candidate("A", [stat(MOVEMENT, 1)]), candidate("B", [stat(MOVEMENT, 2)])],
+      [{ key: MOVEMENT, weight: 1 }],
+      { ...settings, constraints: [], resultLimit: 1 },
+    )).rejects.toThrow(/non-integral artifact selection/);
+  });
+
+  it("rejects a solver selection that violates the original price cap", async () => {
+    const invalidSolver: MilpSolver = {
+      solve() {
+        return {
+          Status: "Optimal",
+          Columns: { x0: { Primal: 1 }, x1: { Primal: 0 } },
+          Gap: 0,
+          HasFeasibleSolution: true,
+        };
+      },
+    };
+
+    await expect(optimizeArtifactCombinationsMilp(
+      invalidSolver,
+      { ...container, capacity: 1 },
+      [candidate("Over budget", [stat(MOVEMENT, 2)], 101), candidate("Affordable", [stat(MOVEMENT, 1)], 50)],
+      [{ key: MOVEMENT, weight: 1 }],
+      { ...settings, constraints: [], maxTotalPrice: 100, resultLimit: 1 },
+    )).rejects.toThrow(/above the price cap/);
   });
 
   it("treats a time-limited feasible solution with a zero gap as proven", async () => {
@@ -297,6 +399,29 @@ describe("MILP artifact optimizer", () => {
     expect(milp.results[0].indices).toEqual([1]);
     expect(milp.ranges).toEqual(bruteForce.ranges);
     expect(milp.results[0].score).toBeCloseTo(bruteForce.results[0].score, 10);
+  });
+
+  it("matches brute force when a carrier penalty can reverse an enabled objective", async () => {
+    const penalizedContainer = {
+      ...container,
+      capacity: 1,
+      stats: [stat(MOVEMENT, -2)],
+    };
+    const candidates = [
+      candidate("Insufficient movement", [stat(MOVEMENT, 1)]),
+      candidate("Net positive movement", [stat(MOVEMENT, 3)]),
+    ];
+    const objectiveSettings = {
+      ...settings,
+      constraints: [{ key: MOVEMENT, minimum: 1e-6, maximum: null, scope: "artifact" as const }],
+    };
+    const objectives = [{ key: MOVEMENT, weight: 1 }];
+
+    const bruteForce = optimizeArtifactCombinations(penalizedContainer, candidates, objectives, objectiveSettings);
+    const milp = await optimizeArtifactCombinationsMilp(solver, penalizedContainer, candidates, objectives, objectiveSettings);
+
+    expect(bruteForce.results[0]).toMatchObject({ indices: [1], values: [1] });
+    expect(milp.results[0]).toMatchObject({ indices: [1], values: [1] });
   });
 
   it("excludes carrier carry weight from both exact engines", async () => {

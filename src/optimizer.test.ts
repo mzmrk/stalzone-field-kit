@@ -135,6 +135,15 @@ describe("artifact optimizer", () => {
   it("counts canonical combinations without generating slot permutations", () => {
     expect(combinationCount(103, 4, true)).toBe(4_967_690);
     expect(combinationCount(103, 4, false)).toBe(4_421_275);
+    const exactLargeCount = 20_688_443_967_788_245n;
+    const candidates = Array.from({ length: 103 }, (_, artifactIndex) =>
+      Array.from({ length: 7 }, (_, rarityIndex) => ({
+        ...candidate(`${artifactIndex}-${rarityIndex}`, []),
+        identity: `artifact-${artifactIndex}`,
+      }))).flat();
+    expect(groupedCombinationCount(103, 7, 7, true)).toBe(exactLargeCount);
+    expect(candidateCombinationCount(candidates, 7, true)).toBe(exactLargeCount);
+    expect(optimizerEngineFor(exactLargeCount)).toBe("milp");
   });
 
   it("selects MILP only when the brute-force combination limit is exceeded", () => {
@@ -166,6 +175,32 @@ describe("artifact optimizer", () => {
       maximum: -1e-6,
       scope: "artifact",
     });
+  });
+
+  it("rejects an objective whose carrier penalty makes the final value harmful", () => {
+    const penalizedContainer = {
+      ...container,
+      capacity: 1,
+      stats: [stat(MOVEMENT, "Movement penalty", -2)],
+    };
+    const candidates = [
+      candidate("Insufficient movement", [stat(MOVEMENT, "Movement", 1)]),
+      candidate("Net positive movement", [stat(MOVEMENT, "Movement", 3)]),
+    ];
+    const objectiveSettings = {
+      ...settings,
+      constraints: [requiredPositiveEffectConstraint(MOVEMENT, null)],
+    };
+
+    const result = optimizeArtifactCombinations(
+      penalizedContainer,
+      candidates,
+      [{ key: MOVEMENT, weight: 1 }],
+      objectiveSettings,
+    );
+
+    expect(result.feasibleCombinations).toBe(1);
+    expect(result.results[0]).toMatchObject({ indices: [1], values: [1] });
   });
 
   it("ranks stronger negative counter-effects above weaker ones", () => {

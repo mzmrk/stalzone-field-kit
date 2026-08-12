@@ -15,6 +15,7 @@ import {
 } from "./optimizer";
 
 const EPSILON = 1e-10;
+const SOLUTION_TOLERANCE = 1e-7;
 export const MILP_RANGE_TIME_LIMIT_SECONDS = 1;
 export const MILP_RANK_TIME_LIMIT_SECONDS = 10;
 
@@ -111,7 +112,15 @@ export async function optimizeArtifactCombinationsMilp(
       };
     }
     assertUsableSolution(bestSolution, "range");
-    const best = objectiveValue(bestSolution, prepared, objectiveIndex);
+    const selected = validatedSelectedIndices(
+      bestSolution,
+      prepared,
+      candidates,
+      activeObjectives,
+      settings,
+    );
+    validateLinearObjective(bestSolution, selected, coefficients);
+    const best = selectedObjectiveValue(selected, prepared, objectiveIndex);
     const bound = objectiveBound(bestSolution, prepared, objectiveIndex, best);
     const exact = isProvenOptimal(bestSolution);
     const bestMagnitude = Math.abs(best);
@@ -149,7 +158,15 @@ export async function optimizeArtifactCombinationsMilp(
     const solution = solve(scoreCoefficients, true, excludedSelections, "ranking");
     if (solution.Status === "Infeasible") break;
     assertUsableSolution(solution, "ranking");
-    const selected = selectedIndices(solution, candidates.length, container.capacity);
+    const selected = validatedSelectedIndices(
+      solution,
+      prepared,
+      candidates,
+      activeObjectives,
+      settings,
+      excludedSelections,
+    );
+    validateLinearObjective(solution, selected, scoreCoefficients);
     const values = activeObjectives.map((_, objectiveIndex) =>
       selectedObjectiveValue(selected, prepared, objectiveIndex));
     const score = values.reduce((sum, value, objectiveIndex) => {
@@ -173,8 +190,10 @@ export async function optimizeArtifactCombinationsMilp(
     };
     if (!isProvenOptimal(solution)) {
       result.approximate = true;
-      if (Number.isFinite(solution.Gap)) {
-        result.errorPercent = Math.max(0, solution.Gap! * 100);
+      if (Number.isFinite(solution.Bound) && Math.abs(score) > EPSILON) {
+        const selectedLinearScore = selectedLinearValue(selected, scoreCoefficients);
+        const possibleImprovement = Math.max(0, solution.Bound! - selectedLinearScore);
+        result.errorPercent = possibleImprovement / Math.abs(score) * 100;
       }
     }
     solveOrderResults.push(result);
@@ -286,6 +305,36 @@ function prepareProblem(
       });
     }
   });
+  objectives.forEach((objective) => {
+    const index = keyIndexes.get(objective.key)!;
+    if (objective.direction === -1) {
+      const bound = rawUpperBound(
+        objective.key,
+        0,
+        carrierValues[index],
+        container.protection,
+      );
+      if (bound !== null) constraints.push({
+        name: `objective_direction_${constraints.length}`,
+        coefficients: coefficientsFor(objective.key),
+        sense: "<=",
+        rhs: bound,
+      });
+    } else {
+      const bound = rawLowerBound(
+        objective.key,
+        0,
+        carrierValues[index],
+        container.protection,
+      );
+      constraints.push({
+        name: `objective_direction_${constraints.length}`,
+        coefficients: coefficientsFor(objective.key),
+        sense: ">=",
+        rhs: bound ?? Number.POSITIVE_INFINITY,
+      });
+    }
+  });
   if (settings.maxTotalPrice !== null) {
     const budgetScale = Math.max(1, Math.abs(settings.maxTotalPrice));
     constraints.push({
@@ -334,11 +383,6 @@ function objectiveCoefficients(prepared: PreparedProblem, objectiveIndex: number
   return Float64Array.from(prepared.vectors, (vector) => vector[vectorIndex]);
 }
 
-function objectiveValue(solution: MilpSolution, prepared: PreparedProblem, objectiveIndex: number) {
-  const indices = selectedIndices(solution, prepared.vectors.length);
-  return selectedObjectiveValue(indices, prepared, objectiveIndex);
-}
-
 function objectiveBound(
   solution: MilpSolution,
   prepared: PreparedProblem,
@@ -358,23 +402,135 @@ function selectedObjectiveValue(indices: number[], prepared: PreparedProblem, ob
 function finalObjectiveValue(raw: number, prepared: PreparedProblem, objectiveIndex: number) {
   const vectorIndex = prepared.objectiveIndexes[objectiveIndex];
   const key = [...prepared.keyIndexes].find(([, index]) => index === vectorIndex)![0];
+  return finalStatValue(raw, key, vectorIndex, prepared);
+}
+
+function finalStatValue(raw: number, key: string, keyIndex: number, prepared: PreparedProblem) {
   const protectedValue = PROTECTED_EXPOSURE_KEYS.has(key) && raw > 0
     ? raw * (1 - prepared.protection / 100)
     : raw;
-  return protectedValue + prepared.carrierValues[vectorIndex];
+  return protectedValue + prepared.carrierValues[keyIndex];
 }
 
-function selectedIndices(solution: MilpSolution, candidateCount: number, capacity?: number) {
+function selectedIndices(solution: MilpSolution, upperBounds: number[], capacity: number) {
   const indices: number[] = [];
-  for (let index = 0; index < candidateCount; index += 1) {
+  for (let index = 0; index < upperBounds.length; index += 1) {
     const column = solution.Columns[`x${index}`] as { Primal?: number } | undefined;
-    const count = Math.round(column?.Primal ?? 0);
+    const primal = column?.Primal ?? 0;
+    const count = Math.round(primal);
+    if (!Number.isFinite(primal)
+      || Math.abs(primal - count) > SOLUTION_TOLERANCE
+      || count < 0
+      || count > upperBounds[index]) {
+      throw new Error("MILP solver returned a non-integral artifact selection.");
+    }
     for (let copy = 0; copy < count; copy += 1) indices.push(index);
   }
-  if (capacity !== undefined && indices.length !== capacity) {
+  if (indices.length !== capacity) {
     throw new Error("MILP solver returned a non-integral artifact selection.");
   }
   return indices;
+}
+
+function validatedSelectedIndices(
+  solution: MilpSolution,
+  prepared: PreparedProblem,
+  candidates: OptimizerCandidate[],
+  objectives: OptimizerObjective[],
+  settings: OptimizerSettings,
+  excludedSelections: number[][] = [],
+) {
+  const selected = selectedIndices(solution, prepared.upperBounds, prepared.capacity);
+  validateSelection(selected, prepared, candidates, objectives, settings, excludedSelections);
+  return selected;
+}
+
+function validateSelection(
+  selected: number[],
+  prepared: PreparedProblem,
+  candidates: OptimizerCandidate[],
+  objectives: OptimizerObjective[],
+  settings: OptimizerSettings,
+  excludedSelections: number[][],
+) {
+  if (!settings.allowDuplicates) {
+    const identities = selected.map((index) => candidates[index].identity ?? `candidate-${index}`);
+    if (new Set(identities).size !== identities.length) {
+      throw new Error("MILP solver returned duplicate variants of one artifact.");
+    }
+  }
+
+  const sums = new Float64Array(prepared.keyIndexes.size);
+  selected.forEach((candidateIndex) => {
+    prepared.vectors[candidateIndex].forEach((value, keyIndex) => { sums[keyIndex] += value; });
+  });
+  settings.constraints.forEach((constraint) => {
+    const keyIndex = prepared.keyIndexes.get(constraint.key)!;
+    const value = constraint.scope === "artifact"
+      ? sums[keyIndex]
+      : finalStatValue(sums[keyIndex], constraint.key, keyIndex, prepared);
+    if (constraint.minimum !== null && value < constraint.minimum - validationSlack(constraint.minimum)) {
+      throw new Error(`MILP solver returned a build below the ${constraint.key} minimum.`);
+    }
+    if (constraint.maximum !== null && value > constraint.maximum + validationSlack(constraint.maximum)) {
+      throw new Error(`MILP solver returned a build above the ${constraint.key} maximum.`);
+    }
+  });
+  objectives.forEach((objective) => {
+    const keyIndex = prepared.keyIndexes.get(objective.key)!;
+    const value = finalStatValue(sums[keyIndex], objective.key, keyIndex, prepared);
+    if (objective.direction === -1
+      ? value > SOLUTION_TOLERANCE
+      : value < -SOLUTION_TOLERANCE) {
+      throw new Error(`MILP solver returned a build with a harmful ${objective.key} objective.`);
+    }
+  });
+
+  if (settings.maxTotalPrice !== null) {
+    let total = 0;
+    for (const candidateIndex of selected) {
+      const price = candidates[candidateIndex].price;
+      if (price === null) throw new Error("MILP solver returned an unpriced build under a price cap.");
+      total += price;
+    }
+    if (total > settings.maxTotalPrice + validationSlack(settings.maxTotalPrice)) {
+      throw new Error("MILP solver returned a build above the price cap.");
+    }
+  }
+
+  const selectedCounts = selectionCounts(selected, candidates.length);
+  if (excludedSelections.some((excluded) => equalCounts(
+    selectedCounts,
+    selectionCounts(excluded, candidates.length),
+  ))) {
+    throw new Error("MILP solver returned a previously excluded build.");
+  }
+}
+
+function validateLinearObjective(solution: MilpSolution, selected: number[], coefficients: Float64Array) {
+  if (!Number.isFinite(solution.ObjectiveValue)) return;
+  const actual = selectedLinearValue(selected, coefficients);
+  if (Math.abs(actual - solution.ObjectiveValue!) > validationSlack(solution.ObjectiveValue!)) {
+    throw new Error("MILP solver returned an objective value inconsistent with its artifact selection.");
+  }
+}
+
+function selectedLinearValue(selected: number[], coefficients: Float64Array) {
+  return selected.reduce((sum, candidateIndex) => sum + coefficients[candidateIndex], 0);
+}
+
+function selectionCounts(selected: number[], candidateCount: number) {
+  const counts = new Int32Array(candidateCount);
+  selected.forEach((candidateIndex) => { counts[candidateIndex] += 1; });
+  return counts;
+}
+
+function equalCounts(left: Int32Array, right: Int32Array) {
+  return left.every((count, index) => count === right[index]);
+}
+
+function validationSlack(value: number) {
+  return SOLUTION_TOLERANCE * Math.max(1, Math.abs(value));
 }
 
 function buildLp(
@@ -450,7 +606,7 @@ function number(value: number) {
 }
 
 function isProvenOptimal(solution: MilpSolution) {
-  if (solution.Status === "Optimal") return Math.abs(solution.Gap ?? 0) <= EPSILON;
+  if (solution.Status === "Optimal") return true;
   return solution.Status === "Time limit reached"
     && solution.HasFeasibleSolution === true
     && solution.Gap !== undefined

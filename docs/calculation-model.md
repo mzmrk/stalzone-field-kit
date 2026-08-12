@@ -104,9 +104,11 @@ copies of the same artifact with different rarities.
 All 31 green property keys in the current EXBO Global artifact catalog remain
 visible. Enabling a row adds it to weighted scoring and requires the selected
 artifacts to contribute that benefit. Higher-is-better objectives require a net
-positive value. Radiation, biological infection, psy-emission, temperature,
-bleeding, and burning countering plus recoil reduction are lower-is-better; they
-require a net negative value and rank a stronger negative value higher. Their
+positive artifact value and a non-negative finished-build value after protection
+and carrier properties. Radiation, biological infection, psy-emission,
+temperature, bleeding, and burning countering plus recoil reduction are
+lower-is-better; they require a net negative artifact value and a non-positive
+finished-build value, and rank a stronger negative value higher. Their
 optional input is a positive magnitude, so `2` requires a value at or below
 `-2`. Other objectives use the entered value as an ordinary positive minimum.
 Turning a row off clears its requirement. Carrier properties cannot satisfy it—for
@@ -176,7 +178,9 @@ best compromise may score below `100%`. Engine selection is automatic: a
 canonical search space of at most ten million combinations uses brute force, and
 any larger space uses MILP. The final dispatch uses the exact count after artifact
 files load, so unavailable catalog entries cannot leave the search on the wrong
-side of the cutoff. Brute force obtains those best values in its
+side of the cutoff. Combination counts use arbitrary-precision integers and
+compact to ordinary numbers only while exactly representable; large search-space
+labels therefore remain exact. Brute force obtains those best values in its
 first complete enumeration and ranks in a second enumeration. It retains the ten
 highest-scoring builds and breaks equal-score ties by canonical artifact order.
 The MILP engine solves one best-value integer program per objective, maximizing
@@ -189,9 +193,20 @@ proven bound and gap. If a best-value solve
 times out, normalization uses its best feasible value and the UI reports the
 maximum possible best-value error implied by the solver bound. A time-limited
 ranked build is marked as the best build found within ten seconds and displays
-its possible relative objective error. That ranking gap applies to the fixed best
-values actually used; approximate best-value uncertainty is
-reported separately.
+its possible relative objective error. The percentage divides the solver's
+remaining absolute objective bound by the displayed full score, including any
+eligible carrier contribution, rather than presenting HiGHS' artifact-only
+relative gap as though it described the displayed score. That ranking bound
+applies to the fixed best values actually used; approximate best-value uncertainty
+is reported separately.
+
+HiGHS' `Optimal` status is authoritative even when its diagnostic relative gap
+retains insignificant floating-point residue. Before any incumbent is used or
+published, the adapter independently verifies integral counts, capacity and
+per-candidate bounds, artifact-identity rules, configured stat limits, objective
+direction, the unscaled price cap, prior-result exclusions, and agreement between
+the selected artifacts and reported linear objective. An inconsistent solver
+response fails the search instead of becoming a calculator result.
 
 After each result MILP adds an exact count-vector exclusion, including when
 duplicate artifacts are allowed, and solves again until ten builds are ranked or
@@ -223,8 +238,9 @@ protection, counter-before-protection order, non-carry carrier and manual bonus
 addition, carrier carry-weight exclusion, mass, and strict warning thresholds.
 Changes to the user workflow or persistence should also update the Playwright
 flow in [`tests/calculator.spec.ts`](../tests/calculator.spec.ts).
-Optimizer coverage checks combination counts, automatic engine selection at the
-ten-million boundary, search-size rejection, weight-sensitive ranking,
+Optimizer coverage checks exact combination counts beyond JavaScript's safe-number
+limit, automatic engine selection at the ten-million boundary, search-size
+rejection, weight-sensitive ranking,
 zero-baseline normalization, independent final best values,
 enabled-effect presence, and artifact-only positive minimums. It also covers both
 harmful directions, the zero boundary for fully countered harmful properties, the
@@ -242,8 +258,9 @@ feasibility remains stable as realistic ruble caps increase, compares its ordere
 top ten with brute force both with and without duplicates, checks preservation
 of every selected rarity variant and combined constraints, and verifies that the
 enumeration guard is not applied. Bounded-solve coverage verifies the
-one- and ten-second options, the rank-two presolve boundary, and uncertainty
-metadata for time-limited best values and builds.
+one- and ten-second options, the rank-two presolve boundary, carrier-aware
+uncertainty percentages, residual-gap `Optimal` statuses, and rejection of
+invalid solver incumbents.
 The solver migration gate additionally runs previous and current HiGHS wrappers
 against the same calculator-shaped model and brute-force oracle. It compares
 normalization endpoints and scores within floating-point tolerance, exact

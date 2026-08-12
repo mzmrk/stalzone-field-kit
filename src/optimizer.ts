@@ -174,7 +174,7 @@ export type OptimizerResult = {
 };
 
 export type OptimizerSearchResult = {
-  combinations: number;
+  combinations: number | bigint;
   feasibleCombinations: number | null;
   ranges: OptimizerRange[];
   results: OptimizerResult[];
@@ -191,19 +191,21 @@ export const BRUTE_FORCE_COMBINATION_LIMIT = 10_000_000;
 export type OptimizerEngine = "brute-force" | "milp";
 
 export function optimizerEngineFor(
-  combinations: number,
+  combinations: number | bigint,
   bruteForceLimit = BRUTE_FORCE_COMBINATION_LIMIT,
 ): OptimizerEngine {
-  return combinations > bruteForceLimit ? "milp" : "brute-force";
+  return typeof combinations === "bigint"
+    ? combinations > BigInt(bruteForceLimit) ? "milp" : "brute-force"
+    : combinations > bruteForceLimit ? "milp" : "brute-force";
 }
 const DEFAULT_RESULT_LIMIT = 10;
 const EPSILON = 1e-10;
 
 export class SearchSpaceTooLargeError extends Error {
-  combinations: number;
+  combinations: number | bigint;
   limit: number;
 
-  constructor(combinations: number, limit: number) {
+  constructor(combinations: number | bigint, limit: number) {
     super(`This exact search contains ${combinations.toLocaleString()} combinations; the current limit is ${limit.toLocaleString()}.`);
     this.name = "SearchSpaceTooLargeError";
     this.combinations = combinations;
@@ -215,7 +217,7 @@ export function combinationCount(candidateCount: number, slots: number, allowDup
   if (slots < 0 || candidateCount < 0) return 0;
   if (slots === 0) return 1;
   if (candidateCount === 0 || (!allowDuplicates && slots > candidateCount)) return 0;
-  return binomial(allowDuplicates ? candidateCount + slots - 1 : candidateCount, slots);
+  return compactCount(binomialBigInt(allowDuplicates ? candidateCount + slots - 1 : candidateCount, slots));
 }
 
 export function groupedCombinationCount(
@@ -227,7 +229,7 @@ export function groupedCombinationCount(
   if (groupCount < 0 || variantsPerGroup < 0) return 0;
   if (allowDuplicates) return combinationCount(groupCount * variantsPerGroup, slots, true);
   if (slots < 0 || slots > groupCount) return 0;
-  return Math.round(binomial(groupCount, slots) * variantsPerGroup ** slots);
+  return compactCount(binomialBigInt(groupCount, slots) * BigInt(variantsPerGroup) ** BigInt(slots));
 }
 
 export function candidateCombinationCount(
@@ -242,14 +244,14 @@ export function candidateCombinationCount(
     const identity = candidate.identity ?? `candidate-${index}`;
     groupSizes.set(identity, (groupSizes.get(identity) ?? 0) + 1);
   });
-  const counts = new Array<number>(slots + 1).fill(0);
-  counts[0] = 1;
+  const counts = new Array<bigint>(slots + 1).fill(0n);
+  counts[0] = 1n;
   for (const size of groupSizes.values()) {
     for (let selected = slots; selected >= 1; selected -= 1) {
-      counts[selected] += counts[selected - 1] * size;
+      counts[selected] += counts[selected - 1] * BigInt(size);
     }
   }
-  return Math.round(counts[slots]);
+  return compactCount(counts[slots]);
 }
 
 export function optimizeArtifactCombinations(
@@ -262,9 +264,12 @@ export function optimizeArtifactCombinations(
   const activeObjectives = objectives.filter((objective) => objective.weight > 0);
   if (activeObjectives.length === 0) throw new Error("Add at least one objective with a positive weight.");
 
-  const combinations = candidateCombinationCount(candidates, container.capacity, settings.allowDuplicates);
+  const exactCombinations = candidateCombinationCount(candidates, container.capacity, settings.allowDuplicates);
   const combinationLimit = settings.combinationLimit ?? BRUTE_FORCE_COMBINATION_LIMIT;
-  if (combinations > combinationLimit) throw new SearchSpaceTooLargeError(combinations, combinationLimit);
+  if (typeof exactCombinations === "bigint" || exactCombinations > combinationLimit) {
+    throw new SearchSpaceTooLargeError(exactCombinations, combinationLimit);
+  }
+  const combinations = exactCombinations;
   if (combinations === 0) return { combinations, feasibleCombinations: 0, ranges: [], results: [] };
 
   const relevantKeys = [...new Set([
@@ -311,6 +316,13 @@ export function optimizeArtifactCombinations(
     return (constraint.minimum === null || value >= constraint.minimum - EPSILON)
       && (constraint.maximum === null || value <= constraint.maximum + EPSILON);
   });
+  const satisfiesObjectiveDirections = (sums: Float64Array) => activeObjectives.every((objective, objectiveIndex) => {
+    const index = objectiveIndexes[objectiveIndex];
+    const value = finalizeValue(objective.key, index, sums[index]);
+    return objective.direction === -1
+      ? value <= EPSILON
+      : value >= -EPSILON;
+  });
   const totalPrice = (indices: Int32Array) => {
     let total = 0;
     for (const candidateIndex of indices) {
@@ -327,6 +339,7 @@ export function optimizeArtifactCombinations(
   };
   const eligible = (sums: Float64Array, indices: Int32Array) =>
     satisfiesConstraints(sums)
+    && satisfiesObjectiveDirections(sums)
     && withinBudget(indices);
 
   const bestValues = new Float64Array(activeObjectives.length);
@@ -461,11 +474,15 @@ function insertResult(results: OptimizerResult[], result: OptimizerResult, limit
   if (results.length > limit) results.pop();
 }
 
-function binomial(n: number, k: number) {
+function binomialBigInt(n: number, k: number) {
   const count = Math.min(k, n - k);
-  let result = 1;
+  let result = 1n;
   for (let index = 1; index <= count; index += 1) {
-    result = (result * (n - count + index)) / index;
+    result = result * BigInt(n - count + index) / BigInt(index);
   }
-  return Math.round(result);
+  return result;
+}
+
+function compactCount(count: bigint): number | bigint {
+  return count <= BigInt(Number.MAX_SAFE_INTEGER) ? Number(count) : count;
 }
