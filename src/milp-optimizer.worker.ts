@@ -20,6 +20,14 @@ type SearchRequest = {
 
 self.onmessage = async (event: MessageEvent<SearchRequest>) => {
   try {
+    self.postMessage({
+      type: "progress",
+      progress: {
+        completed: 0,
+        total: event.data.objectives.filter((objective) => objective.weight > 0).length * 2
+          + (event.data.settings.resultLimit ?? 10),
+      },
+    });
     const solver = await loadHighs({ locateFile: () => highsWasmUrl });
     const result = await optimizeArtifactCombinationsMilp(
       solver,

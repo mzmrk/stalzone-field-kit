@@ -179,9 +179,13 @@ The MILP engine solves one minimum and one maximum integer program per objective
 then one normalized weighted program per result. After each result it adds an exact
 count-vector exclusion, including when duplicate artifacts are allowed, and
 solves again until ten builds are ranked or no feasible alternative remains.
-The MILP callback and worker publish a cumulative snapshot after every optimal
-rank, so UI streaming never exposes an unproven candidate and does not alter the
-final ordering.
+Before building the solver model, MILP removes same-artifact rarity variants that
+are dominated across every active objective, hard constraint, and enabled budget
+dimension; returned result indexes still refer to the original candidate list
+used by the UI. The MILP callback and worker publish an initial progress snapshot
+before the first solve and a cumulative result snapshot after every optimal rank,
+so UI streaming never exposes an unproven candidate and does not alter the final
+ordering.
 HiGHS is configured for zero MIP gap and only an `Optimal` status is accepted, so
 each returned build is proven next-best rather than heuristic. MILP does not
 count feasible builds or reproduce brute force's canonical order when more than
@@ -213,5 +217,6 @@ formatting, budget filtering, duplicate-price summation, and uncapped handling o
 unknown estimates. MILP coverage runs the actual WebAssembly solver, verifies
 feasibility remains stable as realistic ruble caps increase, compares its ordered
 top ten with brute force both with and without duplicates, checks tied
-result uniqueness, cumulative one-rank-at-a-time snapshots, and combined
-constraints, and verifies that the enumeration guard is not applied.
+result uniqueness, initial progress plus cumulative one-rank-at-a-time snapshots,
+same-artifact dominated-rarity pruning, and combined constraints, and verifies
+that the enumeration guard is not applied.

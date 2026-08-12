@@ -145,6 +145,39 @@ describe("MILP artifact optimizer", () => {
     expect(milp.combinations).toBe(2);
   });
 
+  it("removes dominated rarity variants without changing original result indexes", async () => {
+    const candidates = [
+      { ...candidate("A ordinary", [stat(MOVEMENT, 1)], 20), identity: "A", quality: 92.5, rarityIndex: 0 },
+      { ...candidate("A uncommon", [stat(MOVEMENT, 2)], 20), identity: "A", quality: 107.5, rarityIndex: 1 },
+      { ...candidate("B ordinary", [stat(MOVEMENT, 1.5)], 20), identity: "B", quality: 92.5, rarityIndex: 0 },
+    ];
+    const result = await optimizeArtifactCombinationsMilp(
+      solver,
+      { ...container, capacity: 1 },
+      candidates,
+      [{ key: MOVEMENT, weight: 1 }],
+      { ...settings, constraints: [], maxTotalPrice: 100, resultLimit: 2 },
+    );
+
+    expect(result.combinations).toBe(3);
+    expect(result.results.map((entry) => entry.indices)).toEqual([[1], [2]]);
+  });
+
+  it("reports an initial MILP progress snapshot before the first solve completes", async () => {
+    const progress: Array<{ completed: number; total: number }> = [];
+    await optimizeArtifactCombinationsMilp(
+      solver,
+      { ...container, capacity: 1 },
+      [candidate("Fast", [stat(MOVEMENT, 2)])],
+      [{ key: MOVEMENT, weight: 1 }],
+      { ...settings, constraints: [], resultLimit: 1 },
+      (snapshot) => progress.push(snapshot),
+    );
+
+    expect(progress[0]).toEqual({ completed: 0, total: 3 });
+    expect(progress.at(-1)).toEqual({ completed: 3, total: 3 });
+  });
+
   it.each([
     ["with duplicate artifacts", true],
     ["without duplicate artifacts", false],

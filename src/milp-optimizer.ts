@@ -49,6 +49,11 @@ type PreparedProblem = {
   allowDuplicates: boolean;
 };
 
+type CandidateSet = {
+  candidates: OptimizerCandidate[];
+  originalIndexes: number[];
+};
+
 export async function optimizeArtifactCombinationsMilp(
   solver: MilpSolver,
   container: OptimizerContainer,
@@ -66,10 +71,21 @@ export async function optimizeArtifactCombinationsMilp(
     return { combinations, feasibleCombinations: 0, ranges: [], results: [] };
   }
 
-  const prepared = prepareProblem(container, candidates, activeObjectives, settings);
+  const candidateSet = reduceDominatedCandidates(container, candidates, activeObjectives, settings);
+  if (candidateSet.candidates.length === 0) {
+    return {
+      combinations,
+      feasibleCombinations: 0,
+      ranges: activeObjectives.map((objective) => ({ key: objective.key, min: 0, max: 0 })),
+      results: [],
+    };
+  }
+
+  const prepared = prepareProblem(container, candidateSet.candidates, activeObjectives, settings);
   const resultLimit = settings.resultLimit ?? 10;
   const solveCount = activeObjectives.length * 2 + resultLimit;
   let completed = 0;
+  onProgress?.({ completed, total: solveCount });
   const solve = (coefficients: Float64Array, maximize: boolean, excludedSelections: number[][] = []) => {
     const result = solver.solve(buildLp(prepared, coefficients, maximize, excludedSelections), {
       output_flag: false,
@@ -123,9 +139,9 @@ export async function optimizeArtifactCombinationsMilp(
     const solution = solve(scoreCoefficients, true, excludedSelections);
     if (solution.Status === "Infeasible") break;
     assertOptimal(solution);
-    const indices = selectedIndices(solution, candidates.length, container.capacity);
+    const reducedIndices = selectedIndices(solution, candidateSet.candidates.length, container.capacity);
     const values = activeObjectives.map((_, objectiveIndex) =>
-      selectedObjectiveValue(indices, prepared, objectiveIndex));
+      selectedObjectiveValue(reducedIndices, prepared, objectiveIndex));
     const score = values.reduce((sum, value, objectiveIndex) => {
       const normalized = normalizedObjectiveValue(
         value,
@@ -135,12 +151,13 @@ export async function optimizeArtifactCombinationsMilp(
       );
       return sum + normalized * activeObjectives[objectiveIndex].weight;
     }, 0) / totalWeight;
-    const totalPrice = indices.reduce<number | null>((total, index) => {
-      const price = candidates[index].price;
+    const totalPrice = reducedIndices.reduce<number | null>((total, index) => {
+      const price = candidateSet.candidates[index].price;
       return total === null || price === null ? null : total + price;
     }, 0);
+    const indices = reducedIndices.map((index) => candidateSet.originalIndexes[index]);
     results.push({ indices, score, values, totalPrice });
-    excludedSelections.push(indices);
+    excludedSelections.push(reducedIndices);
     onResult?.({
       combinations,
       feasibleCombinations: null,
@@ -155,6 +172,105 @@ export async function optimizeArtifactCombinationsMilp(
     ranges,
     results,
   };
+}
+
+function reduceDominatedCandidates(
+  container: OptimizerContainer,
+  candidates: OptimizerCandidate[],
+  objectives: OptimizerObjective[],
+  settings: OptimizerSettings,
+): CandidateSet {
+  const eligible = candidates
+    .map((candidate, originalIndex) => ({ candidate, originalIndex }))
+    .filter(({ candidate }) => settings.maxTotalPrice === null || candidate.price !== null);
+  if (eligible.length < 2) {
+    return {
+      candidates: eligible.map(({ candidate }) => candidate),
+      originalIndexes: eligible.map(({ originalIndex }) => originalIndex),
+    };
+  }
+
+  const keys = [...new Set([
+    ...objectives.map((objective) => objective.key),
+    ...settings.constraints.map((constraint) => constraint.key),
+  ])];
+  const keyIndexes = new Map(keys.map((key, index) => [key, index]));
+  const vectors = eligible.map(({ candidate }) => {
+    const values = new Float64Array(keys.length);
+    for (const stat of candidate.stats) {
+      const index = keyIndexes.get(stat.key);
+      if (index === undefined) continue;
+      values[index] += calculateStat(
+        stat,
+        candidate.quality ?? settings.quality,
+        settings.level,
+        candidate.rarityIndex ?? settings.rarityIndex,
+        container.effectiveness,
+      );
+    }
+    return values;
+  });
+  const dimensions = [
+    ...objectives.map((objective) => ({ kind: "stat" as const, key: objective.key, direction: objective.direction ?? 1 })),
+    ...settings.constraints.flatMap((constraint) => [
+      ...(constraint.minimum === null ? [] : [{ kind: "stat" as const, key: constraint.key, direction: 1 as const }]),
+      ...(constraint.maximum === null ? [] : [{ kind: "stat" as const, key: constraint.key, direction: -1 as const }]),
+    ]),
+    ...(settings.maxTotalPrice === null ? [] : [{ kind: "price" as const, direction: -1 as const }]),
+  ];
+
+  const dominated = new Uint8Array(eligible.length);
+  for (let target = 0; target < eligible.length; target += 1) {
+    for (let challenger = 0; challenger < eligible.length; challenger += 1) {
+      if (target === challenger) continue;
+      const targetIdentity = eligible[target].candidate.identity ?? `candidate-${target}`;
+      const challengerIdentity = eligible[challenger].candidate.identity ?? `candidate-${challenger}`;
+      if (targetIdentity !== challengerIdentity) continue;
+      if (dominates(
+        vectors[challenger],
+        eligible[challenger].candidate.price,
+        vectors[target],
+        eligible[target].candidate.price,
+        dimensions,
+        keyIndexes,
+      )) {
+        dominated[target] = 1;
+        break;
+      }
+    }
+  }
+
+  return {
+    candidates: eligible.filter((_, index) => !dominated[index]).map(({ candidate }) => candidate),
+    originalIndexes: eligible.filter((_, index) => !dominated[index]).map(({ originalIndex }) => originalIndex),
+  };
+}
+
+function dominates(
+  challenger: Float64Array,
+  challengerPrice: number | null,
+  target: Float64Array,
+  targetPrice: number | null,
+  dimensions: Array<
+    | { kind: "stat"; key: string; direction: 1 | -1 }
+    | { kind: "price"; direction: -1 }
+  >,
+  keyIndexes: Map<string, number>,
+) {
+  let better = false;
+  for (const dimension of dimensions) {
+    const challengerValue = dimension.kind === "price"
+      ? challengerPrice
+      : challenger[keyIndexes.get(dimension.key)!];
+    const targetValue = dimension.kind === "price"
+      ? targetPrice
+      : target[keyIndexes.get(dimension.key)!];
+    if (challengerValue === null || targetValue === null) return false;
+    const difference = (challengerValue - targetValue) * dimension.direction;
+    if (difference < -EPSILON) return false;
+    if (difference > EPSILON) better = true;
+  }
+  return better;
 }
 
 function prepareProblem(
