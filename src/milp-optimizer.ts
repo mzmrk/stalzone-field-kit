@@ -15,6 +15,8 @@ import {
 } from "./optimizer";
 
 const EPSILON = 1e-10;
+export const MILP_RANGE_TIME_LIMIT_SECONDS = 1;
+export const MILP_RANK_TIME_LIMIT_SECONDS = 10;
 
 export type MilpProgress = {
   completed: number;
@@ -24,10 +26,14 @@ export type MilpProgress = {
 export type MilpSolution = {
   Status: string;
   Columns: Record<string, unknown>;
+  ObjectiveValue?: number;
+  Bound?: number;
+  Gap?: number;
+  HasFeasibleSolution?: boolean;
 };
 
 export type MilpSolver = {
-  solve(problem: string, options?: Record<string, unknown>): MilpSolution;
+  solve(problem: string, options?: Record<string, boolean | number | string>): MilpSolution;
 };
 
 type LinearConstraint = {
@@ -86,10 +92,17 @@ export async function optimizeArtifactCombinationsMilp(
   const solveCount = activeObjectives.length * 2 + resultLimit;
   let completed = 0;
   onProgress?.({ completed, total: solveCount });
-  const solve = (coefficients: Float64Array, maximize: boolean, excludedSelections: number[][] = []) => {
+  const solve = (
+    coefficients: Float64Array,
+    maximize: boolean,
+    excludedSelections: number[][] = [],
+    phase: "range" | "ranking" = "range",
+  ) => {
     const result = solver.solve(buildLp(prepared, coefficients, maximize, excludedSelections), {
       output_flag: false,
       log_to_console: false,
+      presolve: phase === "ranking" && excludedSelections.length > 0 ? "off" : "on",
+      time_limit: phase === "range" ? MILP_RANGE_TIME_LIMIT_SECONDS : MILP_RANK_TIME_LIMIT_SECONDS,
       mip_rel_gap: 0,
       mip_abs_gap: 0,
       mip_feasibility_tolerance: 1e-9,
@@ -111,14 +124,28 @@ export async function optimizeArtifactCombinationsMilp(
         results: [],
       };
     }
-    assertOptimal(minimum);
+    assertUsableSolution(minimum, "range");
     const maximum = solve(coefficients, true);
-    assertOptimal(maximum);
-    ranges.push({
+    assertUsableSolution(maximum, "range");
+    const min = objectiveValue(minimum, prepared, objectiveIndex);
+    const max = objectiveValue(maximum, prepared, objectiveIndex);
+    const minBound = objectiveBound(minimum, prepared, objectiveIndex, min);
+    const maxBound = objectiveBound(maximum, prepared, objectiveIndex, max);
+    const exact = isProvenOptimal(minimum) && isProvenOptimal(maximum);
+    const span = Math.max(0, max - min);
+    const possibleSpan = Math.max(0, maxBound - minBound);
+    const range = {
       key: activeObjectives[objectiveIndex].key,
-      min: objectiveValue(minimum, prepared, objectiveIndex),
-      max: objectiveValue(maximum, prepared, objectiveIndex),
-    });
+      min,
+      max,
+    } as OptimizerSearchResult["ranges"][number];
+    if (!exact) {
+      range.approximate = true;
+      if (span > EPSILON && Number.isFinite(minimum.Bound) && Number.isFinite(maximum.Bound)) {
+        range.errorPercent = Math.max(0, (possibleSpan / span - 1) * 100);
+      }
+    }
+    ranges.push(range);
   }
 
   const totalWeight = activeObjectives.reduce((sum, objective) => sum + objective.weight, 0);
@@ -136,9 +163,9 @@ export async function optimizeArtifactCombinationsMilp(
   const results: OptimizerResult[] = [];
   const excludedSelections: number[][] = [];
   for (let resultIndex = 0; resultIndex < resultLimit; resultIndex += 1) {
-    const solution = solve(scoreCoefficients, true, excludedSelections);
+    const solution = solve(scoreCoefficients, true, excludedSelections, "ranking");
     if (solution.Status === "Infeasible") break;
-    assertOptimal(solution);
+    assertUsableSolution(solution, "ranking");
     const reducedIndices = selectedIndices(solution, candidateSet.candidates.length, container.capacity);
     const values = activeObjectives.map((_, objectiveIndex) =>
       selectedObjectiveValue(reducedIndices, prepared, objectiveIndex));
@@ -156,7 +183,20 @@ export async function optimizeArtifactCombinationsMilp(
       return total === null || price === null ? null : total + price;
     }, 0);
     const indices = reducedIndices.map((index) => candidateSet.originalIndexes[index]);
-    results.push({ indices, score, values, totalPrice });
+    const result: OptimizerResult = {
+      indices,
+      score,
+      values,
+      totalPrice,
+    };
+    if (!isProvenOptimal(solution)) {
+      result.approximate = true;
+      if (Number.isFinite(solution.Gap)) {
+        result.errorPercent = Math.max(0, solution.Gap! * 100);
+      }
+    }
+    results.push(result);
+    results.sort((left, right) => right.score - left.score);
     excludedSelections.push(reducedIndices);
     onResult?.({
       combinations,
@@ -414,9 +454,24 @@ function objectiveValue(solution: MilpSolution, prepared: PreparedProblem, objec
   return selectedObjectiveValue(indices, prepared, objectiveIndex);
 }
 
+function objectiveBound(
+  solution: MilpSolution,
+  prepared: PreparedProblem,
+  objectiveIndex: number,
+  fallback: number,
+) {
+  if (!Number.isFinite(solution.Bound)) return fallback;
+  return finalObjectiveValue(solution.Bound!, prepared, objectiveIndex);
+}
+
 function selectedObjectiveValue(indices: number[], prepared: PreparedProblem, objectiveIndex: number) {
   const vectorIndex = prepared.objectiveIndexes[objectiveIndex];
   const raw = indices.reduce((sum, index) => sum + prepared.vectors[index][vectorIndex], 0);
+  return finalObjectiveValue(raw, prepared, objectiveIndex);
+}
+
+function finalObjectiveValue(raw: number, prepared: PreparedProblem, objectiveIndex: number) {
+  const vectorIndex = prepared.objectiveIndexes[objectiveIndex];
   const key = [...prepared.keyIndexes].find(([, index]) => index === vectorIndex)![0];
   const protectedValue = PROTECTED_EXPOSURE_KEYS.has(key) && raw > 0
     ? raw * (1 - prepared.protection / 100)
@@ -509,8 +564,19 @@ function number(value: number) {
   return Number(value.toPrecision(15)).toString();
 }
 
-function assertOptimal(solution: MilpSolution) {
-  if (solution.Status !== "Optimal") {
-    throw new Error(`MILP solver stopped with status: ${solution.Status}.`);
+function isProvenOptimal(solution: MilpSolution) {
+  if (solution.Status === "Optimal") return Math.abs(solution.Gap ?? 0) <= EPSILON;
+  return solution.Status === "Time limit reached"
+    && solution.HasFeasibleSolution === true
+    && solution.Gap !== undefined
+    && Math.abs(solution.Gap) <= EPSILON;
+}
+
+function assertUsableSolution(solution: MilpSolution, phase: "range" | "ranking") {
+  if (isProvenOptimal(solution)) return;
+  if (solution.Status === "Time limit reached" && solution.HasFeasibleSolution) return;
+  if (solution.Status === "Time limit reached") {
+    throw new Error(`${phase === "range" ? "A feasible range" : "A ranked build"} could not be found within the time limit.`);
   }
+  throw new Error(`MILP solver stopped with status: ${solution.Status}.`);
 }

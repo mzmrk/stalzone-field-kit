@@ -243,6 +243,13 @@ function formatNumber(value: number, percentage: boolean) {
   return `${sign}${clean.toFixed(2)}${percentage ? "%" : ""}`;
 }
 
+function formatAccuracy(value: number) {
+  if (value >= 10) return value.toFixed(1);
+  if (value >= 1) return value.toFixed(2);
+  if (value >= 0.01) return value.toFixed(3);
+  return value.toFixed(4);
+}
+
 function ItemImage({ entry, size = "normal" }: { entry: ListingEntry; size?: "normal" | "large" }) {
   return (
     <span className={`item-image item-image--${size}`} data-rank={entry.color}>
@@ -1118,7 +1125,7 @@ function OptimizerPanel({
               {invalidCustomLimit && <p className="optimizer-error">Every accepted penalty must be zero or greater.</p>}
               {invalidMaxTotalPrice && <p className="optimizer-error">Maximum total price must be greater than zero.</p>}
               <button className="optimizer-search" disabled={!catalog || selectedRarities.length === 0 || activeObjectives.length === 0 || invalidPositiveMinimum || invalidCustomLimit || invalidMaxTotalPrice || state === "loading" || state === "searching"} onClick={startSearch}>
-                {state === "loading" ? `Loading artifacts ${loadProgress.completed}/${loadProgress.total}` : state === "searching" ? `${displayedEngine === "milp" ? "Solving exact search" : "Searching"} ${progressPercent.toFixed(0)}%` : estimatedEngine === "milp" ? "Find optimal build with MILP" : `Search ${estimatedCombinations.toLocaleString()} combinations`}
+                {state === "loading" ? `Loading artifacts ${loadProgress.completed}/${loadProgress.total}` : state === "searching" ? `${displayedEngine === "milp" ? "Solving bounded search" : "Searching"} ${progressPercent.toFixed(0)}%` : estimatedEngine === "milp" ? "Find optimal build with MILP" : `Search ${estimatedCombinations.toLocaleString()} combinations`}
               </button>
               {(state === "loading" || state === "searching") && <div className="optimizer-progress"><span style={{ width: `${state === "loading" ? (loadProgress.completed / Math.max(1, loadProgress.total)) * 100 : progressPercent}%` }} /></div>}
               {state === "searching" && displayedEngine === "milp" && milpNotice === "slow" && (
@@ -1131,15 +1138,18 @@ function OptimizerPanel({
           <div className="optimizer-results">
             <div className="section-label"><span>Ranked results</span><span>{run ? `${run.search.results.length} shown` : "Waiting"}</span></div>
             {!run ? (
-              <div className="optimizer-results-empty"><CircleGauge size={31} /><strong>Configure and run an exact search</strong><span>Weights are normalized automatically against the safe minimum and maximum found for each objective.</span></div>
+              <div className="optimizer-results-empty"><CircleGauge size={31} /><strong>Configure and run a bounded search</strong><span>Weights are normalized automatically against the safe minimum and maximum found for each objective.</span></div>
             ) : run.search.results.length === 0 ? (
               <div className="optimizer-results-empty"><AlertTriangle size={31} /><strong>No feasible combinations</strong><span>Relax a minimum, negative-effect policy, budget, or artifact assumption.</span></div>
             ) : (
               <>
                 <div className="optimizer-summary">
-                  {run.engine === "milp" ? state === "searching" ? <><strong>MILP exact</strong> · {run.search.results.length} of 10 ranked {run.search.results.length === 1 ? "build" : "builds"} proven · solving next</> : <><strong>MILP exact</strong> · {run.search.results.length} ranked builds · {run.search.combinations.toLocaleString()} possible combinations were not enumerated</> : <><strong>{run.search.combinations.toLocaleString()}</strong> combinations evaluated · <strong>{run.search.feasibleCombinations?.toLocaleString()}</strong> feasible</>}
+                  {run.engine === "milp" ? state === "searching" ? <><strong>MILP bounded</strong> · {run.search.results.length} of 10 ranked {run.search.results.length === 1 ? "build" : "builds"} found · solving next</> : <><strong>MILP bounded</strong> · {run.search.results.length} ranked builds · {run.search.combinations.toLocaleString()} possible combinations were not enumerated</> : <><strong>{run.search.combinations.toLocaleString()}</strong> combinations evaluated · <strong>{run.search.feasibleCombinations?.toLocaleString()}</strong> feasible</>}
                   {run.failedItems > 0 && <span> · {run.failedItems} artifact file{run.failedItems === 1 ? "" : "s"} unavailable</span>}
                 </div>
+                {run.search.ranges.some((range) => range.approximate) && (
+                  <p className="optimizer-accuracy-note">Approximate normalization ranges: one or more endpoints did not finish within the 1-second limit. The affected stats show the maximum possible span error.</p>
+                )}
                 <div className="optimizer-result-list">
                   {run.search.results.map((result, resultIndex) => {
                     const selected = result.indices.map((index) => run.candidates[index]);
@@ -1147,6 +1157,13 @@ function OptimizerPanel({
                     return (
                       <article className="optimizer-result" key={result.indices.join("-")}>
                         <div className="optimizer-result__top"><span>#{resultIndex + 1}</span><strong>{(result.score * 100).toFixed(1)} score</strong><span className="optimizer-result__price">{formatPrice(result.totalPrice)}</span><small className={resultTotals.warnings.length ? "unsafe" : "safe"}>{resultTotals.warnings.length ? "Unsafe" : "Safe"}</small></div>
+                        <p className={`optimizer-result__accuracy ${result.approximate ? "approximate" : "exact"}`}>
+                          {result.approximate
+                            ? result.errorPercent === undefined
+                              ? "Best build found within 10 seconds · possible error unavailable"
+                              : `Best build found within 10 seconds · possible error ≤ ${formatAccuracy(result.errorPercent)}%`
+                            : "Proven optimal for this rank"}
+                        </p>
                         <div className="optimizer-artifacts">{selected.map((artifact, index) => {
                           const estimate = artifactPrice(artifact.entry, artifact.rarityIndex);
                           return <span key={`${artifact.entry.data}-${artifact.rarityIndex}-${index}`} title={`${artifact.name} · ${RARITY_NAMES[artifact.rarityIndex]} · ${formatPrice(estimate?.median ?? null)}`}><ItemImage entry={artifact.entry} /><small>{artifact.name} · {RARITY_NAMES[artifact.rarityIndex]}</small><em>{formatPrice(estimate?.median ?? null)}</em></span>;
@@ -1157,7 +1174,7 @@ function OptimizerPanel({
                             const range = run.search.ranges[objectiveIndex];
                             const normalized = normalizedObjectiveValue(result.values[objectiveIndex], range.min, range.max, objective.direction);
                             const best = objective.direction === -1 ? range.min : range.max;
-                            return <div key={objective.key}><span>{option[1]}</span><strong>{formatNumber(result.values[objectiveIndex], option[2])}</strong><small>{(normalized * 100).toFixed(0)}% of feasible range · best {formatNumber(best, option[2])}</small></div>;
+                            return <div key={objective.key}><span>{option[1]}</span><strong>{formatNumber(result.values[objectiveIndex], option[2])}</strong><small>{(normalized * 100).toFixed(0)}% of feasible range · best {formatNumber(best, option[2])}{range.approximate ? range.errorPercent === undefined ? " · approximate range (1s limit, error unavailable)" : ` · approximate range (1s limit, ≤ ${formatAccuracy(range.errorPercent)}% span error)` : " · exact range"}</small></div>;
                           })}
                         </div>
                         <button className="optimizer-apply" onClick={() => applyResult(resultIndex)}>Load into calculator</button>

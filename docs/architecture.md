@@ -62,9 +62,11 @@ unknown rather than falling back to another rarity.
   search away from the UI thread and reports progress and results.
 - [`src/milp-optimizer.ts`](../src/milp-optimizer.ts) expresses the same artifact
   choices and constraints as a mixed-integer linear program, derives objective
-  ranges, and returns up to ten proven ranked builds. [`src/milp-optimizer.worker.ts`](../src/milp-optimizer.worker.ts)
-  loads the HiGHS WebAssembly solver away from the UI thread and streams each
-  proven ranked build before the remaining ranks finish.
+  ranges, and returns up to ten bounded ranked builds. [`src/highs-solver.ts`](../src/highs-solver.ts)
+  adapts the persistent HiGHS API and retains feasibility, bound, and gap
+  diagnostics. [`src/milp-optimizer.worker.ts`](../src/milp-optimizer.worker.ts)
+  loads the WebAssembly solver away from the UI thread and streams each ranked
+  build before the remaining ranks finish.
 - [`src/pricing.ts`](../src/pricing.ts) maps EXBO artifact IDs and rarity indices
   to bundled market estimates and owns ruble display formatting. Its generated
   index is authoritative at runtime; raw histories remain source inputs.
@@ -144,16 +146,17 @@ Each harmful-property row can be unrestricted, fully countered, or limited to a
 custom accepted penalty; the five environmental exposures with published warning
 thresholds can also use a game-safe policy.
 
-The app selects between two exact engines from the canonical search-space size.
+The app selects between brute-force enumeration and bounded MILP from the
+canonical search-space size.
 Searches up to and including ten million combinations use brute force; larger
 searches use MILP automatically. Brute force enumerates combinations without slot
 permutations and returns the ten best builds. MILP uses integer counts per
-artifact, repeatedly excludes each selected count vector to prove the next-best
-build without enumeration, and therefore supports larger carriers. Each proven
-result is displayed and can be loaded while the worker continues solving later
-ranks. Its displayed combination count describes the theoretical search space;
+artifact and repeatedly excludes each selected count vector to find the next
+build without enumeration, and therefore supports larger carriers. Each result
+is displayed and can be loaded while the worker continues solving later ranks.
+Its displayed combination count describes the theoretical search space;
 MILP does not claim an evaluated or feasible-combination count.
-During a MILP run, the UI reports exact-search progress from worker messages,
+During a MILP run, the UI reports bounded-search progress from worker messages,
 shows a large-search note after fifteen seconds without fresh progress, and stops
 the worker after sixty quiet seconds with guidance to narrow the search. This
 timeout is a responsiveness boundary, not a claim that no valid build exists.

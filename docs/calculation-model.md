@@ -176,18 +176,31 @@ side of the cutoff. Brute force obtains those ranges in its
 first complete enumeration and ranks in a second enumeration. It retains the ten
 highest-scoring builds and breaks equal-score ties by canonical artifact order.
 The MILP engine solves one minimum and one maximum integer program per objective,
-then one normalized weighted program per result. After each result it adds an exact
-count-vector exclusion, including when duplicate artifacts are allowed, and
-solves again until ten builds are ranked or no feasible alternative remains.
+then one normalized weighted program per result. Every range endpoint has a
+one-second solver limit, and every ranked build has a ten-second limit. Strict
+zero relative and absolute gaps remain requested: a zero gap proves optimality
+even if the clock expires at that instant, while any other time-limited feasible
+incumbent is retained with the solver's proven bound and gap. If a range endpoint
+times out, normalization uses the best feasible endpoint found and the UI reports
+the maximum possible error in the complete range span implied by its bound. A
+time-limited ranked build is
+marked as the best build found within ten seconds and displays its possible
+relative objective error. That ranking gap applies to the fixed ranges actually
+used; approximate range uncertainty is reported separately.
+
+After each result MILP adds an exact count-vector exclusion, including when
+duplicate artifacts are allowed, and solves again until ten builds are ranked or
+no feasible alternative remains. HiGHS presolve stays enabled for ranges and the
+first rank. It is disabled once an exclusion exists: with accumulated big-M
+count-vector exclusions, presolve has returned a weaker result as `Optimal` even
+though a later feasible build had a better objective. Disabling it for rank two
+onward preserves descending top-N ordering.
 Before building the solver model, MILP removes same-artifact rarity variants that
 are dominated across every active objective, hard constraint, and enabled budget
 dimension; returned result indexes still refer to the original candidate list
-used by the UI. The MILP callback and worker publish an initial progress snapshot
-before the first solve and a cumulative result snapshot after every optimal rank,
-so UI streaming never exposes an unproven candidate and does not alter the final
-ordering.
-HiGHS is configured for zero MIP gap and only an `Optimal` status is accepted, so
-each returned build is proven next-best rather than heuristic. MILP does not
+used by the UI. The worker publishes an initial progress snapshot before the
+first solve and a cumulative result snapshot after every usable rank. Results
+are kept in descending score order as later bounded solves finish. MILP does not
 count feasible builds or reproduce brute force's canonical order when more than
 ten builds share the same score; either tied subset is equally optimal.
 
@@ -217,9 +230,10 @@ formatting, budget filtering, duplicate-price summation, and uncapped handling o
 unknown estimates. MILP coverage runs the actual WebAssembly solver, verifies
 feasibility remains stable as realistic ruble caps increase, compares its ordered
 top ten with brute force both with and without duplicates, checks tied
-result uniqueness, initial progress plus cumulative one-rank-at-a-time snapshots,
 same-artifact dominated-rarity pruning, and combined constraints, and verifies
-that the enumeration guard is not applied.
+that the enumeration guard is not applied. Bounded-solve coverage verifies the
+one- and ten-second options, the rank-two presolve boundary, and uncertainty
+metadata for time-limited ranges and builds.
 The solver migration gate additionally runs previous and current HiGHS wrappers
 against the same calculator-shaped model and brute-force oracle. It compares
 objective ranges and scores within floating-point tolerance, exact selections

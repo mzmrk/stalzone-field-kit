@@ -4,6 +4,7 @@ import {
   optimizeArtifactCombinationsMilp,
   type MilpProgress,
 } from "./milp-optimizer";
+import { createPersistentMilpSolver } from "./highs-solver";
 import type {
   OptimizerCandidate,
   OptimizerContainer,
@@ -28,9 +29,9 @@ self.onmessage = async (event: MessageEvent<SearchRequest>) => {
           + (event.data.settings.resultLimit ?? 10),
       },
     });
-    const solver = await loadHighs({ locateFile: () => highsWasmUrl });
+    const highs = await loadHighs({ locateFile: () => highsWasmUrl });
     const result = await optimizeArtifactCombinationsMilp(
-      solver,
+      createPersistentMilpSolver(highs),
       event.data.container,
       event.data.candidates,
       event.data.objectives,

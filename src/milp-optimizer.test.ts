@@ -1,6 +1,9 @@
 import loadHighs from "highs";
 import { beforeAll, describe, expect, it } from "vitest";
+import { createPersistentMilpSolver } from "./highs-solver";
 import {
+  MILP_RANGE_TIME_LIMIT_SECONDS,
+  MILP_RANK_TIME_LIMIT_SECONDS,
   optimizeArtifactCombinationsMilp,
   type MilpSolver,
 } from "./milp-optimizer";
@@ -46,7 +49,120 @@ describe("MILP artifact optimizer", () => {
   let solver: MilpSolver;
 
   beforeAll(async () => {
-    solver = await loadHighs();
+    solver = createPersistentMilpSolver(await loadHighs());
+  });
+
+  it("uses bounded solves and disables presolve once ranked exclusions exist", async () => {
+    const options: Array<Record<string, boolean | number | string>> = [];
+    let call = 0;
+    const boundedSolver: MilpSolver = {
+      solve(_problem, solveOptions) {
+        options.push(solveOptions ?? {});
+        const selected = call === 0 || call === 3 ? 0 : 1;
+        call += 1;
+        return {
+          Status: "Optimal",
+          Columns: {
+            x0: { Primal: selected === 0 ? 1 : 0 },
+            x1: { Primal: selected === 1 ? 1 : 0 },
+          },
+          Gap: 0,
+          HasFeasibleSolution: true,
+        };
+      },
+    };
+
+    await optimizeArtifactCombinationsMilp(
+      boundedSolver,
+      { ...container, capacity: 1 },
+      [candidate("Slow", [stat(MOVEMENT, 1)]), candidate("Fast", [stat(MOVEMENT, 2)])],
+      [{ key: MOVEMENT, weight: 1 }],
+      { ...settings, constraints: [], resultLimit: 2 },
+    );
+
+    expect(options.map((item) => item.time_limit)).toEqual([
+      MILP_RANGE_TIME_LIMIT_SECONDS,
+      MILP_RANGE_TIME_LIMIT_SECONDS,
+      MILP_RANK_TIME_LIMIT_SECONDS,
+      MILP_RANK_TIME_LIMIT_SECONDS,
+    ]);
+    expect(options.map((item) => item.presolve)).toEqual(["on", "on", "on", "off"]);
+  });
+
+  it("reports bounded range and ranked-build uncertainty after time limits", async () => {
+    let call = 0;
+    const boundedSolver: MilpSolver = {
+      solve() {
+        const index = call++;
+        if (index === 0) {
+          return {
+            Status: "Time limit reached",
+            Columns: { x0: { Primal: 1 }, x1: { Primal: 0 } },
+            Bound: 0.5,
+            Gap: 0.5,
+            HasFeasibleSolution: true,
+          };
+        }
+        if (index === 1) {
+          return {
+            Status: "Optimal",
+            Columns: { x0: { Primal: 0 }, x1: { Primal: 1 } },
+            Bound: 2,
+            Gap: 0,
+            HasFeasibleSolution: true,
+          };
+        }
+        return {
+          Status: "Time limit reached",
+          Columns: { x0: { Primal: 0 }, x1: { Primal: 1 } },
+          Bound: 1.04,
+          Gap: 0.04,
+          HasFeasibleSolution: true,
+        };
+      },
+    };
+
+    const result = await optimizeArtifactCombinationsMilp(
+      boundedSolver,
+      { ...container, capacity: 1 },
+      [candidate("Slow", [stat(MOVEMENT, 1)]), candidate("Fast", [stat(MOVEMENT, 2)])],
+      [{ key: MOVEMENT, weight: 1 }],
+      { ...settings, constraints: [], resultLimit: 1 },
+    );
+
+    expect(result.ranges[0]).toMatchObject({ approximate: true, errorPercent: 50 });
+    expect(result.results[0]).toMatchObject({ approximate: true, errorPercent: 4 });
+  });
+
+  it("treats a time-limited feasible solution with a zero gap as proven", async () => {
+    let call = 0;
+    const boundedSolver: MilpSolver = {
+      solve() {
+        const selected = call === 0 ? 0 : 1;
+        call += 1;
+        return {
+          Status: "Time limit reached",
+          Columns: {
+            x0: { Primal: selected === 0 ? 1 : 0 },
+            x1: { Primal: selected === 1 ? 1 : 0 },
+          },
+          Bound: selected === 0 ? 1 : 2,
+          Gap: 0,
+          HasFeasibleSolution: true,
+        };
+      },
+    };
+
+    const result = await optimizeArtifactCombinationsMilp(
+      boundedSolver,
+      { ...container, capacity: 1 },
+      [candidate("Slow", [stat(MOVEMENT, 1)]), candidate("Fast", [stat(MOVEMENT, 2)])],
+      [{ key: MOVEMENT, weight: 1 }],
+      { ...settings, constraints: [], resultLimit: 1 },
+    );
+
+    expect(result.ranges[0].approximate).toBeUndefined();
+    expect(result.results[0].approximate).toBeUndefined();
   });
 
   it("matches brute force ranges, score, and optimal build", async () => {
@@ -70,7 +186,7 @@ describe("MILP artifact optimizer", () => {
     expect(milp.feasibleCombinations).toBeNull();
   });
 
-  it("publishes each proven ranked result before the full search completes", async () => {
+  it("publishes each ranked result before the full search completes", async () => {
     const candidates = [
       candidate("Slow", [stat(MOVEMENT, 1)]),
       candidate("Fast", [stat(MOVEMENT, 2)]),

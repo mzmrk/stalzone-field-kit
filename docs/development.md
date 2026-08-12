@@ -72,8 +72,10 @@ npm run build
 The output is `dist/`. [`vite.config.ts`](../vite.config.ts) uses a relative base,
 so the artifact can be served from a repository subpath. The build includes the
 HiGHS WebAssembly binary as a hashed asset; MILP remains fully browser-side and
-adds no application server. GitHub Pages deployment configuration is not present
-yet.
+adds no application server. The optimizer uses the persistent prerelease API,
+not the legacy one-shot wrapper, because final MIP gaps and bounds are part of
+the displayed accuracy contract. GitHub Pages deployment configuration is not
+present yet.
 
 ## Raw market snapshots
 

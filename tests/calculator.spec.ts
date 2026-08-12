@@ -163,7 +163,7 @@ test("uses MILP to optimize a carrier beyond the brute-force limit", async ({ pa
     document.body.dataset.sawStreamingMilpResult = "false";
     const observer = new MutationObserver(() => {
       const hasResult = document.querySelectorAll(".optimizer-result").length > 0;
-      const stillSolving = document.querySelector(".optimizer-search")?.textContent?.includes("Solving exact search");
+      const stillSolving = document.querySelector(".optimizer-search")?.textContent?.includes("Solving bounded search");
       if (hasResult && stillSolving) {
         document.body.dataset.sawStreamingMilpResult = "true";
         observer.disconnect();
@@ -173,10 +173,11 @@ test("uses MILP to optimize a carrier beyond the brute-force limit", async ({ pa
   });
   await searchButton.click();
 
-  await expect(page.getByText("MILP exact")).toBeVisible({ timeout: 45_000 });
+  await expect(page.getByText("MILP bounded")).toBeVisible({ timeout: 45_000 });
   await expect(page.getByText(/possible combinations were not enumerated/)).toBeVisible({ timeout: 45_000 });
   expect(await page.evaluate(() => document.body.dataset.sawStreamingMilpResult)).toBe("true");
   await expect(page.getByRole("button", { name: "Load into calculator" })).toHaveCount(10);
+  await expect(page.getByText("Proven optimal for this rank").first()).toBeVisible();
   await expect(page.locator(".optimizer-artifacts small").first()).toContainText("Uncommon");
   await page.getByRole("button", { name: "Load into calculator" }).first().click();
   await expect(page.getByText(/107.5% · Uncommon/).first()).toBeVisible();
