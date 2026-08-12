@@ -165,6 +165,91 @@ describe("MILP artifact optimizer", () => {
     expect(result.results[0].approximate).toBeUndefined();
   });
 
+  it("propagates a later optimal proof to a no-worse timed-out result", async () => {
+    let call = 0;
+    const snapshots: Array<Array<boolean | undefined>> = [];
+    const boundedSolver: MilpSolver = {
+      solve() {
+        const index = call++;
+        const selected = index === 0 ? 0 : index === 1 || index === 2 ? 3 : index === 3 ? 2 : 1;
+        return {
+          Status: index === 2 || index === 3 ? "Time limit reached" : "Optimal",
+          Columns: {
+            x0: { Primal: selected === 0 ? 1 : 0 },
+            x1: { Primal: selected === 1 ? 1 : 0 },
+            x2: { Primal: selected === 2 ? 1 : 0 },
+            x3: { Primal: selected === 3 ? 1 : 0 },
+          },
+          Gap: index === 2 || index === 3 ? 0.2 : 0,
+          HasFeasibleSolution: true,
+        };
+      },
+    };
+
+    const result = await optimizeArtifactCombinationsMilp(
+      boundedSolver,
+      { ...container, capacity: 1 },
+      [
+        candidate("Slow", [stat(MOVEMENT, 1)]),
+        candidate("Third", [stat(MOVEMENT, 2)]),
+        candidate("Runner-up", [stat(MOVEMENT, 3)]),
+        candidate("Fast", [stat(MOVEMENT, 4)]),
+      ],
+      [{ key: MOVEMENT, weight: 1 }],
+      { ...settings, constraints: [], resultLimit: 3 },
+      undefined,
+      (partial) => snapshots.push(partial.results.map((ranked) => ranked.approximate)),
+    );
+
+    expect(snapshots).toEqual([
+      [true],
+      [true, true],
+      [undefined, undefined, undefined],
+    ]);
+    expect(result.results.map((ranked) => ranked.approximate)).toEqual([
+      undefined,
+      undefined,
+      undefined,
+    ]);
+  });
+
+  it("does not propagate proof when the later optimal result scores higher", async () => {
+    let call = 0;
+    const boundedSolver: MilpSolver = {
+      solve() {
+        const index = call++;
+        const selected = index === 0 ? 0 : index === 1 || index === 3 ? 2 : 1;
+        return {
+          Status: index === 2 ? "Time limit reached" : "Optimal",
+          Columns: {
+            x0: { Primal: selected === 0 ? 1 : 0 },
+            x1: { Primal: selected === 1 ? 1 : 0 },
+            x2: { Primal: selected === 2 ? 1 : 0 },
+          },
+          Gap: index === 2 ? 0.5 : 0,
+          HasFeasibleSolution: true,
+        };
+      },
+    };
+
+    const result = await optimizeArtifactCombinationsMilp(
+      boundedSolver,
+      { ...container, capacity: 1 },
+      [
+        candidate("Slow", [stat(MOVEMENT, 1)]),
+        candidate("Premature", [stat(MOVEMENT, 2)]),
+        candidate("Fast", [stat(MOVEMENT, 3)]),
+      ],
+      [{ key: MOVEMENT, weight: 1 }],
+      { ...settings, constraints: [], resultLimit: 2 },
+    );
+
+    expect(result.results[0].indices).toEqual([2]);
+    expect(result.results[0].approximate).toBeUndefined();
+    expect(result.results[1].indices).toEqual([1]);
+    expect(result.results[1].approximate).toBe(true);
+  });
+
   it("matches brute force ranges, score, and optimal build", async () => {
     const candidates = [
       candidate("Sprinter", [stat(MOVEMENT, 2)]),

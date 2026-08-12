@@ -183,10 +183,10 @@ even if the clock expires at that instant, while any other time-limited feasible
 incumbent is retained with the solver's proven bound and gap. If a range endpoint
 times out, normalization uses the best feasible endpoint found and the UI reports
 the maximum possible error in the complete range span implied by its bound. A
-time-limited ranked build is
-marked as the best build found within ten seconds and displays its possible
-relative objective error. That ranking gap applies to the fixed ranges actually
-used; approximate range uncertainty is reported separately.
+time-limited ranked build is marked as the best build found within ten seconds
+and displays its possible relative objective error. That ranking gap applies to
+the fixed ranges actually used; approximate range uncertainty is reported
+separately.
 
 After each result MILP adds an exact count-vector exclusion, including when
 duplicate artifacts are allowed, and solves again until ten builds are ranked or
@@ -194,7 +194,12 @@ no feasible alternative remains. HiGHS presolve stays enabled for ranges and the
 first rank. It is disabled once an exclusion exists: with accumulated big-M
 count-vector exclusions, presolve has returned a weaker result as `Optimal` even
 though a later feasible build had a better objective. Disabling it for rank two
-onward preserves descending top-N ordering.
+onward preserves descending top-N ordering. A proven result also certifies the
+immediately preceding timed-out result when the preceding result's exact score is
+at least as high. This proof propagates backward across any continuous no-worse
+chain because the later solve optimizes the complete remaining set after each
+earlier build was excluded.
+
 Before building the solver model, MILP removes same-artifact rarity variants that
 are dominated across every active objective, hard constraint, and enabled budget
 dimension; returned result indexes still refer to the original candidate list

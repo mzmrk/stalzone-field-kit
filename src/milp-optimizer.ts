@@ -161,6 +161,7 @@ export async function optimizeArtifactCombinationsMilp(
   });
 
   const results: OptimizerResult[] = [];
+  const solveOrderResults: OptimizerResult[] = [];
   const excludedSelections: number[][] = [];
   for (let resultIndex = 0; resultIndex < resultLimit; resultIndex += 1) {
     const solution = solve(scoreCoefficients, true, excludedSelections, "ranking");
@@ -195,6 +196,8 @@ export async function optimizeArtifactCombinationsMilp(
         result.errorPercent = Math.max(0, solution.Gap! * 100);
       }
     }
+    solveOrderResults.push(result);
+    propagateRankProofs(solveOrderResults);
     results.push(result);
     results.sort((left, right) => right.score - left.score);
     excludedSelections.push(reducedIndices);
@@ -570,6 +573,16 @@ function isProvenOptimal(solution: MilpSolution) {
     && solution.HasFeasibleSolution === true
     && solution.Gap !== undefined
     && Math.abs(solution.Gap) <= EPSILON;
+}
+
+function propagateRankProofs(solveOrderResults: OptimizerResult[]) {
+  for (let index = solveOrderResults.length - 2; index >= 0; index -= 1) {
+    const result = solveOrderResults[index];
+    const bestRemaining = solveOrderResults[index + 1];
+    if (bestRemaining.approximate || result.score + EPSILON < bestRemaining.score) return;
+    delete result.approximate;
+    delete result.errorPercent;
+  }
 }
 
 function assertUsableSolution(solution: MilpSolution, phase: "range" | "ranking") {
