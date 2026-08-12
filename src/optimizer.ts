@@ -160,6 +160,7 @@ export type OptimizerRange = {
   key: string;
   min: number;
   max: number;
+  solveSeconds?: number;
   approximate?: boolean;
   errorPercent?: number;
 };
@@ -169,6 +170,7 @@ export type OptimizerResult = {
   score: number;
   values: number[];
   totalPrice: number | null;
+  solveSeconds?: number;
   approximate?: boolean;
   errorPercent?: number;
 };

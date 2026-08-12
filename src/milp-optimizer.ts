@@ -84,6 +84,7 @@ export async function optimizeArtifactCombinationsMilp(
     excludedSelections: number[][] = [],
     phase: "range" | "ranking" = "range",
   ) => {
+    const startedAt = performance.now();
     const result = solver.solve(buildLp(prepared, coefficients, maximize, excludedSelections), {
       output_flag: false,
       log_to_console: false,
@@ -95,14 +96,14 @@ export async function optimizeArtifactCombinationsMilp(
     });
     completed += 1;
     onProgress?.({ completed, total: solveCount });
-    return result;
+    return { result, solveSeconds: (performance.now() - startedAt) / 1_000 };
   };
 
   const ranges = [] as OptimizerSearchResult["ranges"];
   for (let objectiveIndex = 0; objectiveIndex < activeObjectives.length; objectiveIndex += 1) {
     const coefficients = objectiveCoefficients(prepared, objectiveIndex);
     const direction = activeObjectives[objectiveIndex].direction ?? 1;
-    const bestSolution = solve(coefficients, direction === 1);
+    const { result: bestSolution, solveSeconds } = solve(coefficients, direction === 1);
     if (bestSolution.Status === "Infeasible") {
       return {
         combinations,
@@ -129,6 +130,7 @@ export async function optimizeArtifactCombinationsMilp(
       key: activeObjectives[objectiveIndex].key,
       min: direction === -1 ? best : 0,
       max: direction === -1 ? 0 : best,
+      solveSeconds,
     } as OptimizerSearchResult["ranges"][number];
     if (!exact) {
       range.approximate = true;
@@ -155,7 +157,7 @@ export async function optimizeArtifactCombinationsMilp(
   const solveOrderResults: OptimizerResult[] = [];
   const excludedSelections: number[][] = [];
   for (let resultIndex = 0; resultIndex < resultLimit; resultIndex += 1) {
-    const solution = solve(scoreCoefficients, true, excludedSelections, "ranking");
+    const { result: solution, solveSeconds } = solve(scoreCoefficients, true, excludedSelections, "ranking");
     if (solution.Status === "Infeasible") break;
     assertUsableSolution(solution, "ranking");
     const selected = validatedSelectedIndices(
@@ -187,6 +189,7 @@ export async function optimizeArtifactCombinationsMilp(
       score,
       values,
       totalPrice,
+      solveSeconds,
     };
     if (!isProvenOptimal(solution)) {
       result.approximate = true;

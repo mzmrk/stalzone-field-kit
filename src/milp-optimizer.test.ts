@@ -45,6 +45,9 @@ const settings: OptimizerSettings = {
   maxTotalPrice: null,
 };
 
+const withoutSolveTimes = <T extends { solveSeconds?: number }>(items: T[]) =>
+  items.map(({ solveSeconds: _solveSeconds, ...item }) => item);
+
 describe("MILP artifact optimizer", () => {
   let solver: MilpSolver;
 
@@ -353,7 +356,9 @@ describe("MILP artifact optimizer", () => {
     const bruteForce = optimizeArtifactCombinations(container, candidates, objectives, settings);
     const milp = await optimizeArtifactCombinationsMilp(solver, container, candidates, objectives, settings);
 
-    expect(milp.ranges).toEqual(bruteForce.ranges);
+    expect(withoutSolveTimes(milp.ranges)).toEqual(bruteForce.ranges);
+    expect(milp.ranges.every((range) => range.solveSeconds! >= 0)).toBe(true);
+    expect(milp.results.every((result) => result.solveSeconds! >= 0)).toBe(true);
     expect(milp.results[0].indices).toEqual(bruteForce.results[0].indices);
     expect(milp.results[0].values).toEqual(bruteForce.results[0].values);
     expect(milp.results[0].score).toBeCloseTo(bruteForce.results[0].score, 10);
@@ -397,7 +402,7 @@ describe("MILP artifact optimizer", () => {
 
     expect(bruteForce.results[0].indices).toEqual([1]);
     expect(milp.results[0].indices).toEqual([1]);
-    expect(milp.ranges).toEqual(bruteForce.ranges);
+    expect(withoutSolveTimes(milp.ranges)).toEqual(bruteForce.ranges);
     expect(milp.results[0].score).toBeCloseTo(bruteForce.results[0].score, 10);
   });
 
@@ -567,7 +572,7 @@ describe("MILP artifact optimizer", () => {
     const bruteForce = optimizeArtifactCombinations(container, candidates, objectives, constrained);
     const milp = await optimizeArtifactCombinationsMilp(solver, container, candidates, objectives, constrained);
 
-    expect(milp.ranges).toEqual(bruteForce.ranges);
+    expect(withoutSolveTimes(milp.ranges)).toEqual(bruteForce.ranges);
     expect(milp.results[0].indices).toEqual(bruteForce.results[0].indices);
     expect(milp.results[0].totalPrice).toBe(bruteForce.results[0].totalPrice);
     expect(milp.results[0].score).toBeCloseTo(bruteForce.results[0].score, 10);
@@ -677,6 +682,6 @@ describe("MILP artifact optimizer", () => {
 
     expect(bruteForce.results[0].indices).toEqual([1]);
     expect(milp.results[0].indices).toEqual(bruteForce.results[0].indices);
-    expect(milp.ranges).toEqual(bruteForce.ranges);
+    expect(withoutSolveTimes(milp.ranges)).toEqual(bruteForce.ranges);
   });
 });
