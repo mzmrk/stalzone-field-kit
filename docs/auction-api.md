@@ -1,9 +1,9 @@
 # EXBO auction artifact metadata
 
-This is the compact normalization contract for artifact fields inside the auction
-API's untyped `additional` object. It combines EXBO developer explanations with
-matched API-to-game offers. The formal API only documents the surrounding
-auction response: <https://eapi.stalzone.com/reference>.
+This document defines artifact-field normalization inside the auction API's
+untyped `additional` object. It combines EXBO developer explanations with matched
+API-to-game offers. The formal API only documents the surrounding auction
+response: <https://eapi.stalzone.com/reference>.
 
 Request auction data with `additional=true`; otherwise `additional` is empty.
 Preserve raw responses because these beta, undocumented fields may change.
@@ -58,9 +58,3 @@ theoretical build stats.
 
 The current price-index generator still omits sales with missing `qlt`. Fix and
 test that behavior before replacing the bundled index with an official snapshot.
-
-## Maintenance boundary
-
-Keep this file contract-only. Do not add investigation chronology, screenshots,
-individual offer fixtures, sample counts, or raw payloads. Retain only behavior
-needed by parsing or pricing, and keep unresolved fields in the single list above.
