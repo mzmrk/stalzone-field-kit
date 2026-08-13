@@ -74,8 +74,14 @@ so the artifact can be served from a repository subpath. The build includes the
 HiGHS WebAssembly binary as a hashed asset; MILP remains fully browser-side and
 adds no application server. The optimizer uses the persistent prerelease API,
 not the legacy one-shot wrapper, because final MIP gaps and bounds are part of
-the displayed accuracy contract. GitHub Pages deployment configuration is not
-present yet.
+the displayed accuracy contract.
+
+[`deploy-pages.yml`](../.github/workflows/deploy-pages.yml) runs the unit suite,
+builds the static site with Node.js 22, and deploys `dist/` to GitHub Pages after
+every push to `main`; it can also be started manually. The deployment uses the
+`github-pages` environment and the repository's built-in `GITHUB_TOKEN`, so it
+requires no stored deployment secret. The public URL is
+`https://mzmrk.github.io/stalzone-field-kit/`.
 
 ## Raw market snapshots
 

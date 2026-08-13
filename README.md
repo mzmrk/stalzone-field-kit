@@ -4,6 +4,8 @@ A browser-side backpack, container, and artifact calculator for **STALZONE**.
 Configure an exact loadout or search the artifact catalog for strong combinations
 that match your preferred stats, safety limits, rarities, and budget.
 
+**[Open Field Kit](https://mzmrk.github.io/stalzone-field-kit/)**
+
 ## Features
 
 - Exact artifact calculations across quality, rarity, upgrade level, container
@@ -35,6 +37,7 @@ npm run build
 ```
 
 The output is written to `dist/` and can be served from a repository subpath.
+Every push to `main` also builds and deploys the app to GitHub Pages automatically.
 
 ## Data and limitations
 

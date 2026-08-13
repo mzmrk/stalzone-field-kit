@@ -12,6 +12,8 @@ remain outside the implemented product boundary.
 The application is a React single-page app built by Vite. The active entry point
 is [`src/main.tsx`](../src/main.tsx), and
 [`src/App.tsx`](../src/App.tsx) owns the screen flow and application state.
+The production site is a static GitHub Pages deployment at
+`https://mzmrk.github.io/stalzone-field-kit/`; it has no application server.
 
 ## Runtime flow
 
