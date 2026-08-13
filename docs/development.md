@@ -105,6 +105,11 @@ regeneration.
 
 ## Documentation workflow
 
+The repository-scoped
+[`update-project-documentation` skill](../.agents/skills/update-project-documentation/SKILL.md)
+defines the documentation review and maintenance workflow for Codex contributors.
+Its validator is also exposed through the package script below.
+
 All human-maintained Markdown except root [`AGENTS.md`](../AGENTS.md) belongs in
 `docs/`. Update the canonical owner named in [the documentation index](README.md)
 in the same change as code, configuration, data, test, or workflow changes. Avoid

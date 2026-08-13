@@ -1,0 +1,4 @@
+interface:
+  display_name: "Maintain Project Memory"
+  short_description: "Preserve compact project memory for future agents"
+  default_prompt: "Use $update-project-documentation to synchronize affected project memory, verify it proportionately, and capture durable lessons."
