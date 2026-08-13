@@ -109,6 +109,10 @@ without a numeric rarity and rarity tiers without sales are omitted; the app mus
 not silently substitute another tier. Run unit tests and the static build after
 regeneration.
 
+This omission conflicts with the [auction metadata contract](auction-api.md),
+where missing `qlt` means Ordinary. Fix and test the generator before replacing
+the bundled index from a new official capture.
+
 ## Documentation workflow
 
 The repository-scoped
