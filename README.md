@@ -6,7 +6,9 @@ that match your preferred stats, safety limits, rarities, and budget.
 
 ## Use it online
 
-### [🚀 Launch Field Kit →](https://mzmrk.github.io/stalzone-field-kit/)
+### 🚀 Launch Field Kit
+
+<https://mzmrk.github.io/stalzone-field-kit/>
 
 No installation or account required—open the link and start building.
 
