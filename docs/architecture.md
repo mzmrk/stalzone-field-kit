@@ -88,9 +88,10 @@ the English formatted value determines whether the UI appends `%`. These are
 adapter assumptions: changes in EXBO's JSON structure should be handled and
 tested in [`src/data.ts`](../src/data.ts), not scattered through the UI.
 
-The project does not redistribute EXBO item files. Attribution and the upstream
-license notice are recorded in [`NOTICE`](../NOTICE) and
-[`LICENSE`](../LICENSE).
+The project source code is released under the MIT License in
+[`LICENSE`](../LICENSE). It does not redistribute EXBO item files; attribution
+and the upstream database license are recorded separately in
+[`NOTICE`](../NOTICE).
 
 ## State and persistence
 
