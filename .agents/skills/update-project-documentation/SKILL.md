@@ -108,7 +108,7 @@ observed, omit skill feedback entirely; do not add a placeholder or claim that n
 
 ## Keep the Memory Compact
 
-Store all human-maintained project documentation under `docs/`. Keep the root `AGENTS.md`, `.agents/skills/`, generated
+Store project memory under `docs/`. Keep the user-facing root `README.md`, root `AGENTS.md`, `.agents/skills/`, generated
 OpenAPI/type artifacts, deployed artifacts, and runtime assets outside `docs/`. Do not create component READMEs or
 nested `AGENTS.md` files for implementation knowledge.
 

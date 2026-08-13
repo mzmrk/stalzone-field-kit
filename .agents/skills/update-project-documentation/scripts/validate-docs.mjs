@@ -86,6 +86,7 @@ function validateDocumentationBoundaries() {
     const markdownFiles = listFiles(root, file => file.endsWith('.md'), shouldSkipDirectory)
     for (const markdownPath of markdownFiles) {
         if (isWithin(markdownPath, docsDir)) continue
+        if (markdownPath === path.join(root, 'README.md')) continue
         if (markdownPath === path.join(root, 'AGENTS.md')) continue
         if (isSkillResource(markdownPath)) continue
         errors.push(`${relative(markdownPath)} is human-maintained Markdown outside docs/`)

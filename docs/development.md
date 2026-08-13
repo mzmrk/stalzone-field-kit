@@ -110,10 +110,12 @@ The repository-scoped
 defines the documentation review and maintenance workflow for Codex contributors.
 Its validator is also exposed through the package script below.
 
-All human-maintained Markdown except root [`AGENTS.md`](../AGENTS.md) belongs in
-`docs/`. Update the canonical owner named in [the documentation index](README.md)
-in the same change as code, configuration, data, test, or workflow changes. Avoid
-duplicating source-level inventories or formulas outside their owning document.
+Project memory belongs in `docs/`; the user-facing root
+[`README.md`](../README.md), root [`AGENTS.md`](../AGENTS.md), and skill resources
+are the supported exceptions. Update the canonical owner named in
+[the documentation index](README.md) in the same change as code, configuration,
+data, test, or workflow changes. Avoid duplicating source-level inventories or
+formulas outside their owning document.
 
 Validate documentation links, index coverage, boundaries, and policy placement:
 
