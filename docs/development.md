@@ -7,7 +7,7 @@ Use a current Node.js release compatible with the versions locked in
 environment.
 
 ```bash
-cd /home/node/Documents/stalzone-artifact-calculator-web
+cd stalzone-field-kit
 npm install
 npm run dev
 ```
