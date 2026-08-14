@@ -50,11 +50,15 @@ The field or rule behind the in-game Freshness level is also unknown.
 
 ## Pricing guardrails
 
-For comparable unstudied, unupgraded sales, normalize with `qlt ?? 0`, require
-`ptn ?? 0` to equal `0`, and require `stats_random` to be absent. Do not filter on
-`upgrade_bonus` until it is decoded. A pristine-price policy may exclude positive
-`ndmg` or `md_k` using a small tolerance such as `1e-6`; charge does not alter
-theoretical build stats.
+For optimizer pricing, normalize with `qlt ?? 0`, require `ptn ?? 0` to equal
+`0`, require no `bonus_properties`, and exclude positive `md_k` with a small
+tolerance such as `1e-6`. Studied and unstudied `+0` sales are both
+build-equivalent enough for the generated price index, while upgraded or
+bonus-property sales are too distorted for budget constraints. Current charge
+loss (`ndmg`) is recoverable and may remain in the pricing pool.
 
-The current price-index generator still omits sales with missing `qlt`. Fix and
-test that behavior before replacing the bundled index with an official snapshot.
+[`scripts/generate-pricing-index.mjs`](../scripts/generate-pricing-index.mjs)
+uses a one-year completed-sale window, a recency-weighted median, and adjacent
+rarity extrapolation only when no same-artifact same-rarity build-equivalent
+sale exists. Do not use active offers, upgraded sales, or cross-artifact absolute
+averages as optimizer prices without a new validation pass.

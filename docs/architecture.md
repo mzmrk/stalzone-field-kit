@@ -46,8 +46,9 @@ GitHub.
 Pricing is not fetched at runtime. [`src/pricing.ts`](../src/pricing.ts) reads a
 compact generated index derived from the checked-in EU auction-history snapshot.
 The picker, configured slots, and ranked optimizer builds display the median
-completed-sale price for the artifact's selected rarity. A missing tier remains
-unknown rather than falling back to another rarity.
+completed-sale estimate for the artifact's selected rarity. The generator may
+fill a missing same-rarity tier with adjacent-rarity extrapolation from the same
+artifact; tiers with no same-artifact anchor remain unknown.
 
 ## Source ownership
 

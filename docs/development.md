@@ -86,7 +86,8 @@ requires no stored deployment secret. The public URL is
 ## Raw market snapshots
 
 Auction-history captures live under `data/pricing/raw/<region>/<UTC snapshot>/`,
-with one unmodified JSON response named after each EXBO artifact ID. Treat a
+with one unmodified JSON response named after each EXBO artifact ID, or as
+paginated official API responses under one directory per artifact. Treat a
 completed snapshot directory as immutable source data: derived price estimates
 belong in a separate generated file rather than edits to these responses.
 
@@ -102,16 +103,21 @@ npm run pricing:build
 ```
 
 [`scripts/generate-pricing-index.mjs`](../scripts/generate-pricing-index.mjs)
-groups completed sales by the exact numeric `additional.qlt` rarity, calculates
-the median, records its sample count, and writes
-[`src/generated/pricing-index.json`](../src/generated/pricing-index.json). Sales
-without a numeric rarity and rarity tiers without sales are omitted; the app must
-not silently substitute another tier. Run unit tests and the static build after
-regeneration.
+normalizes `additional.qlt ?? 0`, estimates each artifact-rarity price from
+one-year build-equivalent completed sales, and writes
+[`src/generated/pricing-index.json`](../src/generated/pricing-index.json).
+Build-equivalent sales are `+0`, have no bonus properties, and have full maximum
+charge; researched and unstudied sales are both eligible, and current charge loss
+is allowed. The price is a recency-weighted median with a ten-sample recent
+threshold, then adjacent-rarity extrapolation only when no same-rarity eligible
+sale exists. The script accepts an explicit snapshot directory and optional
+output path:
 
-This omission conflicts with the [auction metadata contract](auction-api.md),
-where missing `qlt` means Ordinary. Fix and test the generator before replacing
-the bundled index from a new official capture.
+```bash
+node scripts/generate-pricing-index.mjs eu path/to/snapshot optional/output.json
+```
+
+Run unit tests and the static build after replacing the bundled index.
 
 ## Documentation workflow
 
