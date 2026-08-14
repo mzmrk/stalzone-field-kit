@@ -83,34 +83,15 @@ every push to `main`; it can also be started manually. The deployment uses the
 requires no stored deployment secret. The public URL is
 `https://mzmrk.github.io/stalzone-field-kit/`.
 
-## Raw market snapshots
+## Market price cache
 
-Auction-history captures may be placed under `data/pricing/raw/<region>/<UTC snapshot>/`,
-with one unmodified JSON response named after each EXBO artifact ID, or as
-paginated official API responses under one directory per artifact. Treat a
-completed snapshot directory as immutable source data: derived price estimates
-belong in a separate generated file rather than edits to these responses.
-
-Validate a capture by comparing its filenames with the current Global artifact
-listing, parsing every response, and checking for a numeric `total` plus a
-`prices` array. Acquisition request credentials must never be written to the
-repository.
-
-Build the rolling cache archive from a raw capture with:
-
-```bash
-npm run pricing:cache -- eu path/to/snapshot
-```
-
-[`scripts/build-auction-history-cache.mjs`](../scripts/build-auction-history-cache.mjs)
-writes `data/pricing/cache/<region>/auction-history-cache-<region>.tar.gz`.
-Raw captures and caches are ignored by git and are intended for local use or
-GitHub Actions artifacts. The cache contains `manifest.json` plus one
-`artifacts/<artifactId>.jsonl` file per STALZONE artifact. Rows preserve auction
-sale fields and flatten the untyped auction metadata as dotted `additional.*`
-keys. The builder deduplicates identical sale rows, keeps a rolling one-year
-window ending at the capture timestamp, and does not store acquisition
-credentials.
+The rolling market cache lives at
+`data/pricing/cache/<region>/auction-history-cache-<region>.tar.gz`. Caches are
+ignored by git and are intended for local use or GitHub Actions artifacts. The
+cache contains `manifest.json` plus one `artifacts/<artifactId>.jsonl` file per
+STALZONE artifact. Rows preserve auction sale fields and flatten the untyped
+auction metadata as dotted `additional.*` keys. Acquisition request credentials
+must never be written to the repository.
 
 Refresh an existing cache from the official auction-history API with:
 
@@ -141,8 +122,7 @@ is allowed. The price is a recency-weighted median with a ten-sample recent
 threshold; plain `recent30Median`, `recent90Median`, and `recent365Median`
 values are retained as diagnostics. Adjacent-rarity extrapolation is used only
 when no same-rarity eligible sale exists. The price generator consumes cache
-archives only; convert raw API captures with `pricing:cache` first. Without an
-explicit input, the script uses
+archives only. Without an explicit input, the script uses
 `data/pricing/cache/<region>/auction-history-cache-<region>.tar.gz`. It also
 accepts an explicit cache archive or extracted cache directory plus an optional
 output path:
