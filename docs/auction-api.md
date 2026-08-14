@@ -62,7 +62,8 @@ bonus-property sales are too distorted for budget constraints. Current charge
 loss (`ndmg`) is recoverable and may remain in the pricing pool.
 
 [`scripts/generate-pricing-index.mjs`](../scripts/generate-pricing-index.mjs)
-uses a one-year completed-sale window, a recency-weighted median, and adjacent
-rarity extrapolation only when no same-artifact same-rarity build-equivalent
-sale exists. Do not use active offers, upgraded sales, or cross-artifact absolute
-averages as optimizer prices without a new validation pass.
+uses a one-year completed-sale window, recency weighting only after enough
+recent same-tier samples exist, and adjacent rarity extrapolation only when no
+same-artifact same-rarity build-equivalent sale exists. Do not use active offers,
+upgraded sales, or cross-artifact absolute averages as optimizer prices without a
+new validation pass.

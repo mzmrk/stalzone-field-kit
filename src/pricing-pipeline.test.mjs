@@ -1,0 +1,208 @@
+import { execFile } from "node:child_process";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { promisify } from "node:util";
+import { afterEach, describe, expect, it } from "vitest";
+import {
+  fetchNewRows,
+  mergeCacheRows,
+  updateAuctionHistoryCache,
+} from "../scripts/update-auction-history-cache.mjs";
+
+const execFileAsync = promisify(execFile);
+const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const tempDirectories = [];
+
+afterEach(async () => {
+  await Promise.all(tempDirectories.splice(0).map((directory) => rm(directory, { recursive: true, force: true })));
+});
+
+describe("auction history cache updater", () => {
+  it("can bootstrap an empty cache archive and stops once fetched history crosses the rolling cutoff", async () => {
+    const tempDirectory = await temporaryDirectory();
+    const archive = path.join(tempDirectory, "auction-history-cache-eu.tar.gz");
+    const capturedAt = new Date("2026-01-10T00:00:00.000Z");
+    const fetchedOffsets = [];
+    const fetchImpl = createFetch({
+      listing: [{ data: "/items/artefact/alpha.json" }],
+      histories: {
+        alpha: {
+          0: page(2, [{ price: 100, time: "2026-01-09T00:00:00.000Z", additional: { qlt: 0 } }]),
+          1: page(2, [{ price: 90, time: "2025-01-09T00:00:00.000Z", additional: { qlt: 0 } }]),
+          2: page(3, [{ price: 80, time: "2025-01-08T00:00:00.000Z", additional: { qlt: 0 } }]),
+        },
+      },
+      onHistoryRequest: ({ offset }) => fetchedOffsets.push(offset),
+    });
+
+    const summary = await updateAuctionHistoryCache({
+      cacheArchive: archive,
+      capturedAt,
+      credentials: fakeCredentials(),
+      fetchImpl,
+      listingUrl: "https://example.test/listing.json",
+      log: () => {},
+      pageLimit: 1,
+      projectRoot,
+      region: "eu",
+      windowDays: 365,
+    });
+
+    expect(summary).toEqual({ artifactCount: 1, fetchedRecords: 2, retainedRecords: 1 });
+    expect(fetchedOffsets).toEqual([0, 1]);
+
+    const manifest = JSON.parse(await tarOutput(archive, "./manifest.json"));
+    expect(manifest.recordCount).toBe(1);
+    expect(manifest.artifactCount).toBe(1);
+
+    const rows = (await tarOutput(archive, "./artifacts/alpha.jsonl"))
+      .trim()
+      .split("\n")
+      .map((line) => JSON.parse(line));
+    expect(rows).toEqual([{ price: 100, time: "2026-01-09T00:00:00.000Z", "additional.qlt": 0 }]);
+  });
+
+  it("stops incremental fetches after overlapping the newest cached sale and deduplicates the merge", async () => {
+    const capturedAt = new Date("2026-01-10T00:00:00.000Z");
+    const newestExistingSale = Date.parse("2026-01-08T00:00:00.000Z");
+    const fetchedOffsets = [];
+    const fetchImpl = createFetch({
+      histories: {
+        alpha: {
+          0: page(4, [
+            { price: 120, time: "2026-01-09T00:00:00.000Z", additional: { qlt: 0 } },
+            { price: 100, time: "2026-01-08T00:00:00.000Z", additional: { qlt: 0 } },
+          ]),
+          2: page(4, [{ price: 90, time: "2026-01-07T00:00:00.000Z", additional: { qlt: 0 } }]),
+        },
+      },
+      onHistoryRequest: ({ offset }) => fetchedOffsets.push(offset),
+    });
+
+    const fetchedRows = await fetchNewRows({
+      artifactId: "alpha",
+      cutoff: Date.parse("2025-01-10T00:00:00.000Z"),
+      credentials: fakeCredentials(),
+      fetchImpl,
+      newestExistingSale,
+      pageLimit: 2,
+      region: "eu",
+    });
+    const mergedRows = mergeCacheRows({
+      capturedAt,
+      existingRows: [{ price: 100, time: "2026-01-08T00:00:00.000Z", "additional.qlt": 0 }],
+      fetchedRows,
+      windowDays: 365,
+    });
+
+    expect(fetchedOffsets).toEqual([0]);
+    expect(mergedRows.map((row) => row.price)).toEqual([120, 100]);
+  });
+});
+
+describe("pricing index builder", () => {
+  it("uses build-equivalent same-rarity sales and adjacent-rarity extrapolation from cache records", async () => {
+    const tempDirectory = await temporaryDirectory();
+    const cacheDirectory = path.join(tempDirectory, "cache");
+    const outputFile = path.join(tempDirectory, "pricing-index.json");
+    await mkdir(path.join(cacheDirectory, "artifacts"), { recursive: true });
+    await writeFile(
+      path.join(cacheDirectory, "manifest.json"),
+      JSON.stringify({
+        schemaVersion: 1,
+        region: "eu",
+        asOf: "2026-01-10T00:00:00.000Z",
+        sourceSnapshot: "test-cache",
+      }),
+    );
+    await writeJsonLines(path.join(cacheDirectory, "artifacts", "alpha.jsonl"), [
+      { amount: 1, price: 100, time: "2026-01-09T00:00:00.000Z" },
+      { amount: 1, price: 200, time: "2026-01-08T00:00:00.000Z", "additional.stats_random": 0 },
+      { amount: 1, price: 999, time: "2026-01-07T00:00:00.000Z", "additional.ptn": 1 },
+      { amount: 1, price: 777, time: "2026-01-06T00:00:00.000Z", "additional.md_k": 0.5 },
+      { amount: 1, price: 300, time: "2026-01-05T00:00:00.000Z", "additional.qlt": 1 },
+    ]);
+    await writeJsonLines(path.join(cacheDirectory, "artifacts", "beta.jsonl"), [
+      { amount: 1, price: 50, time: "2026-01-09T00:00:00.000Z" },
+    ]);
+
+    await execFileAsync("node", [
+      path.join(projectRoot, "scripts", "generate-pricing-index.mjs"),
+      "eu",
+      cacheDirectory,
+      outputFile,
+    ]);
+
+    const index = JSON.parse(await readFile(outputFile, "utf8"));
+    expect(index.artifacts.alpha[0]).toMatchObject({
+      median: 150,
+      samples: 2,
+      recent30Median: 150,
+      recent90Median: 150,
+      recent365Median: 150,
+      condition: "build-equivalent",
+      weighted: false,
+    });
+    expect(index.artifacts.alpha[1]).toMatchObject({
+      median: 300,
+      samples: 1,
+      condition: "build-equivalent",
+    });
+    expect(index.artifacts.beta[1]).toMatchObject({
+      median: 100,
+      samples: 0,
+      condition: "adjacent-extrapolated",
+      anchorRarity: 0,
+      anchorPrice: 50,
+      multiplier: 2,
+    });
+  });
+});
+
+function createFetch({ histories = {}, listing = [], onHistoryRequest = () => {} }) {
+  return async (input) => {
+    const url = new URL(String(input));
+    if (url.hostname === "example.test") return jsonResponse(listing);
+
+    const match = url.pathname.match(/\/auction\/([^/]+)\/history$/);
+    if (!match) return jsonResponse({ message: "not found" }, { status: 404 });
+
+    const artifactId = match[1];
+    const offset = Number(url.searchParams.get("offset") ?? 0);
+    onHistoryRequest({ artifactId, offset });
+    const response = histories[artifactId]?.[offset] ?? page(0, []);
+    return jsonResponse(response);
+  };
+}
+
+function page(total, prices) {
+  return { total, prices };
+}
+
+function jsonResponse(value, init) {
+  return new Response(JSON.stringify(value), {
+    headers: { "content-type": "application/json" },
+    ...init,
+  });
+}
+
+function fakeCredentials() {
+  return { clientId: "test-client", clientSecret: "test-secret" };
+}
+
+async function temporaryDirectory() {
+  const directory = await mkdtemp(path.join(tmpdir(), "field-kit-pricing-test-"));
+  tempDirectories.push(directory);
+  return directory;
+}
+
+async function tarOutput(archive, member) {
+  const { stdout } = await execFileAsync("tar", ["-xOzf", archive, member]);
+  return stdout;
+}
+
+async function writeJsonLines(file, rows) {
+  await writeFile(file, `${rows.map((row) => JSON.stringify(row)).join("\n")}\n`);
+}

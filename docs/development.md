@@ -93,18 +93,19 @@ STALZONE artifact. Rows preserve auction sale fields and flatten the untyped
 auction metadata as dotted `additional.*` keys. Acquisition request credentials
 must never be written to the repository.
 
-Refresh an existing cache from the official auction-history API with:
+Refresh or bootstrap a cache from the official auction-history API with:
 
 ```bash
 STALZONE_CLIENT_ID=... STALZONE_CLIENT_SECRET=... npm run pricing:update-cache -- eu
 ```
 
 [`scripts/update-auction-history-cache.mjs`](../scripts/update-auction-history-cache.mjs)
-extracts the existing region cache, fetches each artifact until the downloaded
-history overlaps the newest cached sale, merges and deduplicates rows, prunes
-anything outside the rolling one-year window, and writes the same cache archive
-format. It can also read credentials from an ignored JSON file passed after the
-region argument.
+extracts the existing region cache when present, fetches each artifact until the
+downloaded history overlaps the newest cached sale, merges and deduplicates rows,
+prunes anything outside the rolling one-year window, and writes the same cache
+archive format. If no cache exists yet, it creates one and fetches pages until
+the downloaded history crosses the one-year cutoff. It can also read credentials
+from an ignored JSON file passed after the region argument.
 
 Regenerate the bundled price index from the default local cache archive with:
 
@@ -118,9 +119,10 @@ one-year build-equivalent completed sales, and writes
 [`src/generated/pricing-index.json`](../src/generated/pricing-index.json).
 Build-equivalent sales are `+0`, have no bonus properties, and have full maximum
 charge; researched and unstudied sales are both eligible, and current charge loss
-is allowed. The price is a recency-weighted median with a ten-sample recent
-threshold; plain `recent30Median`, `recent90Median`, and `recent365Median`
-values are retained as diagnostics. Adjacent-rarity extrapolation is used only
+is allowed. The price is a plain one-year median until a tier has at least ten
+sales in the last 90 days, then switches to a recency-weighted median; plain
+`recent30Median`, `recent90Median`, and `recent365Median` values are retained as
+diagnostics. Adjacent-rarity extrapolation is used only
 when no same-rarity eligible sale exists. The price generator consumes cache
 archives only. Without an explicit input, the script uses
 `data/pricing/cache/<region>/auction-history-cache-<region>.tar.gz`. It also

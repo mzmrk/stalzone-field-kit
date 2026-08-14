@@ -1,121 +1,159 @@
-import { mkdir, mkdtemp, readFile, readdir, rm, stat, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { execFile } from "node:child_process";
 import { fileURLToPath } from "node:url";
+import { pathToFileURL } from "node:url";
 import { promisify } from "node:util";
 
 const execFileAsync = promisify(execFile);
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const region = process.argv[2] ?? "eu";
-const credentialsPath = process.argv[3];
 const pageLimit = 200;
 const windowDays = 365;
-const capturedAt = new Date();
-const cutoff = capturedAt.getTime() - windowDays * 24 * 60 * 60 * 1000;
-const cacheArchive = path.join(
-  projectRoot,
-  "data",
-  "pricing",
-  "cache",
-  region,
-  `auction-history-cache-${region}.tar.gz`,
-);
 const listingUrl = "https://raw.githubusercontent.com/EXBO-Studio/stalzone-database/main/global/listing.json";
 
-const credentials = await readCredentials(credentialsPath);
-const workDirectory = await mkdtemp(path.join(tmpdir(), "field-kit-cache-update-"));
-const extractedCache = path.join(workDirectory, "cache");
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  await main();
+}
 
-try {
-  await mkdir(extractedCache, { recursive: true });
-  if (await exists(cacheArchive)) {
-    await execFileAsync("tar", ["-xzf", cacheArchive, "-C", extractedCache]);
-  }
-
-  const artifactsDirectory = path.join(extractedCache, "artifacts");
-  await mkdir(artifactsDirectory, { recursive: true });
-
-  const artifactIds = await loadArtifactIds();
-  const summary = {
-    schemaVersion: 1,
+async function main() {
+  const region = process.argv[2] ?? "eu";
+  const credentialsPath = process.argv[3];
+  const capturedAt = new Date();
+  const cacheArchive = path.join(
+    projectRoot,
+    "data",
+    "pricing",
+    "cache",
     region,
-    source: "https://eapi.stalzone.com/{region}/auction/{item}/history",
-    capturedAt: capturedAt.toISOString(),
-    cutoff: new Date(cutoff).toISOString(),
-    windowDays,
+    `auction-history-cache-${region}.tar.gz`,
+  );
+  const credentials = await readCredentials(credentialsPath);
+  await updateAuctionHistoryCache({
+    cacheArchive,
+    capturedAt,
+    credentials,
+    fetchImpl: fetch,
+    listingUrl,
     pageLimit,
-    artifactCount: artifactIds.length,
-    artifacts: {},
-  };
+    projectRoot,
+    region,
+    windowDays,
+  });
+}
 
-  let totalFetched = 0;
-  let totalRetained = 0;
+export async function updateAuctionHistoryCache({
+  cacheArchive,
+  capturedAt = new Date(),
+  credentials,
+  fetchImpl,
+  listingUrl: listingEndpoint = listingUrl,
+  log = console.log,
+  pageLimit: limit = pageLimit,
+  projectRoot: root = projectRoot,
+  region,
+  windowDays: days = windowDays,
+}) {
+  const cutoff = capturedAt.getTime() - days * 24 * 60 * 60 * 1000;
+  const workDirectory = await mkdtemp(path.join(tmpdir(), "field-kit-cache-update-"));
+  const extractedCache = path.join(workDirectory, "cache");
 
-  for (const [artifactIndex, artifactId] of artifactIds.entries()) {
-    const file = path.join(artifactsDirectory, `${artifactId}.jsonl`);
-    const existingRows = await readCacheRows(file);
-    const newestExistingSale = Math.max(
-      Number.NEGATIVE_INFINITY,
-      ...existingRows.map((row) => parseSoldAt(row)),
-    );
-    const fetchedRows = await fetchNewRows(artifactId, newestExistingSale);
-    const mergedRows = dedupeRows([...existingRows, ...fetchedRows])
-      .filter((row) => {
-        const soldAt = parseSoldAt(row);
-        return Number.isFinite(soldAt) && soldAt >= cutoff && soldAt <= capturedAt.getTime();
-      })
-      .sort(compareRows);
+  try {
+    await mkdir(extractedCache, { recursive: true });
+    if (await exists(cacheArchive)) {
+      await execFileAsync("tar", ["-xzf", cacheArchive, "-C", extractedCache]);
+    }
 
-    await writeFile(
-      file,
-      mergedRows.map((row) => JSON.stringify(row)).join("\n") + (mergedRows.length ? "\n" : ""),
-    );
+    const artifactsDirectory = path.join(extractedCache, "artifacts");
+    await mkdir(artifactsDirectory, { recursive: true });
 
-    totalFetched += fetchedRows.length;
-    totalRetained += mergedRows.length;
-    summary.artifacts[artifactId] = {
-      existingRecords: existingRows.length,
-      fetchedRecords: fetchedRows.length,
-      retainedRecords: mergedRows.length,
-      newestSaleAt: formatTimestamp(mergedRows.at(0)),
-      oldestSaleAt: formatTimestamp(mergedRows.at(-1)),
+    const artifactIds = await loadArtifactIds(fetchImpl, listingEndpoint);
+    const summary = {
+      schemaVersion: 1,
+      region,
+      source: "https://eapi.stalzone.com/{region}/auction/{item}/history",
+      capturedAt: capturedAt.toISOString(),
+      cutoff: new Date(cutoff).toISOString(),
+      windowDays: days,
+      pageLimit: limit,
+      artifactCount: artifactIds.length,
+      artifacts: {},
     };
 
-    if ((artifactIndex + 1) % 10 === 0 || artifactIndex + 1 === artifactIds.length) {
-      console.log(
-        `Updated ${artifactIndex + 1}/${artifactIds.length} artifacts, fetched ${totalFetched} new/overlap rows.`,
+    let totalFetched = 0;
+    let totalRetained = 0;
+
+    for (const [artifactIndex, artifactId] of artifactIds.entries()) {
+      const file = path.join(artifactsDirectory, `${artifactId}.jsonl`);
+      const existingRows = await readCacheRows(file);
+      const newestExistingSale = latestSaleTimestamp(existingRows);
+      const fetchedRows = await fetchNewRows({
+        artifactId,
+        cutoff,
+        credentials,
+        fetchImpl,
+        newestExistingSale,
+        pageLimit: limit,
+        region,
+      });
+      const mergedRows = mergeCacheRows({
+        capturedAt,
+        fetchedRows,
+        existingRows,
+        windowDays: days,
+      });
+
+      await writeFile(
+        file,
+        mergedRows.map((row) => JSON.stringify(row)).join("\n") + (mergedRows.length ? "\n" : ""),
       );
+
+      totalFetched += fetchedRows.length;
+      totalRetained += mergedRows.length;
+      summary.artifacts[artifactId] = {
+        existingRecords: existingRows.length,
+        fetchedRecords: fetchedRows.length,
+        retainedRecords: mergedRows.length,
+        newestSaleAt: formatTimestamp(mergedRows.at(0)),
+        oldestSaleAt: formatTimestamp(mergedRows.at(-1)),
+      };
+
+      if ((artifactIndex + 1) % 10 === 0 || artifactIndex + 1 === artifactIds.length) {
+        log(
+          `Updated ${artifactIndex + 1}/${artifactIds.length} artifacts, fetched ${totalFetched} new/overlap rows.`,
+        );
+      }
     }
+
+    const manifest = {
+      schemaVersion: 1,
+      region,
+      source: "stalzone-auction-history-cache",
+      sourceSnapshot: capturedAt.toISOString(),
+      generatedAt: new Date().toISOString(),
+      asOf: capturedAt.toISOString(),
+      cutoff: new Date(cutoff).toISOString(),
+      windowDays: days,
+      artifactCount: artifactIds.length,
+      recordCount: totalRetained,
+      lastUpdate: summary,
+      format:
+        "tar.gz containing manifest.json and artifacts/<artifactId>.jsonl; sale rows keep top-level API fields and flatten additional.* fields",
+    };
+
+    await writeFile(path.join(extractedCache, "manifest.json"), `${JSON.stringify(manifest, null, 2)}\n`);
+    await mkdir(path.dirname(cacheArchive), { recursive: true });
+    await rm(cacheArchive, { force: true });
+    await execFileAsync("tar", ["-czf", cacheArchive, "-C", extractedCache, "."]);
+
+    log(
+      `Updated ${path.relative(root, cacheArchive)}: fetched ${totalFetched}, retained ${totalRetained}.`,
+    );
+    return { artifactCount: artifactIds.length, fetchedRecords: totalFetched, retainedRecords: totalRetained };
+  } finally {
+    await rm(workDirectory, { recursive: true, force: true });
   }
-
-  const manifest = {
-    schemaVersion: 1,
-    region,
-    source: "stalzone-auction-history-cache",
-    sourceSnapshot: capturedAt.toISOString(),
-    generatedAt: new Date().toISOString(),
-    asOf: capturedAt.toISOString(),
-    cutoff: new Date(cutoff).toISOString(),
-    windowDays,
-    artifactCount: artifactIds.length,
-    recordCount: totalRetained,
-    lastUpdate: summary,
-    format:
-      "tar.gz containing manifest.json and artifacts/<artifactId>.jsonl; sale rows keep top-level API fields and flatten additional.* fields",
-  };
-
-  await writeFile(path.join(extractedCache, "manifest.json"), `${JSON.stringify(manifest, null, 2)}\n`);
-  await mkdir(path.dirname(cacheArchive), { recursive: true });
-  await rm(cacheArchive, { force: true });
-  await execFileAsync("tar", ["-czf", cacheArchive, "-C", extractedCache, "."]);
-
-  console.log(
-    `Updated ${path.relative(projectRoot, cacheArchive)}: fetched ${totalFetched}, retained ${totalRetained}.`,
-  );
-} finally {
-  await rm(workDirectory, { recursive: true, force: true });
 }
 
 async function readCredentials(file) {
@@ -128,8 +166,8 @@ async function readCredentials(file) {
   return { clientId, clientSecret };
 }
 
-async function loadArtifactIds() {
-  const response = await fetch(listingUrl);
+async function loadArtifactIds(fetchImpl, listingEndpoint) {
+  const response = await fetchImpl(listingEndpoint);
   if (!response.ok) throw new Error(`Artifact listing failed (${response.status}).`);
   const listing = await response.json();
   return [
@@ -142,21 +180,35 @@ async function loadArtifactIds() {
   ].sort();
 }
 
-async function fetchNewRows(artifactId, newestExistingSale) {
+export async function fetchNewRows({
+  artifactId,
+  cutoff,
+  credentials,
+  fetchImpl,
+  newestExistingSale,
+  pageLimit: limit,
+  region,
+}) {
   const rows = [];
   let offset = 0;
   let exhausted = false;
   let overlappedExistingCache = false;
+  let crossedCutoff = false;
 
-  while (!exhausted && !overlappedExistingCache) {
+  while (!exhausted && !overlappedExistingCache && !crossedCutoff) {
     const url = new URL(
       `https://eapi.stalzone.com/${region.toUpperCase()}/auction/${artifactId}/history`,
     );
     url.searchParams.set("offset", String(offset));
-    url.searchParams.set("limit", String(pageLimit));
+    url.searchParams.set("limit", String(limit));
     url.searchParams.set("additional", "true");
 
-    const response = await request(url, `${artifactId} offset ${offset}`);
+    const response = await request({
+      credentials,
+      fetchImpl,
+      label: `${artifactId} offset ${offset}`,
+      url,
+    });
     const parsed = await response.json();
     if (!Number.isInteger(parsed.total) || !Array.isArray(parsed.prices)) {
       throw new Error(`${artifactId} offset ${offset} returned an invalid history response.`);
@@ -169,6 +221,7 @@ async function fetchNewRows(artifactId, newestExistingSale) {
     overlappedExistingCache =
       Number.isFinite(newestExistingSale) &&
       timestamps.some((timestamp) => timestamp <= newestExistingSale);
+    crossedCutoff = timestamps.some((timestamp) => timestamp < cutoff);
     exhausted = parsed.prices.length === 0 || offset + parsed.prices.length >= parsed.total;
     offset += parsed.prices.length;
   }
@@ -176,9 +229,9 @@ async function fetchNewRows(artifactId, newestExistingSale) {
   return rows;
 }
 
-async function request(url, label) {
+async function request({ credentials, fetchImpl, label, url }) {
   for (let attempt = 0; attempt < 6; attempt += 1) {
-    const response = await fetch(url, {
+    const response = await fetchImpl(url, {
       headers: {
         "Client-Id": credentials.clientId,
         "Client-Secret": credentials.clientSecret,
@@ -225,6 +278,16 @@ function flattenRecord(raw) {
   return row;
 }
 
+export function mergeCacheRows({ capturedAt, existingRows, fetchedRows, windowDays }) {
+  const cutoff = capturedAt.getTime() - windowDays * 24 * 60 * 60 * 1000;
+  return dedupeRows([...existingRows, ...fetchedRows])
+    .filter((row) => {
+      const soldAt = parseSoldAt(row);
+      return Number.isFinite(soldAt) && soldAt >= cutoff && soldAt <= capturedAt.getTime();
+    })
+    .sort(compareRows);
+}
+
 function dedupeRows(rows) {
   const seen = new Set();
   const deduped = [];
@@ -254,6 +317,15 @@ function stableStringify(value) {
 
 function parseSoldAt(row) {
   return Date.parse(row.time ?? row.closedAt ?? row.endTime ?? row.end_time ?? row.date ?? "");
+}
+
+function latestSaleTimestamp(rows) {
+  let latest = Number.NEGATIVE_INFINITY;
+  for (const row of rows) {
+    const timestamp = parseSoldAt(row);
+    if (timestamp > latest) latest = timestamp;
+  }
+  return latest;
 }
 
 function formatTimestamp(row) {

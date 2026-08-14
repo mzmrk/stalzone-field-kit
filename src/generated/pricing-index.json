@@ -1,7 +1,7 @@
 {
   "region": "eu",
   "snapshot": "2026-08-14T13:54:36.619Z",
-  "generatedAt": "2026-08-14T13:57:14.360Z",
+  "generatedAt": "2026-08-14T14:13:14.935Z",
   "sourceWindow": {
     "asOf": "2026-08-14T13:54:36.619Z",
     "cutoff": "2025-08-14T13:54:36.619Z",
@@ -66,7 +66,7 @@
       "fromName": "Rare",
       "to": 4,
       "toName": "Exclusive",
-      "medianMultiplier": 5.63508064516129,
+      "medianMultiplier": 5.75,
       "samples": 98
     },
     {
@@ -74,7 +74,7 @@
       "fromName": "Exclusive",
       "to": 5,
       "toName": "Legendary",
-      "medianMultiplier": 4.555352084228433,
+      "medianMultiplier": 4.522743388576259,
       "samples": 78
     }
   ],
@@ -129,7 +129,7 @@
         "windowDays": 365
       },
       "4": {
-        "median": 39999999,
+        "median": 39999999.5,
         "samples": 6,
         "recent90Samples": 5,
         "recent30Median": 32999999,
@@ -141,7 +141,7 @@
         "windowDays": 365
       },
       "5": {
-        "median": 182214078.81378525,
+        "median": 180909733.28167868,
         "samples": 0,
         "recent90Samples": 0,
         "condition": "adjacent-extrapolated",
@@ -150,8 +150,8 @@
         "windowDays": 365,
         "anchorRarity": 4,
         "anchorRarityName": "Exclusive",
-        "anchorPrice": 39999999,
-        "multiplier": 4.555352084228433
+        "anchorPrice": 39999999.5,
+        "multiplier": 4.522743388576259
       }
     },
     "1k4q": {
@@ -512,7 +512,7 @@
         "windowDays": 365
       },
       "5": {
-        "median": 9999990,
+        "median": 9999994.5,
         "samples": 4,
         "recent90Samples": 0,
         "recent30Median": null,
@@ -586,7 +586,7 @@
         "windowDays": 365
       },
       "5": {
-        "median": 40000000,
+        "median": 41000000,
         "samples": 6,
         "recent90Samples": 0,
         "recent30Median": null,
@@ -882,7 +882,7 @@
         "windowDays": 365
       },
       "5": {
-        "median": 94000000,
+        "median": 97000000,
         "samples": 6,
         "recent90Samples": 3,
         "recent30Median": 100000000,
@@ -1018,7 +1018,7 @@
         "windowDays": 365
       },
       "4": {
-        "median": 5500000,
+        "median": 5650000,
         "samples": 10,
         "recent90Samples": 3,
         "recent30Median": 5749999,
@@ -1030,7 +1030,7 @@
         "windowDays": 365
       },
       "5": {
-        "median": 25054436.46325638,
+        "median": 25553500.145455867,
         "samples": 0,
         "recent90Samples": 0,
         "condition": "adjacent-extrapolated",
@@ -1039,8 +1039,8 @@
         "windowDays": 365,
         "anchorRarity": 4,
         "anchorRarityName": "Exclusive",
-        "anchorPrice": 5500000,
-        "multiplier": 4.555352084228433
+        "anchorPrice": 5650000,
+        "multiplier": 4.522743388576259
       }
     },
     "51l0": {
@@ -1105,7 +1105,7 @@
         "windowDays": 365
       },
       "5": {
-        "median": 14121586.905756058,
+        "median": 14020499.981843015,
         "samples": 0,
         "recent90Samples": 0,
         "condition": "adjacent-extrapolated",
@@ -1115,7 +1115,7 @@
         "anchorRarity": 4,
         "anchorRarityName": "Exclusive",
         "anchorPrice": 3099999,
-        "multiplier": 4.555352084228433
+        "multiplier": 4.522743388576259
       }
     },
     "5r04": {
@@ -1328,7 +1328,7 @@
         "windowDays": 365
       },
       "5": {
-        "median": 17000000,
+        "median": 17250000,
         "samples": 30,
         "recent90Samples": 8,
         "recent30Median": 20998888,
@@ -1402,7 +1402,7 @@
         "windowDays": 365
       },
       "5": {
-        "median": 80000000,
+        "median": 82500000,
         "samples": 2,
         "recent90Samples": 1,
         "recent30Median": null,
@@ -1550,7 +1550,7 @@
         "windowDays": 365
       },
       "5": {
-        "median": 68330281.2634265,
+        "median": 67841150.82864389,
         "samples": 0,
         "recent90Samples": 0,
         "condition": "adjacent-extrapolated",
@@ -1560,7 +1560,7 @@
         "anchorRarity": 4,
         "anchorRarityName": "Exclusive",
         "anchorPrice": 15000000,
-        "multiplier": 4.555352084228433
+        "multiplier": 4.522743388576259
       }
     },
     "5rog": {
@@ -1699,7 +1699,7 @@
         "windowDays": 365
       },
       "5": {
-        "median": 15500000,
+        "median": 15750000,
         "samples": 10,
         "recent90Samples": 4,
         "recent30Median": 13999999,
@@ -1773,7 +1773,7 @@
         "windowDays": 365
       },
       "5": {
-        "median": 69000000,
+        "median": 69499999.5,
         "samples": 6,
         "recent90Samples": 4,
         "recent30Median": 69999999,
@@ -1909,7 +1909,7 @@
         "windowDays": 365
       },
       "4": {
-        "median": 24800000,
+        "median": 24900000,
         "samples": 22,
         "recent90Samples": 2,
         "recent30Median": null,
@@ -1921,7 +1921,7 @@
         "windowDays": 365
       },
       "5": {
-        "median": 112972731.68886514,
+        "median": 112616310.37554885,
         "samples": 0,
         "recent90Samples": 0,
         "condition": "adjacent-extrapolated",
@@ -1930,8 +1930,8 @@
         "windowDays": 365,
         "anchorRarity": 4,
         "anchorRarityName": "Exclusive",
-        "anchorPrice": 24800000,
-        "multiplier": 4.555352084228433
+        "anchorPrice": 24900000,
+        "multiplier": 4.522743388576259
       }
     },
     "7z77": {
@@ -1984,7 +1984,7 @@
         "windowDays": 365
       },
       "4": {
-        "median": 23999999,
+        "median": 23999999.5,
         "samples": 18,
         "recent90Samples": 0,
         "recent30Median": null,
@@ -2120,7 +2120,7 @@
         "windowDays": 365
       },
       "3": {
-        "median": 97999999,
+        "median": 98444443.5,
         "samples": 8,
         "recent90Samples": 7,
         "recent30Median": 97999999,
@@ -2132,7 +2132,7 @@
         "windowDays": 365
       },
       "4": {
-        "median": 552237897.5907258,
+        "median": 566055550.125,
         "samples": 0,
         "recent90Samples": 0,
         "condition": "adjacent-extrapolated",
@@ -2141,11 +2141,11 @@
         "windowDays": 365,
         "anchorRarity": 3,
         "anchorRarityName": "Rare",
-        "anchorPrice": 97999999,
-        "multiplier": 5.63508064516129
+        "anchorPrice": 98444443.5,
+        "multiplier": 5.75
       },
       "5": {
-        "median": 2515638057.7798405,
+        "median": 2560123996.894741,
         "samples": 0,
         "recent90Samples": 0,
         "condition": "adjacent-extrapolated",
@@ -2154,8 +2154,8 @@
         "windowDays": 365,
         "anchorRarity": 3,
         "anchorRarityName": "Rare",
-        "anchorPrice": 97999999,
-        "multiplier": 25.669776361730786
+        "anchorPrice": 98444443.5,
+        "multiplier": 26.00577448431349
       }
     },
     "9nd0": {
@@ -2516,7 +2516,7 @@
         "windowDays": 365
       },
       "5": {
-        "median": 204990843.7902795,
+        "median": 203523452.48593166,
         "samples": 0,
         "recent90Samples": 0,
         "condition": "adjacent-extrapolated",
@@ -2526,7 +2526,7 @@
         "anchorRarity": 4,
         "anchorRarityName": "Exclusive",
         "anchorPrice": 45000000,
-        "multiplier": 4.555352084228433
+        "multiplier": 4.522743388576259
       }
     },
     "gy10": {
@@ -2665,7 +2665,7 @@
         "windowDays": 365
       },
       "5": {
-        "median": 172091043.30700237,
+        "median": 170859159.50265455,
         "samples": 0,
         "recent90Samples": 0,
         "condition": "adjacent-extrapolated",
@@ -2675,7 +2675,7 @@
         "anchorRarity": 4,
         "anchorRarityName": "Exclusive",
         "anchorPrice": 37777770,
-        "multiplier": 4.555352084228433
+        "multiplier": 4.522743388576259
       }
     },
     "gyg5": {
@@ -3258,7 +3258,7 @@
         "windowDays": 365
       },
       "5": {
-        "median": 85033235.86869603,
+        "median": 84424540.23826125,
         "samples": 0,
         "recent90Samples": 0,
         "condition": "adjacent-extrapolated",
@@ -3268,7 +3268,7 @@
         "anchorRarity": 4,
         "anchorRarityName": "Exclusive",
         "anchorPrice": 18666666,
-        "multiplier": 4.555352084228433
+        "multiplier": 4.522743388576259
       }
     },
     "j3p6": {
@@ -3321,7 +3321,7 @@
         "windowDays": 365
       },
       "4": {
-        "median": 69228228,
+        "median": 69614113.5,
         "samples": 4,
         "recent90Samples": 0,
         "recent30Median": null,
@@ -3333,7 +3333,7 @@
         "windowDays": 365
       },
       "5": {
-        "median": 315358952.7072412,
+        "median": 314846771.5837223,
         "samples": 0,
         "recent90Samples": 0,
         "condition": "adjacent-extrapolated",
@@ -3342,8 +3342,8 @@
         "windowDays": 365,
         "anchorRarity": 4,
         "anchorRarityName": "Exclusive",
-        "anchorPrice": 69228228,
-        "multiplier": 4.555352084228433
+        "anchorPrice": 69614113.5,
+        "multiplier": 4.522743388576259
       }
     },
     "jkj4": {
@@ -3482,7 +3482,7 @@
         "windowDays": 365
       },
       "5": {
-        "median": 3500000,
+        "median": 3749999.5,
         "samples": 14,
         "recent90Samples": 0,
         "recent30Median": null,
@@ -3544,7 +3544,7 @@
         "windowDays": 365
       },
       "4": {
-        "median": 55555555,
+        "median": 72777777.5,
         "samples": 4,
         "recent90Samples": 2,
         "recent30Median": 93995000,
@@ -3618,7 +3618,7 @@
         "windowDays": 365
       },
       "4": {
-        "median": 208216229.83870965,
+        "median": 212462500,
         "samples": 0,
         "recent90Samples": 0,
         "condition": "adjacent-extrapolated",
@@ -3628,10 +3628,10 @@
         "anchorRarity": 3,
         "anchorRarityName": "Rare",
         "anchorPrice": 36950000,
-        "multiplier": 5.63508064516129
+        "multiplier": 5.75
       },
       "5": {
-        "median": 948498236.5659525,
+        "median": 960913367.1953835,
         "samples": 0,
         "recent90Samples": 0,
         "condition": "adjacent-extrapolated",
@@ -3641,7 +3641,7 @@
         "anchorRarity": 3,
         "anchorRarityName": "Rare",
         "anchorPrice": 36950000,
-        "multiplier": 25.669776361730786
+        "multiplier": 26.00577448431349
       }
     },
     "k3rv": {
@@ -3768,7 +3768,7 @@
         "windowDays": 365
       },
       "4": {
-        "median": 7000000,
+        "median": 7100000,
         "samples": 124,
         "recent90Samples": 9,
         "recent30Median": 15777777.5,
@@ -3842,7 +3842,7 @@
         "windowDays": 365
       },
       "4": {
-        "median": 225403225.8064516,
+        "median": 230000000,
         "samples": 0,
         "recent90Samples": 0,
         "condition": "adjacent-extrapolated",
@@ -3852,10 +3852,10 @@
         "anchorRarity": 3,
         "anchorRarityName": "Rare",
         "anchorPrice": 40000000,
-        "multiplier": 5.63508064516129
+        "multiplier": 5.75
       },
       "5": {
-        "median": 1026791054.4692315,
+        "median": 1040230979.3725396,
         "samples": 0,
         "recent90Samples": 0,
         "condition": "adjacent-extrapolated",
@@ -3865,7 +3865,7 @@
         "anchorRarity": 3,
         "anchorRarityName": "Rare",
         "anchorPrice": 40000000,
-        "multiplier": 25.669776361730786
+        "multiplier": 26.00577448431349
       }
     },
     "kqgy": {
@@ -4300,7 +4300,7 @@
         "windowDays": 365
       },
       "5": {
-        "median": 268765709.19454837,
+        "median": 266841796.60759187,
         "samples": 0,
         "recent90Samples": 0,
         "condition": "adjacent-extrapolated",
@@ -4310,7 +4310,7 @@
         "anchorRarity": 4,
         "anchorRarityName": "Exclusive",
         "anchorPrice": 58999986,
-        "multiplier": 4.555352084228433
+        "multiplier": 4.522743388576259
       }
     },
     "ljn2": {
@@ -4363,7 +4363,7 @@
         "windowDays": 365
       },
       "4": {
-        "median": 112701612.9032258,
+        "median": 115000000,
         "samples": 0,
         "recent90Samples": 0,
         "condition": "adjacent-extrapolated",
@@ -4373,10 +4373,10 @@
         "anchorRarity": 3,
         "anchorRarityName": "Rare",
         "anchorPrice": 20000000,
-        "multiplier": 5.63508064516129
+        "multiplier": 5.75
       },
       "5": {
-        "median": 513395527.23461574,
+        "median": 520115489.6862698,
         "samples": 0,
         "recent90Samples": 0,
         "condition": "adjacent-extrapolated",
@@ -4386,7 +4386,7 @@
         "anchorRarity": 3,
         "anchorRarityName": "Rare",
         "anchorPrice": 20000000,
-        "multiplier": 25.669776361730786
+        "multiplier": 26.00577448431349
       }
     },
     "ljpq": {
@@ -4451,7 +4451,7 @@
         "windowDays": 365
       },
       "5": {
-        "median": 66052605.221312284,
+        "median": 65579779.13435576,
         "samples": 0,
         "recent90Samples": 0,
         "condition": "adjacent-extrapolated",
@@ -4461,7 +4461,7 @@
         "anchorRarity": 4,
         "anchorRarityName": "Exclusive",
         "anchorPrice": 14500000,
-        "multiplier": 4.555352084228433
+        "multiplier": 4.522743388576259
       }
     },
     "ljrj": {
@@ -4526,7 +4526,7 @@
         "windowDays": 365
       },
       "5": {
-        "median": 20000000,
+        "median": 20222222,
         "samples": 32,
         "recent90Samples": 7,
         "recent30Median": 23055555.5,
@@ -4588,7 +4588,7 @@
         "windowDays": 365
       },
       "4": {
-        "median": 50000000,
+        "median": 51000000,
         "samples": 12,
         "recent90Samples": 8,
         "recent30Median": null,
@@ -4600,7 +4600,7 @@
         "windowDays": 365
       },
       "5": {
-        "median": 227767604.21142167,
+        "median": 230659912.81738922,
         "samples": 0,
         "recent90Samples": 0,
         "condition": "adjacent-extrapolated",
@@ -4609,8 +4609,8 @@
         "windowDays": 365,
         "anchorRarity": 4,
         "anchorRarityName": "Exclusive",
-        "anchorPrice": 50000000,
-        "multiplier": 4.555352084228433
+        "anchorPrice": 51000000,
+        "multiplier": 4.522743388576259
       }
     },
     "q1lk": {
@@ -4675,7 +4675,7 @@
         "windowDays": 365
       },
       "5": {
-        "median": 22222222,
+        "median": 23611111,
         "samples": 14,
         "recent90Samples": 4,
         "recent30Median": 39999999,
@@ -4947,7 +4947,7 @@
         "windowDays": 365
       },
       "3": {
-        "median": 32500000,
+        "median": 32750000,
         "samples": 14,
         "recent90Samples": 1,
         "recent30Median": null,
@@ -4959,7 +4959,7 @@
         "windowDays": 365
       },
       "4": {
-        "median": 92000000,
+        "median": 115999999.5,
         "samples": 2,
         "recent90Samples": 0,
         "recent30Median": null,
@@ -4971,7 +4971,7 @@
         "windowDays": 365
       },
       "5": {
-        "median": 419092391.74901587,
+        "median": 524638230.8134744,
         "samples": 0,
         "recent90Samples": 0,
         "condition": "adjacent-extrapolated",
@@ -4980,8 +4980,8 @@
         "windowDays": 365,
         "anchorRarity": 4,
         "anchorRarityName": "Exclusive",
-        "anchorPrice": 92000000,
-        "multiplier": 4.555352084228433
+        "anchorPrice": 115999999.5,
+        "multiplier": 4.522743388576259
       }
     },
     "qokj": {
@@ -5034,7 +5034,7 @@
         "windowDays": 365
       },
       "4": {
-        "median": 35000000,
+        "median": 45000000,
         "samples": 2,
         "recent90Samples": 1,
         "recent30Median": null,
@@ -5046,7 +5046,7 @@
         "windowDays": 365
       },
       "5": {
-        "median": 159437322.94799516,
+        "median": 203523452.48593166,
         "samples": 0,
         "recent90Samples": 0,
         "condition": "adjacent-extrapolated",
@@ -5055,8 +5055,8 @@
         "windowDays": 365,
         "anchorRarity": 4,
         "anchorRarityName": "Exclusive",
-        "anchorPrice": 35000000,
-        "multiplier": 4.555352084228433
+        "anchorPrice": 45000000,
+        "multiplier": 4.522743388576259
       }
     },
     "qoq6": {
@@ -5195,7 +5195,7 @@
         "windowDays": 365
       },
       "5": {
-        "median": 409981687.580559,
+        "median": 407046904.9718633,
         "samples": 0,
         "recent90Samples": 0,
         "condition": "adjacent-extrapolated",
@@ -5205,7 +5205,7 @@
         "anchorRarity": 4,
         "anchorRarityName": "Exclusive",
         "anchorPrice": 90000000,
-        "multiplier": 4.555352084228433
+        "multiplier": 4.522743388576259
       }
     },
     "rnkl": {},
@@ -5271,7 +5271,7 @@
         "windowDays": 365
       },
       "5": {
-        "median": 34300000,
+        "median": 34650000,
         "samples": 4,
         "recent90Samples": 4,
         "recent30Median": 34300000,
@@ -5345,7 +5345,7 @@
         "windowDays": 365
       },
       "5": {
-        "median": 104773102.49260604,
+        "median": 104023102.45999736,
         "samples": 0,
         "recent90Samples": 0,
         "condition": "adjacent-extrapolated",
@@ -5355,7 +5355,7 @@
         "anchorRarity": 4,
         "anchorRarityName": "Exclusive",
         "anchorPrice": 23000001,
-        "multiplier": 4.555352084228433
+        "multiplier": 4.522743388576259
       }
     },
     "w4no": {
@@ -5420,7 +5420,7 @@
         "windowDays": 365
       },
       "5": {
-        "median": 11999999,
+        "median": 11999999.5,
         "samples": 28,
         "recent90Samples": 7,
         "recent30Median": 14444444,
@@ -5716,7 +5716,7 @@
         "windowDays": 365
       },
       "5": {
-        "median": 150326573.22601745,
+        "median": 149250486.59558266,
         "samples": 0,
         "recent90Samples": 0,
         "condition": "adjacent-extrapolated",
@@ -5726,7 +5726,7 @@
         "anchorRarity": 4,
         "anchorRarityName": "Exclusive",
         "anchorPrice": 32999990,
-        "multiplier": 4.555352084228433
+        "multiplier": 4.522743388576259
       }
     },
     "wglp": {
@@ -6087,7 +6087,7 @@
         "windowDays": 365
       },
       "5": {
-        "median": 28000000,
+        "median": 29500000,
         "samples": 4,
         "recent90Samples": 1,
         "recent30Median": null,
@@ -6297,7 +6297,7 @@
         "windowDays": 365
       },
       "4": {
-        "median": 23000000,
+        "median": 23999999.5,
         "samples": 16,
         "recent90Samples": 1,
         "recent30Median": 23000000,
@@ -6383,7 +6383,7 @@
         "windowDays": 365
       },
       "5": {
-        "median": 5000001,
+        "median": 5000005.5,
         "samples": 34,
         "recent90Samples": 8,
         "recent30Median": null,
@@ -6519,7 +6519,7 @@
         "windowDays": 365
       },
       "4": {
-        "median": 9000000,
+        "median": 11500000,
         "samples": 2,
         "recent90Samples": 1,
         "recent30Median": null,
@@ -6679,7 +6679,7 @@
         "windowDays": 365
       },
       "5": {
-        "median": 282431829.22216284,
+        "median": 280410090.0917281,
         "samples": 0,
         "recent90Samples": 0,
         "condition": "adjacent-extrapolated",
@@ -6689,7 +6689,7 @@
         "anchorRarity": 4,
         "anchorRarityName": "Exclusive",
         "anchorPrice": 62000000,
-        "multiplier": 4.555352084228433
+        "multiplier": 4.522743388576259
       }
     },
     "y5yw": {
@@ -6828,7 +6828,7 @@
         "windowDays": 365
       },
       "5": {
-        "median": 10021774.585302552,
+        "median": 9950035.45486777,
         "samples": 0,
         "recent90Samples": 0,
         "condition": "adjacent-extrapolated",
@@ -6838,7 +6838,7 @@
         "anchorRarity": 4,
         "anchorRarityName": "Exclusive",
         "anchorPrice": 2200000,
-        "multiplier": 4.555352084228433
+        "multiplier": 4.522743388576259
       }
     },
     "zjzn": {
@@ -6903,7 +6903,7 @@
         "windowDays": 365
       },
       "5": {
-        "median": 26193274.48431349,
+        "median": 26005774.48431349,
         "samples": 0,
         "recent90Samples": 0,
         "condition": "adjacent-extrapolated",
@@ -6913,7 +6913,7 @@
         "anchorRarity": 4,
         "anchorRarityName": "Exclusive",
         "anchorPrice": 5750000,
-        "multiplier": 4.555352084228433
+        "multiplier": 4.522743388576259
       }
     },
     "zy32": {
@@ -7200,7 +7200,7 @@
         "windowDays": 365
       },
       "5": {
-        "median": 21670000,
+        "median": 23335000,
         "samples": 2,
         "recent90Samples": 0,
         "recent30Median": null,
