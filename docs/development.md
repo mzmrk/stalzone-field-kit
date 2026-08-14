@@ -109,9 +109,10 @@ one-year build-equivalent completed sales, and writes
 Build-equivalent sales are `+0`, have no bonus properties, and have full maximum
 charge; researched and unstudied sales are both eligible, and current charge loss
 is allowed. The price is a recency-weighted median with a ten-sample recent
-threshold, then adjacent-rarity extrapolation only when no same-rarity eligible
-sale exists. The script accepts an explicit snapshot directory and optional
-output path:
+threshold; plain `recent30Median`, `recent90Median`, and `recent365Median`
+values are retained as diagnostics. Adjacent-rarity extrapolation is used only
+when no same-rarity eligible sale exists. The script accepts an explicit snapshot
+directory and optional output path:
 
 ```bash
 node scripts/generate-pricing-index.mjs eu path/to/snapshot optional/output.json

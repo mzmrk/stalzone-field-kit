@@ -197,6 +197,8 @@ function estimateFromEligibleSales(sales, asOfMs) {
   if (sales.length === 0) return null;
 
   const recent90Samples = sales.filter((sale) => daysOld(sale, asOfMs) <= recentWindowDays).length;
+  const recent30Sales = sales.filter((sale) => daysOld(sale, asOfMs) <= 30);
+  const recent90Sales = sales.filter((sale) => daysOld(sale, asOfMs) <= recentWindowDays);
   const weighted = recent90Samples >= recencyBoostThreshold;
   const medianPrice = weightedMedian(
     sales.map((sale) => ({
@@ -209,6 +211,9 @@ function estimateFromEligibleSales(sales, asOfMs) {
     median: medianPrice,
     samples: sales.length,
     recent90Samples,
+    recent30Median: median(recent30Sales.map((sale) => sale.price).sort((left, right) => left - right)),
+    recent90Median: median(recent90Sales.map((sale) => sale.price).sort((left, right) => left - right)),
+    recent365Median: median(sales.map((sale) => sale.price).sort((left, right) => left - right)),
     condition: "build-equivalent",
     confidence: confidenceForSamples(sales.length),
     weighted,
