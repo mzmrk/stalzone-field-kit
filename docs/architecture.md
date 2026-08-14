@@ -44,11 +44,13 @@ from the same listing. Both data and images are requested directly from
 GitHub.
 
 Pricing is not fetched at runtime. [`src/pricing.ts`](../src/pricing.ts) reads a
-compact generated index derived from the checked-in EU auction-history snapshot.
+compact generated index derived from EU auction-history inputs.
 The picker, configured slots, and ranked optimizer builds display the median
 completed-sale estimate for the artifact's selected rarity. The generator may
 fill a missing same-rarity tier with adjacent-rarity extrapolation from the same
 artifact; tiers with no same-artifact anchor remain unknown.
+Raw captures and cache archives are build-time inputs only; the browser ships
+and reads the generated index, not auction-history records.
 
 ## Source ownership
 

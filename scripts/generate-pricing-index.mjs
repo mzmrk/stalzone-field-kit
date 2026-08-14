@@ -1,6 +1,11 @@
-import { readdir, readFile, stat, writeFile } from "node:fs/promises";
+import { mkdtemp, readdir, readFile, rm, stat, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
 import path from "node:path";
+import { execFile } from "node:child_process";
 import { fileURLToPath } from "node:url";
+import { promisify } from "node:util";
+
+const execFileAsync = promisify(execFile);
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const region = process.argv[2] ?? "eu";
@@ -16,158 +21,223 @@ const outputFile = requestedOutput
   ? path.resolve(projectRoot, requestedOutput)
   : path.join(projectRoot, "src", "generated", "pricing-index.json");
 
-const snapshotDirectory = await resolveSnapshotDirectory(region, requestedSnapshot);
-const manifest = await readOptionalJson(path.join(snapshotDirectory, "manifest.json"));
-const recordsByArtifact = await readHistoryRecords(snapshotDirectory);
-const allSales = [...recordsByArtifact.values()].flat();
-const asOf = determineAsOf(manifest, allSales);
-const cutoff = asOf - windowDays * 24 * 60 * 60 * 1000;
-
-const realEstimates = {};
+const cleanupDirectories = [];
 const globalAdjacentRatios = [];
+const snapshotDirectory = await resolveSnapshotDirectory(region, requestedSnapshot, cleanupDirectories);
+try {
+  const manifest = await readOptionalJson(path.join(snapshotDirectory, "manifest.json"));
+  const recordsByArtifact = await readHistoryRecords(snapshotDirectory);
+  const allSales = [...recordsByArtifact.values()].flat();
+  const asOf = determineAsOf(manifest, allSales);
+  const cutoff = asOf - windowDays * 24 * 60 * 60 * 1000;
 
-for (const [artifactId, sales] of recordsByArtifact) {
-  realEstimates[artifactId] = {};
-  for (let rarityIndex = 0; rarityIndex <= 5; rarityIndex += 1) {
-    const eligibleSales = sales.filter(
-      (sale) =>
-        sale.rarityIndex === rarityIndex &&
-        sale.soldAt >= cutoff &&
-        isBuildEquivalent(sale),
-    );
-    const estimate = estimateFromEligibleSales(eligibleSales, asOf);
-    if (estimate) realEstimates[artifactId][rarityIndex] = estimate;
+  const realEstimates = {};
+
+  for (const [artifactId, sales] of recordsByArtifact) {
+    realEstimates[artifactId] = {};
+    for (let rarityIndex = 0; rarityIndex <= 5; rarityIndex += 1) {
+      const eligibleSales = sales.filter(
+        (sale) =>
+          sale.rarityIndex === rarityIndex &&
+          sale.soldAt >= cutoff &&
+          sale.soldAt <= asOf &&
+          isBuildEquivalent(sale),
+      );
+      const estimate = estimateFromEligibleSales(eligibleSales, asOf);
+      if (estimate) realEstimates[artifactId][rarityIndex] = estimate;
+    }
   }
-}
 
-for (let rarityIndex = 0; rarityIndex < 5; rarityIndex += 1) {
-  const ratios = Object.values(realEstimates)
-    .map((artifact) => {
-      const lower = artifact[rarityIndex]?.median;
-      const higher = artifact[rarityIndex + 1]?.median;
-      return lower > 0 && higher > 0 ? higher / lower : null;
-    })
-    .filter((ratio) => ratio !== null)
-    .sort((left, right) => left - right);
-  globalAdjacentRatios[rarityIndex] = {
-    from: rarityIndex,
-    fromName: rarityNames[rarityIndex],
-    to: rarityIndex + 1,
-    toName: rarityNames[rarityIndex + 1],
-    medianMultiplier: median(ratios),
-    samples: ratios.length,
-  };
-}
-
-const artifacts = {};
-for (const artifactId of [...recordsByArtifact.keys()].sort()) {
-  artifacts[artifactId] = {};
-  for (let rarityIndex = 0; rarityIndex <= 5; rarityIndex += 1) {
-    artifacts[artifactId][rarityIndex] =
-      realEstimates[artifactId]?.[rarityIndex] ??
-      estimateFromAdjacentRarity(realEstimates[artifactId] ?? {}, rarityIndex);
+  for (let rarityIndex = 0; rarityIndex < 5; rarityIndex += 1) {
+    const ratios = Object.values(realEstimates)
+      .map((artifact) => {
+        const lower = artifact[rarityIndex]?.median;
+        const higher = artifact[rarityIndex + 1]?.median;
+        return lower > 0 && higher > 0 ? higher / lower : null;
+      })
+      .filter((ratio) => ratio !== null)
+      .sort((left, right) => left - right);
+    globalAdjacentRatios[rarityIndex] = {
+      from: rarityIndex,
+      fromName: rarityNames[rarityIndex],
+      to: rarityIndex + 1,
+      toName: rarityNames[rarityIndex + 1],
+      medianMultiplier: median(ratios),
+      samples: ratios.length,
+    };
   }
-  for (const rarityIndex of Object.keys(artifacts[artifactId])) {
-    if (!artifacts[artifactId][rarityIndex]) delete artifacts[artifactId][rarityIndex];
-  }
-}
 
-const output = {
-  region,
-  snapshot: path.basename(snapshotDirectory),
-  generatedAt: new Date().toISOString(),
-  sourceWindow: {
-    asOf: new Date(asOf).toISOString(),
-    cutoff: new Date(cutoff).toISOString(),
-    days: windowDays,
-  },
-  method:
-    "recency-weighted median of build-equivalent completed sales; adjacent-step extrapolation for missing rarity tiers",
-  rules: {
-    buildEquivalent:
-      "+0, no bonus properties, full maximum charge; researched and unstudied sales are both eligible; current charge loss is allowed",
-    recencyWeights: [
-      { maxAgeDays: 14, weight: 5 },
-      { maxAgeDays: 30, weight: 3 },
-      { maxAgeDays: 90, weight: 2 },
-      { maxAgeDays: 365, weight: 1 },
-    ],
-    recencyBoostThreshold,
-    confidence: {
-      high: ">= 20 eligible samples",
-      medium: "5-19 eligible samples",
-      low: "1-4 eligible samples",
-      estimated: "adjacent-rarity extrapolation",
+  const artifacts = {};
+  for (const artifactId of [...recordsByArtifact.keys()].sort()) {
+    artifacts[artifactId] = {};
+    for (let rarityIndex = 0; rarityIndex <= 5; rarityIndex += 1) {
+      artifacts[artifactId][rarityIndex] =
+        realEstimates[artifactId]?.[rarityIndex] ??
+        estimateFromAdjacentRarity(realEstimates[artifactId] ?? {}, rarityIndex);
+    }
+    for (const rarityIndex of Object.keys(artifacts[artifactId])) {
+      if (!artifacts[artifactId][rarityIndex]) delete artifacts[artifactId][rarityIndex];
+    }
+  }
+
+  const output = {
+    region,
+    snapshot: manifest?.sourceSnapshot
+      ? path.basename(manifest.sourceSnapshot)
+      : path.basename(snapshotDirectory),
+    generatedAt: new Date().toISOString(),
+    sourceWindow: {
+      asOf: new Date(asOf).toISOString(),
+      cutoff: new Date(cutoff).toISOString(),
+      days: windowDays,
     },
-  },
-  adjacentRarityMultipliers: globalAdjacentRatios,
-  artifacts,
-};
+    method:
+      "recency-weighted median of build-equivalent completed sales; adjacent-step extrapolation for missing rarity tiers",
+    rules: {
+      buildEquivalent:
+        "+0, no bonus properties, full maximum charge; researched and unstudied sales are both eligible; current charge loss is allowed",
+      recencyWeights: [
+        { maxAgeDays: 14, weight: 5 },
+        { maxAgeDays: 30, weight: 3 },
+        { maxAgeDays: 90, weight: 2 },
+        { maxAgeDays: 365, weight: 1 },
+      ],
+      recencyBoostThreshold,
+      confidence: {
+        high: ">= 20 eligible samples",
+        medium: "5-19 eligible samples",
+        low: "1-4 eligible samples",
+        estimated: "adjacent-rarity extrapolation",
+      },
+    },
+    adjacentRarityMultipliers: globalAdjacentRatios,
+    artifacts,
+  };
 
-await writeFile(outputFile, `${JSON.stringify(output, null, 2)}\n`);
-console.log(
-  `Generated ${path.relative(projectRoot, outputFile)} from ${recordsByArtifact.size} artifact histories.`,
-);
+  await writeFile(outputFile, `${JSON.stringify(output, null, 2)}\n`);
+  console.log(
+    `Generated ${path.relative(projectRoot, outputFile)} from ${recordsByArtifact.size} artifact histories.`,
+  );
+} finally {
+  for (const directory of cleanupDirectories) {
+    await rm(directory, { recursive: true, force: true });
+  }
+}
 
-async function resolveSnapshotDirectory(regionName, requested) {
+async function resolveSnapshotDirectory(regionName, requested, cleanup) {
   if (requested) {
     const explicit = path.resolve(projectRoot, requested);
-    if (await exists(explicit)) return explicit;
+    if (await exists(explicit)) return resolveExplicitInput(explicit, cleanup);
   }
 
-  const rawRoot = path.join(projectRoot, "data", "pricing", "raw", regionName);
-  const snapshots = (await readdir(rawRoot, { withFileTypes: true }))
-    .filter((entry) => entry.isDirectory())
-    .map((entry) => entry.name)
-    .sort();
-  const snapshot = requested ?? snapshots.at(-1);
+  const cacheArchive = path.join(
+    projectRoot,
+    "data",
+    "pricing",
+    "cache",
+    regionName,
+    `auction-history-cache-${regionName}.tar.gz`,
+  );
+  if (await exists(cacheArchive)) return resolveExplicitInput(cacheArchive, cleanup);
 
-  if (!snapshot || !snapshots.includes(snapshot)) {
-    throw new Error(`Pricing snapshot not found for region ${regionName}.`);
+  throw new Error(
+    `Pricing cache not found for region ${regionName}. Build data/pricing/cache/${regionName}/auction-history-cache-${regionName}.tar.gz or pass an explicit cache archive.`,
+  );
+}
+
+async function resolveExplicitInput(explicit, cleanup) {
+  const explicitStat = await stat(explicit);
+  if (explicitStat.isDirectory()) {
+    if (await exists(path.join(explicit, "artifacts"))) return explicit;
+    throw new Error(`Pricing input is not a cache directory: ${path.relative(projectRoot, explicit)}`);
   }
-
-  return path.join(rawRoot, snapshot);
+  if (explicitStat.isFile() && explicit.endsWith(".tar.gz")) {
+    const tempDirectory = await mkdtemp(path.join(tmpdir(), "field-kit-pricing-cache-"));
+    cleanup.push(tempDirectory);
+    await execFileAsync("tar", ["-xzf", explicit, "-C", tempDirectory]);
+    if (!(await exists(path.join(tempDirectory, "artifacts")))) {
+      throw new Error(`Pricing cache archive does not contain artifacts/: ${path.relative(projectRoot, explicit)}`);
+    }
+    return tempDirectory;
+  }
+  throw new Error(`Unsupported pricing cache input: ${path.relative(projectRoot, explicit)}`);
 }
 
 async function readHistoryRecords(directory) {
-  const entries = await readdir(directory, { withFileTypes: true });
-  const records = new Map();
+  const artifactsDirectory = path.join(directory, "artifacts");
+  if (!(await exists(artifactsDirectory))) {
+    throw new Error(`Pricing cache directory must contain artifacts/: ${path.relative(projectRoot, directory)}`);
+  }
+  return readCacheRecords(artifactsDirectory);
+}
 
-  for (const entry of entries) {
-    if (entry.name === "manifest.json") continue;
-    const entryPath = path.join(directory, entry.name);
-    if (entry.isDirectory()) {
-      records.set(entry.name, await readArtifactPages(entryPath));
-    } else if (entry.isFile() && entry.name.endsWith(".json")) {
-      const artifactId = entry.name.slice(0, -5);
-      records.set(artifactId, await readArtifactPages(entryPath));
+async function readCacheRecords(artifactsDirectory) {
+  const records = new Map();
+  const files = (await readdir(artifactsDirectory, { withFileTypes: true }))
+    .filter((entry) => entry.isFile() && entry.name.endsWith(".jsonl"))
+    .map((entry) => entry.name)
+    .sort();
+
+  for (const file of files) {
+    const artifactId = file.slice(0, -6);
+    const lines = (await readFile(path.join(artifactsDirectory, file), "utf8"))
+      .split("\n")
+      .filter((line) => line.trim().length > 0);
+    const sales = [];
+    for (const line of lines) {
+      const sale = normalizeSale(unflattenCacheRow(JSON.parse(line)));
+      if (sale) sales.push(sale);
     }
+    records.set(artifactId, dedupeSales(sales));
   }
 
   return records;
 }
 
-async function readArtifactPages(entryPath) {
-  const entryStat = await stat(entryPath);
-  const files = entryStat.isDirectory()
-    ? (await readdir(entryPath))
-        .filter((file) => file.endsWith(".json"))
-        .map((file) => path.join(entryPath, file))
-    : [entryPath];
-  const sales = [];
+function dedupeSales(sales) {
+  const seen = new Set();
+  const deduped = [];
+  for (const sale of sales.sort(compareSales)) {
+    const key = stableStringify({
+      additional: sale.additional,
+      price: sale.price,
+      rarityIndex: sale.rarityIndex,
+      soldAt: sale.soldAt,
+    });
+    if (seen.has(key)) continue;
+    seen.add(key);
+    deduped.push(sale);
+  }
+  return deduped;
+}
 
-  for (const file of files.sort(byPageOffset)) {
-    const page = JSON.parse(await readFile(file, "utf8"));
-    if (typeof page.total !== "number" || !Array.isArray(page.prices)) {
-      throw new Error(`${path.relative(projectRoot, file)} does not contain an auction-history response.`);
-    }
-    for (const raw of page.prices) {
-      const sale = normalizeSale(raw);
-      if (sale) sales.push(sale);
+function compareSales(left, right) {
+  return right.soldAt - left.soldAt || left.price - right.price;
+}
+
+function stableStringify(value) {
+  if (Array.isArray(value)) return `[${value.map(stableStringify).join(",")}]`;
+  if (value && typeof value === "object") {
+    return `{${Object.keys(value)
+      .sort()
+      .map((key) => `${JSON.stringify(key)}:${stableStringify(value[key])}`)
+      .join(",")}}`;
+  }
+  return JSON.stringify(value);
+}
+
+function unflattenCacheRow(row) {
+  const raw = {};
+  const additional = {};
+  for (const [key, value] of Object.entries(row)) {
+    if (key.startsWith("additional.")) {
+      additional[key.slice("additional.".length)] = value;
+    } else {
+      raw[key] = value;
     }
   }
-
-  return sales;
+  raw.additional = additional;
+  return raw;
 }
 
 function normalizeSale(raw) {
@@ -289,10 +359,16 @@ function daysOld(sale, asOfMs) {
 
 function determineAsOf(snapshotManifest, sales) {
   const manifestDate = Date.parse(
-    snapshotManifest?.extendsHistoryCapturedAt ?? snapshotManifest?.capturedAt ?? "",
+    snapshotManifest?.asOf ??
+      snapshotManifest?.capturedAt ??
+      snapshotManifest?.extendsHistoryCapturedAt ??
+      "",
   );
   if (Number.isFinite(manifestDate)) return manifestDate;
-  const latestSale = Math.max(...sales.map((sale) => sale.soldAt));
+  let latestSale = Number.NEGATIVE_INFINITY;
+  for (const sale of sales) {
+    if (sale.soldAt > latestSale) latestSale = sale.soldAt;
+  }
   if (Number.isFinite(latestSale)) return latestSale;
   return Date.now();
 }
@@ -335,8 +411,4 @@ async function exists(file) {
   } catch {
     return false;
   }
-}
-
-function byPageOffset(left, right) {
-  return Number.parseInt(path.basename(left), 10) - Number.parseInt(path.basename(right), 10);
 }
