@@ -10,6 +10,7 @@
     "test": "vitest run src",
     "test:e2e": "playwright test",
     "pricing:cache": "node scripts/build-auction-history-cache.mjs",
+    "pricing:update-cache": "node scripts/update-auction-history-cache.mjs",
     "pricing:build": "node scripts/generate-pricing-index.mjs",
     "docs:check": "node .agents/skills/update-project-documentation/scripts/validate-docs.mjs",
     "preview": "vite preview"

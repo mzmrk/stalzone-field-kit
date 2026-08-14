@@ -112,6 +112,19 @@ keys. The builder deduplicates identical sale rows, keeps a rolling one-year
 window ending at the capture timestamp, and does not store acquisition
 credentials.
 
+Refresh an existing cache from the official auction-history API with:
+
+```bash
+STALZONE_CLIENT_ID=... STALZONE_CLIENT_SECRET=... npm run pricing:update-cache -- eu
+```
+
+[`scripts/update-auction-history-cache.mjs`](../scripts/update-auction-history-cache.mjs)
+extracts the existing region cache, fetches each artifact until the downloaded
+history overlaps the newest cached sale, merges and deduplicates rows, prunes
+anything outside the rolling one-year window, and writes the same cache archive
+format. It can also read credentials from an ignored JSON file passed after the
+region argument.
+
 Regenerate the bundled price index from the default local cache archive with:
 
 ```bash
