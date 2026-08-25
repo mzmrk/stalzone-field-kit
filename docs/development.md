@@ -134,10 +134,9 @@ charge; researched and unstudied sales are both eligible, and current charge los
 is allowed. The price is a plain one-year median until a tier has at least ten
 sales in the last 90 days, then switches to a recency-weighted median; plain
 `recent30Median`, `recent90Median`, and `recent365Median` values are retained as
-diagnostics. Adjacent-rarity extrapolation is used only
-when no same-rarity eligible sale exists. The price generator consumes only a
-cache archive or its extracted directory. Its output records the
-pricing-algorithm version, cache and manifest SHA-256 hashes, and selected
+diagnostics. Missing tiers use only direct adjacent same-artifact anchors;
+multi-tier chains remain unknown. Output records the pricing-algorithm version,
+cache and manifest SHA-256 hashes, and selected
 source-manifest fields. `generatedAt` comes
 from the cache's `asOf` timestamp, so rebuilding unchanged input is byte-for-byte
 deterministic. Without an explicit input, the script uses

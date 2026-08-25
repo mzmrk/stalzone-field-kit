@@ -17,7 +17,7 @@ const windowDays = 365;
 const recentWindowDays = 90;
 const recencyBoostThreshold = 10;
 const tolerance = 1e-6;
-const pricingAlgorithmVersion = 1;
+const pricingAlgorithmVersion = 2;
 
 const outputFile = requestedOutput
   ? path.resolve(projectRoot, requestedOutput)
@@ -112,7 +112,7 @@ try {
       days: windowDays,
     },
     method:
-      "recency-weighted median of build-equivalent completed sales; adjacent-step extrapolation for missing rarity tiers",
+      "recency-weighted median of build-equivalent completed sales; single-step adjacent-rarity extrapolation for missing rarity tiers",
     rules: {
       buildEquivalent:
         "+0, no bonus properties, full maximum charge; researched and unstudied sales are both eligible; current charge loss is allowed",
@@ -123,6 +123,7 @@ try {
         { maxAgeDays: 365, weight: 1 },
       ],
       recencyBoostThreshold,
+      extrapolationMaxDistance: 1,
       confidence: {
         high: ">= 20 eligible samples",
         medium: "5-19 eligible samples",
@@ -350,13 +351,13 @@ function estimateFromAdjacentRarity(artifactEstimates, targetRarity) {
       estimate,
       distance: Math.abs(Number(rarityIndex) - targetRarity),
     }))
-    .filter((anchor) => anchor.estimate?.median > 0)
+    .filter((anchor) => anchor.distance === 1 && anchor.estimate?.median > 0)
     .sort((left, right) => left.distance - right.distance);
 
   const anchor = anchors[0];
   if (!anchor) return null;
 
-  const multiplier = chainedMultiplier(anchor.rarityIndex, targetRarity);
+  const multiplier = adjacentMultiplier(anchor.rarityIndex, targetRarity);
   if (!(multiplier > 0)) return null;
 
   return {
@@ -374,22 +375,12 @@ function estimateFromAdjacentRarity(artifactEstimates, targetRarity) {
   };
 }
 
-function chainedMultiplier(fromRarity, toRarity) {
-  let multiplier = 1;
-  if (toRarity > fromRarity) {
-    for (let rarityIndex = fromRarity; rarityIndex < toRarity; rarityIndex += 1) {
-      const step = globalAdjacentRatios[rarityIndex]?.medianMultiplier;
-      if (!(step > 0)) return null;
-      multiplier *= step;
-    }
-  } else {
-    for (let rarityIndex = toRarity; rarityIndex < fromRarity; rarityIndex += 1) {
-      const step = globalAdjacentRatios[rarityIndex]?.medianMultiplier;
-      if (!(step > 0)) return null;
-      multiplier /= step;
-    }
-  }
-  return multiplier;
+function adjacentMultiplier(fromRarity, toRarity) {
+  if (Math.abs(toRarity - fromRarity) !== 1) return null;
+  const boundary = Math.min(fromRarity, toRarity);
+  const step = globalAdjacentRatios[boundary]?.medianMultiplier;
+  if (!(step > 0)) return null;
+  return toRarity > fromRarity ? step : 1 / step;
 }
 
 function confidenceForSamples(samples) {

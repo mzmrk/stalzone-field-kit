@@ -3,8 +3,8 @@
   "snapshot": "2026-08-25T23:01:42.771Z",
   "generatedAt": "2026-08-25T23:01:42.771Z",
   "provenance": {
-    "pricingAlgorithmVersion": 1,
-    "cacheSha256": "1a489869b03326f48286618a9ca91964298100f55ab6c9f42a5e2b6824d9c87a",
+    "pricingAlgorithmVersion": 2,
+    "cacheSha256": "dc1f71c52238cdc918f664d638d6542ca68dd50d54e9f6047b748fcb727a68b9",
     "manifestSha256": "aae89e3b4ebd49a892cb48eb70842e65c7f2021ff50f46b1ae46d17ddcb1c621",
     "sourceManifest": {
       "schemaVersion": 1,
@@ -21,7 +21,7 @@
     "cutoff": "2025-08-25T23:01:42.771Z",
     "days": 365
   },
-  "method": "recency-weighted median of build-equivalent completed sales; adjacent-step extrapolation for missing rarity tiers",
+  "method": "recency-weighted median of build-equivalent completed sales; single-step adjacent-rarity extrapolation for missing rarity tiers",
   "rules": {
     "buildEquivalent": "+0, no bonus properties, full maximum charge; researched and unstudied sales are both eligible; current charge loss is allowed",
     "recencyWeights": [
@@ -43,6 +43,7 @@
       }
     ],
     "recencyBoostThreshold": 10,
+    "extrapolationMaxDistance": 1,
     "confidence": {
       "high": ">= 20 eligible samples",
       "medium": "5-19 eligible samples",
@@ -2157,19 +2158,6 @@
         "anchorRarityName": "Rare",
         "anchorPrice": 98444443.5,
         "multiplier": 5.638694894893009
-      },
-      "5": {
-        "median": 2530383190.70731,
-        "samples": 0,
-        "recent90Samples": 0,
-        "condition": "adjacent-extrapolated",
-        "confidence": "estimated",
-        "weighted": false,
-        "windowDays": 365,
-        "anchorRarity": 3,
-        "anchorRarityName": "Rare",
-        "anchorPrice": 98444443.5,
-        "multiplier": 25.70366696935323
       }
     },
     "9nd0": {
@@ -3643,19 +3631,6 @@
         "anchorRarityName": "Rare",
         "anchorPrice": 36975000,
         "multiplier": 5.638694894893009
-      },
-      "5": {
-        "median": 950393086.1918356,
-        "samples": 0,
-        "recent90Samples": 0,
-        "condition": "adjacent-extrapolated",
-        "confidence": "estimated",
-        "weighted": false,
-        "windowDays": 365,
-        "anchorRarity": 3,
-        "anchorRarityName": "Rare",
-        "anchorPrice": 36975000,
-        "multiplier": 25.70366696935323
       }
     },
     "k3rv": {
@@ -3867,19 +3842,6 @@
         "anchorRarityName": "Rare",
         "anchorPrice": 41000000,
         "multiplier": 5.638694894893009
-      },
-      "5": {
-        "median": 1053850345.7434824,
-        "samples": 0,
-        "recent90Samples": 0,
-        "condition": "adjacent-extrapolated",
-        "confidence": "estimated",
-        "weighted": false,
-        "windowDays": 365,
-        "anchorRarity": 3,
-        "anchorRarityName": "Rare",
-        "anchorPrice": 41000000,
-        "multiplier": 25.70366696935323
       }
     },
     "kqgy": {
@@ -4387,19 +4349,6 @@
         "anchorRarityName": "Rare",
         "anchorPrice": 20000000,
         "multiplier": 5.638694894893009
-      },
-      "5": {
-        "median": 514073339.3870646,
-        "samples": 0,
-        "recent90Samples": 0,
-        "condition": "adjacent-extrapolated",
-        "confidence": "estimated",
-        "weighted": false,
-        "windowDays": 365,
-        "anchorRarity": 3,
-        "anchorRarityName": "Rare",
-        "anchorPrice": 20000000,
-        "multiplier": 25.70366696935323
       }
     },
     "ljpq": {

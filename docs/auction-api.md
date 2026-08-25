@@ -59,10 +59,10 @@ For optimizer pricing, normalize `qlt ?? 0`; require `ptn ?? 0` to be `0`, no
 build-equivalent, and recoverable current-charge loss (`ndmg`) is allowed.
 
 [`scripts/generate-pricing-index.mjs`](../scripts/generate-pricing-index.mjs)
-uses one year of completed sales, enables recency weighting only with enough
-recent same-tier samples, and extrapolates adjacent rarities only when direct
-same-artifact, same-rarity sales are absent. Active offers, upgraded sales, and
-cross-artifact absolute averages require a new validation pass.
+uses one year of completed sales; recency weighting requires enough recent
+same-tier samples. A missing tier is extrapolated only from a directly measured
+adjacent tier of the same artifact. Multiplier chains are forbidden, so other
+gaps remain unknown. Active offers and upgraded sales require validation.
 
 Never transfer history across artifact IDs. On 4 March 2026, EXBO [replaced the existing Snares with
 Peg-Top](https://steamcommunity.com/games/1818450/announcements/detail/523118018927001619):

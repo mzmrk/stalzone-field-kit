@@ -194,6 +194,13 @@ describe("pricing index builder", () => {
     await writeJsonLines(path.join(cacheDirectory, "artifacts", "beta.jsonl"), [
       { amount: 1, price: 50, time: "2026-01-09T00:00:00.000Z" },
     ]);
+    await writeJsonLines(path.join(cacheDirectory, "artifacts", "gamma.jsonl"), [
+      { amount: 1, price: 400, time: "2026-01-09T00:00:00.000Z", "additional.qlt": 1 },
+      { amount: 1, price: 1_200, time: "2026-01-08T00:00:00.000Z", "additional.qlt": 2 },
+    ]);
+    await writeJsonLines(path.join(cacheDirectory, "artifacts", "delta.jsonl"), [
+      { amount: 1, price: 600, time: "2026-01-09T00:00:00.000Z", "additional.qlt": 2 },
+    ]);
 
     await execFileAsync("node", [
       path.join(projectRoot, "scripts", "generate-pricing-index.mjs"),
@@ -212,7 +219,7 @@ describe("pricing index builder", () => {
     expect(await readFile(secondOutputFile, "utf8")).toBe(await readFile(outputFile, "utf8"));
     expect(index.generatedAt).toBe("2026-01-10T00:00:00.000Z");
     expect(index.provenance).toMatchObject({
-      pricingAlgorithmVersion: 1,
+      pricingAlgorithmVersion: 2,
       sourceManifest: {
         schemaVersion: 1,
         region: "eu",
@@ -243,6 +250,14 @@ describe("pricing index builder", () => {
       anchorPrice: 50,
       multiplier: 2,
     });
+    expect(index.artifacts.beta[2]).toBeUndefined();
+    expect(index.artifacts.delta[1]).toMatchObject({
+      median: 200,
+      anchorRarity: 2,
+      anchorPrice: 600,
+      multiplier: 1 / 3,
+    });
+    expect(index.artifacts.delta[0]).toBeUndefined();
   });
 });
 
