@@ -1,24 +1,24 @@
 {
   "region": "eu",
-  "snapshot": "2026-08-25T19:25:28.435Z",
-  "generatedAt": "2026-08-25T19:25:28.435Z",
+  "snapshot": "2026-08-25T19:59:16.331Z",
+  "generatedAt": "2026-08-25T19:59:16.331Z",
   "provenance": {
     "pricingAlgorithmVersion": 1,
-    "cacheSha256": "d00b273ec0cac911bb9829c767a2d911de460822b9ef11a6e2ac7b1c7bcd03b5",
-    "manifestSha256": "6b887e794df9bb7eafe280c07fd69bb44eded1127b55eb8909fbb3d8689cb0ef",
+    "cacheSha256": "d6fb82316ed34e4d3cd5d0a1de600d00a92bdfbb08de24e9fa14a045d0cbd852",
+    "manifestSha256": "b3252d089dc659420634de2ed6f97fc3aa2c53cf1e12f6ae4fb4e9ef7de2ac71",
     "sourceManifest": {
       "schemaVersion": 1,
       "region": "eu",
-      "asOf": "2026-08-25T19:25:28.435Z",
-      "cutoff": "2025-08-25T19:25:28.435Z",
+      "asOf": "2026-08-25T19:59:16.331Z",
+      "cutoff": "2025-08-25T19:59:16.331Z",
       "windowDays": 365,
       "artifactCount": 103,
-      "recordCount": 1106165
+      "recordCount": 1106133
     }
   },
   "sourceWindow": {
-    "asOf": "2026-08-25T19:25:28.435Z",
-    "cutoff": "2025-08-25T19:25:28.435Z",
+    "asOf": "2026-08-25T19:59:16.331Z",
+    "cutoff": "2025-08-25T19:59:16.331Z",
     "days": 365
   },
   "method": "recency-weighted median of build-equivalent completed sales; adjacent-step extrapolation for missing rarity tiers",
@@ -56,7 +56,7 @@
       "fromName": "Ordinary",
       "to": 1,
       "toName": "Uncommon",
-      "medianMultiplier": 1.8835631480962147,
+      "medianMultiplier": 1.8820860915280564,
       "samples": 102
     },
     {
@@ -108,11 +108,11 @@
       },
       "1": {
         "median": 230000,
-        "samples": 267,
-        "recent90Samples": 107,
-        "recent30Median": 215000,
+        "samples": 268,
+        "recent90Samples": 108,
+        "recent30Median": 217500,
         "recent90Median": 215000,
-        "recent365Median": 244444,
+        "recent365Median": 244447,
         "condition": "build-equivalent",
         "confidence": "high",
         "weighted": true,
@@ -195,11 +195,11 @@
       },
       "2": {
         "median": 15000,
-        "samples": 704,
+        "samples": 703,
         "recent90Samples": 187,
         "recent30Median": 10000,
         "recent90Median": 13000,
-        "recent365Median": 16305.5,
+        "recent365Median": 16500,
         "condition": "build-equivalent",
         "confidence": "high",
         "weighted": true,
@@ -256,9 +256,9 @@
         "windowDays": 365
       },
       "1": {
-        "median": 9950,
+        "median": 9969,
         "samples": 1125,
-        "recent90Samples": 443,
+        "recent90Samples": 442,
         "recent30Median": 8252,
         "recent90Median": 9999,
         "recent365Median": 10000,
@@ -270,7 +270,7 @@
       "2": {
         "median": 19999,
         "samples": 894,
-        "recent90Samples": 250,
+        "recent90Samples": 249,
         "recent30Median": 19000,
         "recent90Median": 19000,
         "recent365Median": 20000,
@@ -319,7 +319,7 @@
     "1kdg": {
       "0": {
         "median": 8000,
-        "samples": 3070,
+        "samples": 3069,
         "recent90Samples": 1279,
         "recent30Median": 7000,
         "recent90Median": 8880,
@@ -331,11 +331,11 @@
       },
       "1": {
         "median": 15000,
-        "samples": 2011,
+        "samples": 2010,
         "recent90Samples": 525,
         "recent30Median": 10000,
         "recent90Median": 14000,
-        "recent365Median": 16777,
+        "recent365Median": 16838.5,
         "condition": "build-equivalent",
         "confidence": "high",
         "weighted": true,
@@ -492,9 +492,9 @@
       "2": {
         "median": 180000,
         "samples": 287,
-        "recent90Samples": 87,
+        "recent90Samples": 86,
         "recent30Median": 199090,
-        "recent90Median": 189999,
+        "recent90Median": 189999.5,
         "recent365Median": 139999,
         "condition": "build-equivalent",
         "confidence": "high",
@@ -565,7 +565,7 @@
       },
       "2": {
         "median": 420000,
-        "samples": 5640,
+        "samples": 5637,
         "recent90Samples": 465,
         "recent30Median": 385555,
         "recent90Median": 380000,
@@ -615,7 +615,7 @@
     "4l1r": {
       "0": {
         "median": 14500,
-        "samples": 3328,
+        "samples": 3326,
         "recent90Samples": 909,
         "recent30Median": 12999,
         "recent90Median": 13900,
@@ -627,7 +627,7 @@
       },
       "1": {
         "median": 38000,
-        "samples": 3775,
+        "samples": 3774,
         "recent90Samples": 666,
         "recent30Median": 29999,
         "recent90Median": 30000,
@@ -639,7 +639,7 @@
       },
       "2": {
         "median": 85000,
-        "samples": 3348,
+        "samples": 3346,
         "recent90Samples": 665,
         "recent30Median": 69000,
         "recent90Median": 70000,
@@ -701,7 +701,7 @@
       },
       "1": {
         "median": 11000,
-        "samples": 1330,
+        "samples": 1329,
         "recent90Samples": 498,
         "recent30Median": 10000,
         "recent90Median": 11000,
@@ -714,9 +714,9 @@
       "2": {
         "median": 27000,
         "samples": 1608,
-        "recent90Samples": 437,
+        "recent90Samples": 436,
         "recent30Median": 25000,
-        "recent90Median": 25333,
+        "recent90Median": 25444,
         "recent365Median": 28994.5,
         "condition": "build-equivalent",
         "confidence": "high",
@@ -725,11 +725,11 @@
       },
       "3": {
         "median": 70000,
-        "samples": 3262,
-        "recent90Samples": 774,
-        "recent30Median": 64721.5,
+        "samples": 3259,
+        "recent90Samples": 775,
+        "recent30Median": 64999,
         "recent90Median": 65000,
-        "recent365Median": 71055.5,
+        "recent365Median": 71000,
         "condition": "build-equivalent",
         "confidence": "high",
         "weighted": true,
@@ -763,8 +763,8 @@
     "4lkp": {
       "0": {
         "median": 23333,
-        "samples": 10360,
-        "recent90Samples": 3548,
+        "samples": 10364,
+        "recent90Samples": 3552,
         "recent30Median": 21000,
         "recent90Median": 24999,
         "recent365Median": 24000,
@@ -775,8 +775,8 @@
       },
       "1": {
         "median": 49900,
-        "samples": 8177,
-        "recent90Samples": 2660,
+        "samples": 8178,
+        "recent90Samples": 2663,
         "recent30Median": 45000,
         "recent90Median": 50000,
         "recent365Median": 49999,
@@ -787,8 +787,8 @@
       },
       "2": {
         "median": 110000,
-        "samples": 7042,
-        "recent90Samples": 1933,
+        "samples": 7041,
+        "recent90Samples": 1932,
         "recent30Median": 100000,
         "recent90Median": 110000,
         "recent365Median": 110000,
@@ -810,11 +810,11 @@
         "windowDays": 365
       },
       "4": {
-        "median": 889998,
+        "median": 890000,
         "samples": 508,
-        "recent90Samples": 138,
+        "recent90Samples": 137,
         "recent30Median": 741666.5,
-        "recent90Median": 746605,
+        "recent90Median": 749999,
         "recent365Median": 1000000,
         "condition": "build-equivalent",
         "confidence": "high",
@@ -837,8 +837,8 @@
     "4lml": {
       "0": {
         "median": 40000,
-        "samples": 4884,
-        "recent90Samples": 1788,
+        "samples": 4885,
+        "recent90Samples": 1789,
         "recent30Median": 44444,
         "recent90Median": 42000,
         "recent365Median": 40000,
@@ -849,7 +849,7 @@
       },
       "1": {
         "median": 76000,
-        "samples": 4415,
+        "samples": 4414,
         "recent90Samples": 798,
         "recent30Median": 73666.5,
         "recent90Median": 70000,
@@ -861,7 +861,7 @@
       },
       "2": {
         "median": 270000,
-        "samples": 6182,
+        "samples": 6181,
         "recent90Samples": 1293,
         "recent30Median": 184000,
         "recent90Median": 185000,
@@ -886,9 +886,9 @@
       "4": {
         "median": 30000000,
         "samples": 95,
-        "recent90Samples": 38,
+        "recent90Samples": 36,
         "recent30Median": 32000000,
-        "recent90Median": 29999999.5,
+        "recent90Median": 30000000,
         "recent365Median": 30000000,
         "condition": "build-equivalent",
         "confidence": "high",
@@ -1209,8 +1209,8 @@
     "5r34": {
       "0": {
         "median": 6000,
-        "samples": 3521,
-        "recent90Samples": 1681,
+        "samples": 3520,
+        "recent90Samples": 1684,
         "recent30Median": 6000,
         "recent90Median": 7500,
         "recent365Median": 5600,
@@ -1245,8 +1245,8 @@
       },
       "3": {
         "median": 65000,
-        "samples": 908,
-        "recent90Samples": 377,
+        "samples": 910,
+        "recent90Samples": 379,
         "recent30Median": 60000,
         "recent90Median": 70000,
         "recent365Median": 65000,
@@ -1283,10 +1283,10 @@
     "5r5g": {
       "0": {
         "median": 14000,
-        "samples": 4040,
-        "recent90Samples": 1461,
+        "samples": 4042,
+        "recent90Samples": 1462,
         "recent30Median": 13000,
-        "recent90Median": 13999,
+        "recent90Median": 13999.5,
         "recent365Median": 14000,
         "condition": "build-equivalent",
         "confidence": "high",
@@ -1295,8 +1295,8 @@
       },
       "1": {
         "median": 39999,
-        "samples": 6002,
-        "recent90Samples": 2172,
+        "samples": 6004,
+        "recent90Samples": 2175,
         "recent30Median": 40000,
         "recent90Median": 40000,
         "recent365Median": 39000,
@@ -1307,8 +1307,8 @@
       },
       "2": {
         "median": 100000,
-        "samples": 6457,
-        "recent90Samples": 2005,
+        "samples": 6458,
+        "recent90Samples": 2006,
         "recent30Median": 119999,
         "recent90Median": 105000,
         "recent365Median": 99000,
@@ -1370,9 +1370,9 @@
       "1": {
         "median": 88999,
         "samples": 3601,
-        "recent90Samples": 1178,
+        "recent90Samples": 1179,
         "recent30Median": 98000,
-        "recent90Median": 93844.5,
+        "recent90Median": 93889,
         "recent365Median": 80000,
         "condition": "build-equivalent",
         "confidence": "high",
@@ -1383,7 +1383,7 @@
         "median": 340000,
         "samples": 4043,
         "recent90Samples": 1211,
-        "recent30Median": 666666,
+        "recent30Median": 668332.5,
         "recent90Median": 480000,
         "recent365Median": 250000,
         "condition": "build-equivalent",
@@ -1591,10 +1591,10 @@
         "windowDays": 365
       },
       "1": {
-        "median": 7199,
-        "samples": 1626,
-        "recent90Samples": 852,
-        "recent30Median": 7000,
+        "median": 7111,
+        "samples": 1627,
+        "recent90Samples": 853,
+        "recent30Median": 6999.5,
         "recent90Median": 8700,
         "recent365Median": 7000,
         "condition": "build-equivalent",
@@ -1639,7 +1639,7 @@
         "windowDays": 365
       },
       "5": {
-        "median": 320000,
+        "median": 328000,
         "samples": 230,
         "recent90Samples": 84,
         "recent30Median": 300000,
@@ -1654,7 +1654,7 @@
     "5rpq": {
       "0": {
         "median": 49999,
-        "samples": 3363,
+        "samples": 3361,
         "recent90Samples": 863,
         "recent30Median": 46000,
         "recent90Median": 45550,
@@ -1665,9 +1665,9 @@
         "windowDays": 365
       },
       "1": {
-        "median": 94999,
+        "median": 94445,
         "samples": 3495,
-        "recent90Samples": 866,
+        "recent90Samples": 868,
         "recent30Median": 89000,
         "recent90Median": 90000,
         "recent365Median": 96000,
@@ -1728,7 +1728,7 @@
     "5rwq": {
       "0": {
         "median": 40000,
-        "samples": 2045,
+        "samples": 2044,
         "recent90Samples": 374,
         "recent30Median": 39999,
         "recent90Median": 40000,
@@ -1740,11 +1740,11 @@
       },
       "1": {
         "median": 90000,
-        "samples": 3930,
+        "samples": 3928,
         "recent90Samples": 598,
         "recent30Median": 74995,
         "recent90Median": 75000,
-        "recent365Median": 96000.5,
+        "recent365Median": 96000,
         "condition": "build-equivalent",
         "confidence": "high",
         "weighted": true,
@@ -1765,7 +1765,7 @@
       "3": {
         "median": 1666666,
         "samples": 2387,
-        "recent90Samples": 706,
+        "recent90Samples": 705,
         "recent30Median": 1500000,
         "recent90Median": 1500000,
         "recent365Median": 1849998,
@@ -1826,7 +1826,7 @@
       },
       "2": {
         "median": 89999,
-        "samples": 2410,
+        "samples": 2409,
         "recent90Samples": 316,
         "recent30Median": 101000,
         "recent90Median": 99000,
@@ -2099,10 +2099,10 @@
     "9n7z": {
       "0": {
         "median": 240000,
-        "samples": 1675,
-        "recent90Samples": 331,
+        "samples": 1676,
+        "recent90Samples": 332,
         "recent30Median": 350000,
-        "recent90Median": 270000,
+        "recent90Median": 271000,
         "recent365Median": 222222,
         "condition": "build-equivalent",
         "confidence": "high",
@@ -2175,8 +2175,8 @@
     "9nd0": {
       "0": {
         "median": 6500,
-        "samples": 4277,
-        "recent90Samples": 1997,
+        "samples": 4283,
+        "recent90Samples": 2001,
         "recent30Median": 6000,
         "recent90Median": 8000,
         "recent365Median": 6400,
@@ -2249,7 +2249,7 @@
     "9nml": {
       "0": {
         "median": 6000,
-        "samples": 2441,
+        "samples": 2440,
         "recent90Samples": 1292,
         "recent30Median": 5900,
         "recent90Median": 8000,
@@ -2260,8 +2260,8 @@
         "windowDays": 365
       },
       "1": {
-        "median": 9900,
-        "samples": 862,
+        "median": 9898,
+        "samples": 861,
         "recent90Samples": 343,
         "recent30Median": 7638.5,
         "recent90Median": 10000,
@@ -2421,9 +2421,9 @@
       },
       "2": {
         "median": 280000,
-        "samples": 4809,
-        "recent90Samples": 667,
-        "recent30Median": 389999.5,
+        "samples": 4811,
+        "recent90Samples": 669,
+        "recent30Median": 390000,
         "recent90Median": 310000,
         "recent365Median": 250000,
         "condition": "build-equivalent",
@@ -2446,9 +2446,9 @@
       "4": {
         "median": 14799999.5,
         "samples": 346,
-        "recent90Samples": 6,
+        "recent90Samples": 5,
         "recent30Median": 35000000,
-        "recent90Median": 26777777.5,
+        "recent90Median": 30555555,
         "recent365Median": 14799999.5,
         "condition": "build-equivalent",
         "confidence": "high",
@@ -2483,10 +2483,10 @@
       },
       "1": {
         "median": 98000,
-        "samples": 3101,
-        "recent90Samples": 549,
-        "recent30Median": 94999.5,
-        "recent90Median": 92999,
+        "samples": 3100,
+        "recent90Samples": 550,
+        "recent30Median": 94999,
+        "recent90Median": 92499.5,
         "recent365Median": 99999,
         "condition": "build-equivalent",
         "confidence": "high",
@@ -2495,7 +2495,7 @@
       },
       "2": {
         "median": 235000,
-        "samples": 2778,
+        "samples": 2777,
         "recent90Samples": 514,
         "recent30Median": 199443.5,
         "recent90Median": 199999,
@@ -2546,7 +2546,7 @@
     "gy10": {
       "0": {
         "median": 6000,
-        "samples": 9490,
+        "samples": 9488,
         "recent90Samples": 5212,
         "recent30Median": 5500,
         "recent90Median": 7825,
@@ -2558,7 +2558,7 @@
       },
       "1": {
         "median": 8000,
-        "samples": 3275,
+        "samples": 3274,
         "recent90Samples": 1499,
         "recent30Median": 7700,
         "recent90Median": 9000,
@@ -2571,8 +2571,8 @@
       "2": {
         "median": 15998,
         "samples": 1794,
-        "recent90Samples": 646,
-        "recent30Median": 15550,
+        "recent90Samples": 645,
+        "recent30Median": 15725,
         "recent90Median": 16000,
         "recent365Median": 16000,
         "condition": "build-equivalent",
@@ -2707,7 +2707,7 @@
       },
       "1": {
         "median": 27777,
-        "samples": 7665,
+        "samples": 7664,
         "recent90Samples": 793,
         "recent30Median": 13000,
         "recent90Median": 15000,
@@ -2719,11 +2719,11 @@
       },
       "2": {
         "median": 55555,
-        "samples": 8846,
+        "samples": 8840,
         "recent90Samples": 989,
         "recent30Median": 29999,
         "recent90Median": 32220,
-        "recent365Median": 63999,
+        "recent365Median": 63450,
         "condition": "build-equivalent",
         "confidence": "high",
         "weighted": true,
@@ -2793,8 +2793,8 @@
       },
       "2": {
         "median": 25000,
-        "samples": 959,
-        "recent90Samples": 386,
+        "samples": 960,
+        "recent90Samples": 385,
         "recent30Median": 27000,
         "recent90Median": 25000,
         "recent365Median": 25000,
@@ -2917,8 +2917,8 @@
     "gyn0": {
       "0": {
         "median": 7999,
-        "samples": 3403,
-        "recent90Samples": 1397,
+        "samples": 3402,
+        "recent90Samples": 1395,
         "recent30Median": 7000,
         "recent90Median": 8000,
         "recent365Median": 8000,
@@ -2929,7 +2929,7 @@
       },
       "1": {
         "median": 15000,
-        "samples": 1895,
+        "samples": 1891,
         "recent90Samples": 728,
         "recent30Median": 14900,
         "recent90Median": 15000,
@@ -2941,7 +2941,7 @@
       },
       "2": {
         "median": 35000,
-        "samples": 1741,
+        "samples": 1740,
         "recent90Samples": 702,
         "recent30Median": 37000,
         "recent90Median": 35000,
@@ -3065,8 +3065,8 @@
     "gyq5": {
       "0": {
         "median": 45000,
-        "samples": 7908,
-        "recent90Samples": 1365,
+        "samples": 7907,
+        "recent90Samples": 1366,
         "recent30Median": 30000,
         "recent90Median": 33000,
         "recent365Median": 50000,
@@ -3081,7 +3081,7 @@
         "recent90Samples": 2651,
         "recent30Median": 85000,
         "recent90Median": 83000,
-        "recent365Median": 136999.5,
+        "recent365Median": 136832.5,
         "condition": "build-equivalent",
         "confidence": "high",
         "weighted": true,
@@ -3089,8 +3089,8 @@
       },
       "2": {
         "median": 450000,
-        "samples": 6044,
-        "recent90Samples": 1343,
+        "samples": 6043,
+        "recent90Samples": 1342,
         "recent30Median": 320000,
         "recent90Median": 299999,
         "recent365Median": 600000,
@@ -3102,8 +3102,8 @@
       "3": {
         "median": 1950000,
         "samples": 2268,
-        "recent90Samples": 566,
-        "recent30Median": 1189999.5,
+        "recent90Samples": 565,
+        "recent30Median": 1189999,
         "recent90Median": 1100000,
         "recent365Median": 2550000,
         "condition": "build-equivalent",
@@ -3236,9 +3236,9 @@
         "windowDays": 365
       },
       "2": {
-        "median": 270000,
+        "median": 271000,
         "samples": 1414,
-        "recent90Samples": 617,
+        "recent90Samples": 614,
         "recent30Median": 299999,
         "recent90Median": 255555,
         "recent365Median": 276385,
@@ -3312,7 +3312,7 @@
       },
       "2": {
         "median": 1000000,
-        "samples": 3254,
+        "samples": 3253,
         "recent90Samples": 294,
         "recent30Median": 1677777,
         "recent90Median": 1345000,
@@ -3364,9 +3364,9 @@
       "0": {
         "median": 18000,
         "samples": 4428,
-        "recent90Samples": 2048,
+        "recent90Samples": 2046,
         "recent30Median": 16000,
-        "recent90Median": 18550,
+        "recent90Median": 18500,
         "recent365Median": 18000,
         "condition": "build-equivalent",
         "confidence": "high",
@@ -3387,8 +3387,8 @@
       },
       "2": {
         "median": 60000,
-        "samples": 2676,
-        "recent90Samples": 907,
+        "samples": 2677,
+        "recent90Samples": 908,
         "recent30Median": 63000,
         "recent90Median": 65000,
         "recent365Median": 60000,
@@ -3598,8 +3598,8 @@
       "1": {
         "median": 790000,
         "samples": 2151,
-        "recent90Samples": 655,
-        "recent30Median": 1752777.5,
+        "recent90Samples": 654,
+        "recent30Median": 1755555,
         "recent90Median": 1289999,
         "recent365Median": 569999,
         "condition": "build-equivalent",
@@ -3673,10 +3673,10 @@
       },
       "1": {
         "median": 110000,
-        "samples": 1302,
-        "recent90Samples": 374,
+        "samples": 1303,
+        "recent90Samples": 375,
         "recent30Median": 218888,
-        "recent90Median": 139495,
+        "recent90Median": 139990,
         "recent365Median": 100000,
         "condition": "build-equivalent",
         "confidence": "high",
@@ -3809,7 +3809,7 @@
     "kq4v": {
       "0": {
         "median": 140000,
-        "samples": 298,
+        "samples": 297,
         "recent90Samples": 42,
         "recent30Median": 184000,
         "recent90Median": 180000,
@@ -3885,9 +3885,9 @@
     "kqgy": {
       "0": {
         "median": 79999,
-        "samples": 6800,
-        "recent90Samples": 1893,
-        "recent30Median": 79998,
+        "samples": 6802,
+        "recent90Samples": 1895,
+        "recent30Median": 79998.5,
         "recent90Median": 79999,
         "recent365Median": 79999,
         "condition": "build-equivalent",
@@ -3897,9 +3897,9 @@
       },
       "1": {
         "median": 200000,
-        "samples": 10097,
+        "samples": 10099,
         "recent90Samples": 3087,
-        "recent30Median": 223999.5,
+        "recent30Median": 223499.5,
         "recent90Median": 210000,
         "recent365Median": 200000,
         "condition": "build-equivalent",
@@ -3908,10 +3908,10 @@
         "windowDays": 365
       },
       "2": {
-        "median": 1598989,
-        "samples": 2709,
-        "recent90Samples": 764,
-        "recent30Median": 1905000,
+        "median": 1599000,
+        "samples": 2711,
+        "recent90Samples": 766,
+        "recent30Median": 1900000,
         "recent90Median": 1684444.5,
         "recent365Median": 1450000,
         "condition": "build-equivalent",
@@ -3983,7 +3983,7 @@
       },
       "2": {
         "median": 50000,
-        "samples": 1194,
+        "samples": 1193,
         "recent90Samples": 260,
         "recent30Median": 40000,
         "recent90Median": 45000,
@@ -4045,7 +4045,7 @@
       },
       "1": {
         "median": 75000,
-        "samples": 2170,
+        "samples": 2169,
         "recent90Samples": 430,
         "recent30Median": 90000,
         "recent90Median": 93000,
@@ -4068,7 +4068,7 @@
         "windowDays": 365
       },
       "3": {
-        "median": 989890,
+        "median": 980001,
         "samples": 1449,
         "recent90Samples": 302,
         "recent30Median": 2500000,
@@ -4131,7 +4131,7 @@
       },
       "2": {
         "median": 40000,
-        "samples": 1971,
+        "samples": 1972,
         "recent90Samples": 455,
         "recent30Median": 35000,
         "recent90Median": 37000,
@@ -4143,9 +4143,9 @@
       },
       "3": {
         "median": 99999,
-        "samples": 3764,
+        "samples": 3765,
         "recent90Samples": 796,
-        "recent30Median": 81000,
+        "recent30Median": 81499.5,
         "recent90Median": 87888.5,
         "recent365Median": 100000,
         "condition": "build-equivalent",
@@ -4167,10 +4167,10 @@
       },
       "5": {
         "median": 4999999,
-        "samples": 148,
-        "recent90Samples": 52,
-        "recent30Median": 4988888,
-        "recent90Median": 4675000,
+        "samples": 149,
+        "recent90Samples": 53,
+        "recent30Median": 4994444,
+        "recent90Median": 4700000,
         "recent365Median": 5000000,
         "condition": "build-equivalent",
         "confidence": "high",
@@ -4193,8 +4193,8 @@
       },
       "1": {
         "median": 110000,
-        "samples": 6641,
-        "recent90Samples": 2076,
+        "samples": 6637,
+        "recent90Samples": 2078,
         "recent30Median": 119999,
         "recent90Median": 110000,
         "recent365Median": 105000,
@@ -4205,8 +4205,8 @@
       },
       "2": {
         "median": 598000,
-        "samples": 4840,
-        "recent90Samples": 1288,
+        "samples": 4841,
+        "recent90Samples": 1289,
         "recent30Median": 649000,
         "recent90Median": 560000,
         "recent365Median": 589000,
@@ -4405,8 +4405,8 @@
     "ljpq": {
       "0": {
         "median": 50000,
-        "samples": 5781,
-        "recent90Samples": 1859,
+        "samples": 5780,
+        "recent90Samples": 1860,
         "recent30Median": 50000,
         "recent90Median": 50000,
         "recent365Median": 50000,
@@ -4417,11 +4417,11 @@
       },
       "1": {
         "median": 100000,
-        "samples": 5145,
+        "samples": 5143,
         "recent90Samples": 1521,
         "recent30Median": 100000,
         "recent90Median": 100000,
-        "recent365Median": 99500,
+        "recent365Median": 99501,
         "condition": "build-equivalent",
         "confidence": "high",
         "weighted": true,
@@ -4479,7 +4479,7 @@
     "ljrj": {
       "0": {
         "median": 50000,
-        "samples": 4481,
+        "samples": 4480,
         "recent90Samples": 1303,
         "recent30Median": 50000,
         "recent90Median": 50000,
@@ -4490,8 +4490,8 @@
         "windowDays": 365
       },
       "1": {
-        "median": 83333,
-        "samples": 2748,
+        "median": 84000,
+        "samples": 2745,
         "recent90Samples": 691,
         "recent30Median": 80000,
         "recent90Median": 80000,
@@ -4554,7 +4554,7 @@
       "0": {
         "median": 70000,
         "samples": 401,
-        "recent90Samples": 138,
+        "recent90Samples": 137,
         "recent30Median": 140000,
         "recent90Median": 72000,
         "recent365Median": 70000,
@@ -4566,9 +4566,9 @@
       "1": {
         "median": 199000,
         "samples": 1100,
-        "recent90Samples": 510,
+        "recent90Samples": 505,
         "recent30Median": 430000,
-        "recent90Median": 229994.5,
+        "recent90Median": 230000,
         "recent365Median": 180000,
         "condition": "build-equivalent",
         "confidence": "high",
@@ -4590,9 +4590,9 @@
       "3": {
         "median": 13800000,
         "samples": 202,
-        "recent90Samples": 87,
+        "recent90Samples": 86,
         "recent30Median": 16894444,
-        "recent90Median": 13900000,
+        "recent90Median": 13949900,
         "recent365Median": 13700000,
         "condition": "build-equivalent",
         "confidence": "high",
@@ -4702,11 +4702,11 @@
     "qo06": {
       "0": {
         "median": 50000,
-        "samples": 4355,
-        "recent90Samples": 1085,
+        "samples": 4356,
+        "recent90Samples": 1086,
         "recent30Median": 49999,
         "recent90Median": 49999,
-        "recent365Median": 53500,
+        "recent365Median": 53416.5,
         "condition": "build-equivalent",
         "confidence": "high",
         "weighted": true,
@@ -4776,8 +4776,8 @@
     "qo59": {
       "0": {
         "median": 49000,
-        "samples": 3887,
-        "recent90Samples": 1394,
+        "samples": 3888,
+        "recent90Samples": 1395,
         "recent30Median": 50000,
         "recent90Median": 49999,
         "recent365Median": 48888,
@@ -5074,8 +5074,8 @@
     "qoq6": {
       "0": {
         "median": 49999,
-        "samples": 4741,
-        "recent90Samples": 1533,
+        "samples": 4743,
+        "recent90Samples": 1535,
         "recent30Median": 50000,
         "recent90Median": 50000,
         "recent365Median": 49000,
@@ -5087,9 +5087,9 @@
       "1": {
         "median": 80000,
         "samples": 3443,
-        "recent90Samples": 1000,
+        "recent90Samples": 997,
         "recent30Median": 80000,
-        "recent90Median": 80999.5,
+        "recent90Median": 81000,
         "recent365Median": 80000,
         "condition": "build-equivalent",
         "confidence": "high",
@@ -5098,9 +5098,9 @@
       },
       "2": {
         "median": 200000,
-        "samples": 6351,
-        "recent90Samples": 1668,
-        "recent30Median": 188888,
+        "samples": 6353,
+        "recent90Samples": 1670,
+        "recent30Median": 187944,
         "recent90Median": 198000,
         "recent365Median": 200000,
         "condition": "build-equivalent",
@@ -5110,11 +5110,11 @@
       },
       "3": {
         "median": 1500000,
-        "samples": 4342,
+        "samples": 4341,
         "recent90Samples": 1000,
         "recent30Median": 1500000,
         "recent90Median": 1590000,
-        "recent365Median": 1457777.5,
+        "recent365Median": 1455555,
         "condition": "build-equivalent",
         "confidence": "high",
         "weighted": true,
@@ -5123,9 +5123,9 @@
       "4": {
         "median": 17000000,
         "samples": 301,
-        "recent90Samples": 79,
+        "recent90Samples": 78,
         "recent30Median": 17888888,
-        "recent90Median": 18000000,
+        "recent90Median": 17999999.5,
         "recent365Median": 15000000,
         "condition": "build-equivalent",
         "confidence": "high",
@@ -5161,9 +5161,9 @@
       "1": {
         "median": 500000,
         "samples": 1834,
-        "recent90Samples": 222,
+        "recent90Samples": 221,
         "recent30Median": 1550000,
-        "recent90Median": 1105555.5,
+        "recent90Median": 1111111,
         "recent365Median": 445000,
         "condition": "build-equivalent",
         "confidence": "high",
@@ -5310,10 +5310,10 @@
       },
       "1": {
         "median": 159999,
-        "samples": 4469,
-        "recent90Samples": 487,
+        "samples": 4472,
+        "recent90Samples": 490,
         "recent30Median": 250000,
-        "recent90Median": 208993,
+        "recent90Median": 203221.5,
         "recent365Median": 150000,
         "condition": "build-equivalent",
         "confidence": "high",
@@ -5447,11 +5447,11 @@
     "wg3p": {
       "0": {
         "median": 11500,
-        "samples": 2968,
-        "recent90Samples": 1000,
+        "samples": 2971,
+        "recent90Samples": 1003,
         "recent30Median": 10999,
         "recent90Median": 11900,
-        "recent365Median": 11989,
+        "recent365Median": 11950,
         "condition": "build-equivalent",
         "confidence": "high",
         "weighted": true,
@@ -5470,10 +5470,10 @@
         "windowDays": 365
       },
       "2": {
-        "median": 50000,
+        "median": 49999,
         "samples": 1736,
-        "recent90Samples": 533,
-        "recent30Median": 50000,
+        "recent90Samples": 534,
+        "recent30Median": 49999.5,
         "recent90Median": 50000,
         "recent365Median": 50000,
         "condition": "build-equivalent",
@@ -5483,7 +5483,7 @@
       },
       "3": {
         "median": 100000,
-        "samples": 1540,
+        "samples": 1539,
         "recent90Samples": 438,
         "recent30Median": 105000,
         "recent90Median": 100000,
@@ -5522,8 +5522,8 @@
       "0": {
         "median": 190000,
         "samples": 1969,
-        "recent90Samples": 538,
-        "recent30Median": 189999,
+        "recent90Samples": 539,
+        "recent30Median": 189999.5,
         "recent90Median": 190000,
         "recent365Median": 190000,
         "condition": "build-equivalent",
@@ -5533,7 +5533,7 @@
       },
       "1": {
         "median": 340000,
-        "samples": 3110,
+        "samples": 3108,
         "recent90Samples": 905,
         "recent30Median": 369999,
         "recent90Median": 349999,
@@ -5557,11 +5557,11 @@
       },
       "3": {
         "median": 5500000,
-        "samples": 720,
-        "recent90Samples": 178,
-        "recent30Median": 11600000,
-        "recent90Median": 8894444,
-        "recent365Median": 4869444,
+        "samples": 721,
+        "recent90Samples": 179,
+        "recent30Median": 11675000,
+        "recent90Median": 8900000,
+        "recent365Median": 4888888,
         "condition": "build-equivalent",
         "confidence": "high",
         "weighted": true,
@@ -5607,7 +5607,7 @@
       },
       "1": {
         "median": 17000,
-        "samples": 2043,
+        "samples": 2042,
         "recent90Samples": 536,
         "recent30Median": 12350,
         "recent90Median": 15000,
@@ -5619,7 +5619,7 @@
       },
       "2": {
         "median": 37777,
-        "samples": 1990,
+        "samples": 1989,
         "recent90Samples": 505,
         "recent30Median": 34999,
         "recent90Median": 30999,
@@ -5744,8 +5744,8 @@
     "wglp": {
       "0": {
         "median": 93000,
-        "samples": 3312,
-        "recent90Samples": 882,
+        "samples": 3305,
+        "recent90Samples": 883,
         "recent30Median": 90000,
         "recent90Median": 90000,
         "recent365Median": 95000,
@@ -5892,7 +5892,7 @@
     "wgvd": {
       "0": {
         "median": 12222,
-        "samples": 1316,
+        "samples": 1314,
         "recent90Samples": 684,
         "recent30Median": 13000,
         "recent90Median": 13000,
@@ -5928,10 +5928,10 @@
       },
       "3": {
         "median": 80000,
-        "samples": 632,
-        "recent90Samples": 207,
-        "recent30Median": 69999,
-        "recent90Median": 89999,
+        "samples": 634,
+        "recent90Samples": 209,
+        "recent30Median": 69999.5,
+        "recent90Median": 90000,
         "recent365Median": 85000,
         "condition": "build-equivalent",
         "confidence": "high",
@@ -5939,7 +5939,7 @@
         "windowDays": 365
       },
       "4": {
-        "median": 449999,
+        "median": 450000,
         "samples": 379,
         "recent90Samples": 114,
         "recent30Median": 390000,
@@ -5991,7 +5991,7 @@
       "2": {
         "median": 99990,
         "samples": 1091,
-        "recent90Samples": 253,
+        "recent90Samples": 252,
         "recent30Median": 130000,
         "recent90Median": 135000,
         "recent365Median": 70000,
@@ -6004,7 +6004,7 @@
         "median": 339900,
         "samples": 2303,
         "recent90Samples": 501,
-        "recent30Median": 749999,
+        "recent30Median": 749999.5,
         "recent90Median": 499999,
         "recent365Median": 244000,
         "condition": "build-equivalent",
@@ -6040,7 +6040,7 @@
     "wgzd": {
       "0": {
         "median": 59999,
-        "samples": 4090,
+        "samples": 4083,
         "recent90Samples": 1088,
         "recent30Median": 60000,
         "recent90Median": 60000,
@@ -6052,7 +6052,7 @@
       },
       "1": {
         "median": 100000,
-        "samples": 2734,
+        "samples": 2731,
         "recent90Samples": 649,
         "recent30Median": 99500,
         "recent90Median": 99999,
@@ -6064,7 +6064,7 @@
       },
       "2": {
         "median": 209999,
-        "samples": 1827,
+        "samples": 1825,
         "recent90Samples": 455,
         "recent30Median": 191500,
         "recent90Median": 199999,
@@ -6127,7 +6127,7 @@
       "1": {
         "median": 21000,
         "samples": 2276,
-        "recent90Samples": 735,
+        "recent90Samples": 734,
         "recent30Median": 20000,
         "recent90Median": 20000,
         "recent365Median": 22000,
@@ -6173,11 +6173,11 @@
         "windowDays": 365
       },
       "5": {
-        "median": 1788888,
-        "samples": 87,
-        "recent90Samples": 30,
-        "recent30Median": 1366666.5,
-        "recent90Median": 1472221.5,
+        "median": 1750000,
+        "samples": 88,
+        "recent90Samples": 31,
+        "recent30Median": 1400000,
+        "recent90Median": 1444444,
         "recent365Median": 1999999,
         "condition": "build-equivalent",
         "confidence": "high",
@@ -6188,10 +6188,10 @@
     "y5jk": {
       "0": {
         "median": 6500,
-        "samples": 3582,
-        "recent90Samples": 1627,
+        "samples": 3581,
+        "recent90Samples": 1628,
         "recent30Median": 6000,
-        "recent90Median": 7777,
+        "recent90Median": 7788.5,
         "recent365Median": 6000,
         "condition": "build-equivalent",
         "confidence": "high",
@@ -6212,11 +6212,11 @@
       },
       "2": {
         "median": 44000,
-        "samples": 5096,
+        "samples": 5095,
         "recent90Samples": 1031,
         "recent30Median": 34999,
         "recent90Median": 36000,
-        "recent365Median": 46721.5,
+        "recent365Median": 46777,
         "condition": "build-equivalent",
         "confidence": "high",
         "weighted": true,
@@ -6275,7 +6275,7 @@
       "1": {
         "median": 160000,
         "samples": 7855,
-        "recent90Samples": 982,
+        "recent90Samples": 983,
         "recent30Median": 230000,
         "recent90Median": 235000,
         "recent365Median": 135555,
@@ -6336,7 +6336,7 @@
     "y5m3": {
       "0": {
         "median": 11111,
-        "samples": 1688,
+        "samples": 1685,
         "recent90Samples": 587,
         "recent30Median": 11000,
         "recent90Median": 12000,
@@ -6509,7 +6509,7 @@
       "2": {
         "median": 435000,
         "samples": 610,
-        "recent90Samples": 152,
+        "recent90Samples": 151,
         "recent30Median": 680000,
         "recent90Median": 500000,
         "recent365Median": 380000,
@@ -6644,8 +6644,8 @@
       },
       "1": {
         "median": 380000,
-        "samples": 2474,
-        "recent90Samples": 578,
+        "samples": 2475,
+        "recent90Samples": 579,
         "recent30Median": 390000,
         "recent90Median": 380000,
         "recent365Median": 380000,
@@ -6656,11 +6656,11 @@
       },
       "2": {
         "median": 1988888,
-        "samples": 1398,
+        "samples": 1397,
         "recent90Samples": 334,
         "recent30Median": 2200000,
         "recent90Median": 1900000,
-        "recent365Median": 1884444,
+        "recent365Median": 1880000,
         "condition": "build-equivalent",
         "confidence": "high",
         "weighted": true,
@@ -6669,9 +6669,9 @@
       "3": {
         "median": 10999999,
         "samples": 410,
-        "recent90Samples": 111,
+        "recent90Samples": 110,
         "recent30Median": 12150000,
-        "recent90Median": 11450000,
+        "recent90Median": 11475000,
         "recent365Median": 10000000,
         "condition": "build-equivalent",
         "confidence": "high",
@@ -6706,11 +6706,11 @@
     },
     "y5yw": {
       "0": {
-        "median": 36100,
-        "samples": 4607,
-        "recent90Samples": 1671,
-        "recent30Median": 40000,
-        "recent90Median": 39099,
+        "median": 36000,
+        "samples": 4608,
+        "recent90Samples": 1672,
+        "recent30Median": 39999,
+        "recent90Median": 39049.5,
         "recent365Median": 31999,
         "condition": "build-equivalent",
         "confidence": "high",
@@ -6829,11 +6829,11 @@
       },
       "4": {
         "median": 2250000,
-        "samples": 489,
-        "recent90Samples": 81,
-        "recent30Median": 1783332.5,
+        "samples": 490,
+        "recent90Samples": 82,
+        "recent30Median": 1788888,
         "recent90Median": 1999999,
-        "recent365Median": 2400000,
+        "recent365Median": 2422222,
         "condition": "build-equivalent",
         "confidence": "high",
         "weighted": true,
@@ -6931,11 +6931,11 @@
     "zy32": {
       "0": {
         "median": 8000,
-        "samples": 2210,
+        "samples": 2209,
         "recent90Samples": 854,
         "recent30Median": 7400,
         "recent90Median": 9000,
-        "recent365Median": 8577.5,
+        "recent365Median": 8600,
         "condition": "build-equivalent",
         "confidence": "high",
         "weighted": true,
@@ -6967,8 +6967,8 @@
       },
       "3": {
         "median": 80000,
-        "samples": 1882,
-        "recent90Samples": 500,
+        "samples": 1883,
+        "recent90Samples": 501,
         "recent30Median": 79999,
         "recent90Median": 80000,
         "recent365Median": 80000,
@@ -7029,7 +7029,7 @@
       },
       "2": {
         "median": 74000,
-        "samples": 913,
+        "samples": 912,
         "recent90Samples": 160,
         "recent30Median": 58388.5,
         "recent90Median": 55275,
@@ -7091,11 +7091,11 @@
       },
       "1": {
         "median": 8000,
-        "samples": 1164,
+        "samples": 1162,
         "recent90Samples": 451,
         "recent30Median": 7000,
         "recent90Median": 8999,
-        "recent365Median": 8349.5,
+        "recent365Median": 8100,
         "condition": "build-equivalent",
         "confidence": "high",
         "weighted": true,
@@ -7105,7 +7105,7 @@
         "median": 19000,
         "samples": 939,
         "recent90Samples": 229,
-        "recent30Median": 14999,
+        "recent30Median": 14895,
         "recent90Median": 17000,
         "recent365Median": 20000,
         "condition": "build-equivalent",
@@ -7251,7 +7251,7 @@
       },
       "2": {
         "median": 28000,
-        "samples": 927,
+        "samples": 926,
         "recent90Samples": 276,
         "recent30Median": 22943.5,
         "recent90Median": 25000,
@@ -7301,8 +7301,8 @@
     "zypm": {
       "0": {
         "median": 18888,
-        "samples": 6589,
-        "recent90Samples": 1887,
+        "samples": 6584,
+        "recent90Samples": 1886,
         "recent30Median": 16000,
         "recent90Median": 18000,
         "recent365Median": 19500,
@@ -7313,7 +7313,7 @@
       },
       "1": {
         "median": 58000,
-        "samples": 13475,
+        "samples": 13471,
         "recent90Samples": 3540,
         "recent30Median": 55555,
         "recent90Median": 55550,
@@ -7325,8 +7325,8 @@
       },
       "2": {
         "median": 149999,
-        "samples": 9416,
-        "recent90Samples": 2380,
+        "samples": 9417,
+        "recent90Samples": 2379,
         "recent30Median": 148999,
         "recent90Median": 135632,
         "recent365Median": 150000,
@@ -7338,7 +7338,7 @@
       "3": {
         "median": 450000,
         "samples": 3732,
-        "recent90Samples": 1088,
+        "recent90Samples": 1087,
         "recent30Median": 450000,
         "recent90Median": 400000,
         "recent365Median": 460000,
@@ -7499,7 +7499,7 @@
         "median": 1550000,
         "samples": 397,
         "recent90Samples": 123,
-        "recent30Median": 1584616.5,
+        "recent30Median": 1580000,
         "recent90Median": 1700000,
         "recent365Median": 1488888,
         "condition": "build-equivalent",
@@ -7559,7 +7559,7 @@
       },
       "3": {
         "median": 40000,
-        "samples": 1417,
+        "samples": 1416,
         "recent90Samples": 427,
         "recent30Median": 30000,
         "recent90Median": 39999,
@@ -7597,9 +7597,9 @@
     "zyw2": {
       "0": {
         "median": 7000,
-        "samples": 4621,
-        "recent90Samples": 2466,
-        "recent30Median": 6600,
+        "samples": 4622,
+        "recent90Samples": 2467,
+        "recent30Median": 6633,
         "recent90Median": 8000,
         "recent365Median": 6500,
         "condition": "build-equivalent",
@@ -7609,8 +7609,8 @@
       },
       "1": {
         "median": 9500,
-        "samples": 2008,
-        "recent90Samples": 831,
+        "samples": 2009,
+        "recent90Samples": 832,
         "recent30Median": 8888,
         "recent90Median": 9500,
         "recent365Median": 9999,
@@ -7633,11 +7633,11 @@
       },
       "3": {
         "median": 40000,
-        "samples": 1403,
-        "recent90Samples": 418,
+        "samples": 1404,
+        "recent90Samples": 419,
         "recent30Median": 38999,
         "recent90Median": 40000,
-        "recent365Median": 41500,
+        "recent365Median": 41749.5,
         "condition": "build-equivalent",
         "confidence": "high",
         "weighted": true,
