@@ -1,4 +1,4 @@
-import { mkdir, mkdtemp, readFile, rm, stat, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, readdir, rename, rm, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { execFile } from "node:child_process";
@@ -54,6 +54,7 @@ export async function updateAuctionHistoryCache({
   projectRoot: root = projectRoot,
   region,
   windowDays: days = windowDays,
+  execFileImpl = execFileAsync,
 }) {
   const cutoff = capturedAt.getTime() - days * 24 * 60 * 60 * 1000;
   const workDirectory = await mkdtemp(path.join(tmpdir(), "field-kit-cache-update-"));
@@ -62,13 +63,14 @@ export async function updateAuctionHistoryCache({
   try {
     await mkdir(extractedCache, { recursive: true });
     if (await exists(cacheArchive)) {
-      await execFileAsync("tar", ["-xzf", cacheArchive, "-C", extractedCache]);
+      await execFileImpl("tar", ["-xzf", cacheArchive, "-C", extractedCache]);
     }
 
     const artifactsDirectory = path.join(extractedCache, "artifacts");
     await mkdir(artifactsDirectory, { recursive: true });
 
     const artifactIds = await loadArtifactIds(fetchImpl, listingEndpoint);
+    await pruneStaleArtifactFiles(artifactsDirectory, new Set(artifactIds));
     const summary = {
       schemaVersion: 1,
       region,
@@ -131,7 +133,7 @@ export async function updateAuctionHistoryCache({
       region,
       source: "stalzone-auction-history-cache",
       sourceSnapshot: capturedAt.toISOString(),
-      generatedAt: new Date().toISOString(),
+      generatedAt: capturedAt.toISOString(),
       asOf: capturedAt.toISOString(),
       cutoff: new Date(cutoff).toISOString(),
       windowDays: days,
@@ -144,8 +146,20 @@ export async function updateAuctionHistoryCache({
 
     await writeFile(path.join(extractedCache, "manifest.json"), `${JSON.stringify(manifest, null, 2)}\n`);
     await mkdir(path.dirname(cacheArchive), { recursive: true });
-    await rm(cacheArchive, { force: true });
-    await execFileAsync("tar", ["-czf", cacheArchive, "-C", extractedCache, "."]);
+    const temporaryArchive = `${cacheArchive}.${process.pid}.tmp`;
+    await rm(temporaryArchive, { force: true });
+    try {
+      await execFileImpl("tar", ["-czf", temporaryArchive, "-C", extractedCache, "."]);
+      await validateCacheArchive({
+        archive: temporaryArchive,
+        artifactIds,
+        expectedManifest: manifest,
+        execFileImpl,
+      });
+      await rename(temporaryArchive, cacheArchive);
+    } finally {
+      await rm(temporaryArchive, { force: true });
+    }
 
     log(
       `Updated ${path.relative(root, cacheArchive)}: fetched ${totalFetched}, retained ${totalRetained}.`,
@@ -192,10 +206,9 @@ export async function fetchNewRows({
   const rows = [];
   let offset = 0;
   let exhausted = false;
-  let overlappedExistingCache = false;
-  let crossedCutoff = false;
+  let fetchOneMoreAfterOverlap = false;
 
-  while (!exhausted && !overlappedExistingCache && !crossedCutoff) {
+  while (!exhausted) {
     const url = new URL(
       `https://eapi.stalzone.com/${region.toUpperCase()}/auction/${artifactId}/history`,
     );
@@ -218,15 +231,57 @@ export async function fetchNewRows({
     rows.push(...pageRows);
 
     const timestamps = pageRows.map(parseSoldAt).filter(Number.isFinite);
-    overlappedExistingCache =
+    const overlapsExistingCache =
       Number.isFinite(newestExistingSale) &&
       timestamps.some((timestamp) => timestamp <= newestExistingSale);
-    crossedCutoff = timestamps.some((timestamp) => timestamp < cutoff);
+    const crossedCutoff = timestamps.some((timestamp) => timestamp < cutoff);
     exhausted = parsed.prices.length === 0 || offset + parsed.prices.length >= parsed.total;
     offset += parsed.prices.length;
+
+    if (exhausted || fetchOneMoreAfterOverlap) break;
+    if (overlapsExistingCache) {
+      fetchOneMoreAfterOverlap = true;
+      continue;
+    }
+    if (crossedCutoff) break;
   }
 
   return rows;
+}
+
+async function pruneStaleArtifactFiles(artifactsDirectory, currentArtifactIds) {
+  const entries = await readdir(artifactsDirectory, { withFileTypes: true });
+  await Promise.all(
+    entries
+      .filter(
+        (entry) =>
+          entry.isFile() &&
+          entry.name.endsWith(".jsonl") &&
+          !currentArtifactIds.has(entry.name.slice(0, -".jsonl".length)),
+      )
+      .map((entry) => rm(path.join(artifactsDirectory, entry.name), { force: true })),
+  );
+}
+
+async function validateCacheArchive({ archive, artifactIds, expectedManifest, execFileImpl }) {
+  const { stdout: listing } = await execFileImpl("tar", ["-tzf", archive]);
+  const members = new Set(
+    listing
+      .split("\n")
+      .map((member) => member.replace(/^\.\//, ""))
+      .filter(Boolean),
+  );
+  const requiredMembers = ["manifest.json", ...artifactIds.map((artifactId) => `artifacts/${artifactId}.jsonl`)];
+  const missingMember = requiredMembers.find((member) => !members.has(member));
+  if (missingMember) throw new Error(`Generated cache archive is missing ${missingMember}.`);
+
+  const { stdout: manifestJson } = await execFileImpl("tar", ["-xOzf", archive, "./manifest.json"]);
+  const archivedManifest = JSON.parse(manifestJson);
+  for (const field of ["schemaVersion", "region", "asOf", "artifactCount", "recordCount"]) {
+    if (archivedManifest[field] !== expectedManifest[field]) {
+      throw new Error(`Generated cache archive has an invalid manifest field: ${field}.`);
+    }
+  }
 }
 
 async function request({ credentials, fetchImpl, label, url }) {

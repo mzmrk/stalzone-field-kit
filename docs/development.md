@@ -101,11 +101,14 @@ STALZONE_CLIENT_ID=... STALZONE_CLIENT_SECRET=... npm run pricing:update-cache -
 
 [`scripts/update-auction-history-cache.mjs`](../scripts/update-auction-history-cache.mjs)
 extracts the existing region cache when present, fetches each artifact until the
-downloaded history overlaps the newest cached sale, merges and deduplicates rows,
-prunes anything outside the rolling one-year window, and writes the same cache
-archive format. If no cache exists yet, it creates one and fetches pages until
-the downloaded history crosses the one-year cutoff. It can also read credentials
-from an ignored JSON file passed after the region argument.
+downloaded history overlaps the newest cached sale, then fetches one additional
+page to protect same-timestamp pagination boundaries. It merges and deduplicates
+rows, prunes records outside the rolling one-year window and files absent from
+the current artifact listing, and writes the replacement archive to a temporary
+path. The updater verifies its manifest and members before atomically replacing
+the known-good archive. If no cache exists yet, it creates one and fetches pages
+until the downloaded history crosses the one-year cutoff. It can also read
+credentials from an ignored JSON file passed after the region argument.
 
 Regenerate the bundled price index from the default local cache archive with:
 
@@ -123,8 +126,12 @@ is allowed. The price is a plain one-year median until a tier has at least ten
 sales in the last 90 days, then switches to a recency-weighted median; plain
 `recent30Median`, `recent90Median`, and `recent365Median` values are retained as
 diagnostics. Adjacent-rarity extrapolation is used only
-when no same-rarity eligible sale exists. The price generator consumes cache
-archives only. Without an explicit input, the script uses
+when no same-rarity eligible sale exists. The price generator consumes only a
+cache archive or its extracted directory. Its output records the
+pricing-algorithm version, cache and manifest SHA-256 hashes, and selected
+source-manifest fields. `generatedAt` comes
+from the cache's `asOf` timestamp, so rebuilding unchanged input is byte-for-byte
+deterministic. Without an explicit input, the script uses
 `data/pricing/cache/<region>/auction-history-cache-<region>.tar.gz`. It also
 accepts an explicit cache archive or extracted cache directory plus an optional
 output path:

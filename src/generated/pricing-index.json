@@ -1,7 +1,21 @@
 {
   "region": "eu",
   "snapshot": "2026-08-14T13:54:36.619Z",
-  "generatedAt": "2026-08-14T14:13:14.935Z",
+  "generatedAt": "2026-08-14T13:54:36.619Z",
+  "provenance": {
+    "pricingAlgorithmVersion": 1,
+    "cacheSha256": "da20b3962c0d0770710d55efb9e004dbc9221d57e5d93e7145b6b260b4e6a0c6",
+    "manifestSha256": "5e29b038e67f0a5f68a01651c17deffcd8b1f156fd46a745c021bfb7c31ae73e",
+    "sourceManifest": {
+      "schemaVersion": 1,
+      "region": "eu",
+      "asOf": "2026-08-14T13:54:36.619Z",
+      "cutoff": "2025-08-14T13:54:36.619Z",
+      "windowDays": 365,
+      "artifactCount": 103,
+      "recordCount": 1100969
+    }
+  },
   "sourceWindow": {
     "asOf": "2026-08-14T13:54:36.619Z",
     "cutoff": "2025-08-14T13:54:36.619Z",

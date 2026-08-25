@@ -1,5 +1,5 @@
 import { execFile } from "node:child_process";
-import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -56,6 +56,7 @@ describe("auction history cache updater", () => {
     const manifest = JSON.parse(await tarOutput(archive, "./manifest.json"));
     expect(manifest.recordCount).toBe(1);
     expect(manifest.artifactCount).toBe(1);
+    expect(manifest.generatedAt).toBe(capturedAt.toISOString());
 
     const rows = (await tarOutput(archive, "./artifacts/alpha.jsonl"))
       .trim()
@@ -64,7 +65,7 @@ describe("auction history cache updater", () => {
     expect(rows).toEqual([{ price: 100, time: "2026-01-09T00:00:00.000Z", "additional.qlt": 0 }]);
   });
 
-  it("stops incremental fetches after overlapping the newest cached sale and deduplicates the merge", async () => {
+  it("fetches one extra page after overlap and deduplicates the merge", async () => {
     const capturedAt = new Date("2026-01-10T00:00:00.000Z");
     const newestExistingSale = Date.parse("2026-01-08T00:00:00.000Z");
     const fetchedOffsets = [];
@@ -97,8 +98,73 @@ describe("auction history cache updater", () => {
       windowDays: 365,
     });
 
-    expect(fetchedOffsets).toEqual([0]);
-    expect(mergedRows.map((row) => row.price)).toEqual([120, 100]);
+    expect(fetchedOffsets).toEqual([0, 2]);
+    expect(mergedRows.map((row) => row.price)).toEqual([120, 100, 90]);
+  });
+
+  it("prunes artifact files absent from the current listing", async () => {
+    const tempDirectory = await temporaryDirectory();
+    const archive = path.join(tempDirectory, "auction-history-cache-eu.tar.gz");
+    await createCacheArchive(archive, {
+      alpha: [{ price: 100, time: "2026-01-08T00:00:00.000Z" }],
+      stale: [{ price: 50, time: "2026-01-08T00:00:00.000Z" }],
+    });
+
+    await updateAuctionHistoryCache({
+      cacheArchive: archive,
+      capturedAt: new Date("2026-01-10T00:00:00.000Z"),
+      credentials: fakeCredentials(),
+      fetchImpl: createFetch({
+        listing: [{ data: "/items/artefact/alpha.json" }],
+        histories: { alpha: { 0: page(0, []) } },
+      }),
+      listingUrl: "https://example.test/listing.json",
+      log: () => {},
+      pageLimit: 200,
+      projectRoot,
+      region: "eu",
+      windowDays: 365,
+    });
+
+    const { stdout: listing } = await execFileAsync("tar", ["-tzf", archive]);
+    expect(listing).toContain("./artifacts/alpha.jsonl");
+    expect(listing).not.toContain("./artifacts/stale.jsonl");
+    const manifest = JSON.parse(await tarOutput(archive, "./manifest.json"));
+    expect(manifest).toMatchObject({ artifactCount: 1, recordCount: 1 });
+  });
+
+  it("keeps the known-good archive when replacement creation fails", async () => {
+    const tempDirectory = await temporaryDirectory();
+    const archive = path.join(tempDirectory, "auction-history-cache-eu.tar.gz");
+    await createCacheArchive(archive, {
+      alpha: [{ price: 100, time: "2026-01-08T00:00:00.000Z" }],
+    });
+    const originalArchive = await readFile(archive);
+
+    await expect(
+      updateAuctionHistoryCache({
+        cacheArchive: archive,
+        capturedAt: new Date("2026-01-10T00:00:00.000Z"),
+        credentials: fakeCredentials(),
+        execFileImpl: async (command, args) => {
+          if (args[0] === "-czf") throw new Error("simulated archive failure");
+          return execFileAsync(command, args);
+        },
+        fetchImpl: createFetch({
+          listing: [{ data: "/items/artefact/alpha.json" }],
+          histories: { alpha: { 0: page(0, []) } },
+        }),
+        listingUrl: "https://example.test/listing.json",
+        log: () => {},
+        pageLimit: 200,
+        projectRoot,
+        region: "eu",
+        windowDays: 365,
+      }),
+    ).rejects.toThrow("simulated archive failure");
+
+    expect(await readFile(archive)).toEqual(originalArchive);
+    await expect(stat(`${archive}.${process.pid}.tmp`)).rejects.toMatchObject({ code: "ENOENT" });
   });
 });
 
@@ -107,6 +173,7 @@ describe("pricing index builder", () => {
     const tempDirectory = await temporaryDirectory();
     const cacheDirectory = path.join(tempDirectory, "cache");
     const outputFile = path.join(tempDirectory, "pricing-index.json");
+    const secondOutputFile = path.join(tempDirectory, "pricing-index-copy.json");
     await mkdir(path.join(cacheDirectory, "artifacts"), { recursive: true });
     await writeFile(
       path.join(cacheDirectory, "manifest.json"),
@@ -134,8 +201,26 @@ describe("pricing index builder", () => {
       cacheDirectory,
       outputFile,
     ]);
+    await execFileAsync("node", [
+      path.join(projectRoot, "scripts", "generate-pricing-index.mjs"),
+      "eu",
+      cacheDirectory,
+      secondOutputFile,
+    ]);
 
     const index = JSON.parse(await readFile(outputFile, "utf8"));
+    expect(await readFile(secondOutputFile, "utf8")).toBe(await readFile(outputFile, "utf8"));
+    expect(index.generatedAt).toBe("2026-01-10T00:00:00.000Z");
+    expect(index.provenance).toMatchObject({
+      pricingAlgorithmVersion: 1,
+      sourceManifest: {
+        schemaVersion: 1,
+        region: "eu",
+        asOf: "2026-01-10T00:00:00.000Z",
+      },
+    });
+    expect(index.provenance.cacheSha256).toMatch(/^[a-f0-9]{64}$/);
+    expect(index.provenance.manifestSha256).toMatch(/^[a-f0-9]{64}$/);
     expect(index.artifacts.alpha[0]).toMatchObject({
       median: 150,
       samples: 2,
@@ -205,4 +290,17 @@ async function tarOutput(archive, member) {
 
 async function writeJsonLines(file, rows) {
   await writeFile(file, `${rows.map((row) => JSON.stringify(row)).join("\n")}\n`);
+}
+
+async function createCacheArchive(archive, recordsByArtifact) {
+  const source = await temporaryDirectory();
+  await mkdir(path.join(source, "artifacts"), { recursive: true });
+  for (const [artifactId, rows] of Object.entries(recordsByArtifact)) {
+    await writeJsonLines(path.join(source, "artifacts", `${artifactId}.jsonl`), rows);
+  }
+  await writeFile(
+    path.join(source, "manifest.json"),
+    JSON.stringify({ schemaVersion: 1, region: "eu", asOf: "2026-01-08T00:00:00.000Z" }),
+  );
+  await execFileAsync("tar", ["-czf", archive, "-C", source, "."]);
 }

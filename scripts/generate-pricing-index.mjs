@@ -2,6 +2,7 @@ import { mkdtemp, readdir, readFile, rm, stat, writeFile } from "node:fs/promise
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { execFile } from "node:child_process";
+import { createHash } from "node:crypto";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 
@@ -16,6 +17,7 @@ const windowDays = 365;
 const recentWindowDays = 90;
 const recencyBoostThreshold = 10;
 const tolerance = 1e-6;
+const pricingAlgorithmVersion = 1;
 
 const outputFile = requestedOutput
   ? path.resolve(projectRoot, requestedOutput)
@@ -23,9 +25,11 @@ const outputFile = requestedOutput
 
 const cleanupDirectories = [];
 const globalAdjacentRatios = [];
-const snapshotDirectory = await resolveSnapshotDirectory(region, requestedSnapshot, cleanupDirectories);
+const snapshot = await resolveSnapshot(region, requestedSnapshot, cleanupDirectories);
+const snapshotDirectory = snapshot.directory;
 try {
   const manifest = await readOptionalJson(path.join(snapshotDirectory, "manifest.json"));
+  const manifestSha256 = await hashOptionalFile(path.join(snapshotDirectory, "manifest.json"));
   const recordsByArtifact = await readHistoryRecords(snapshotDirectory);
   const allSales = [...recordsByArtifact.values()].flat();
   const asOf = determineAsOf(manifest, allSales);
@@ -85,7 +89,23 @@ try {
     snapshot: manifest?.sourceSnapshot
       ? path.basename(manifest.sourceSnapshot)
       : path.basename(snapshotDirectory),
-    generatedAt: new Date().toISOString(),
+    generatedAt: new Date(asOf).toISOString(),
+    provenance: {
+      pricingAlgorithmVersion,
+      cacheSha256: snapshot.sha256,
+      manifestSha256,
+      sourceManifest: manifest
+        ? {
+            schemaVersion: manifest.schemaVersion ?? null,
+            region: manifest.region ?? null,
+            asOf: manifest.asOf ?? null,
+            cutoff: manifest.cutoff ?? null,
+            windowDays: manifest.windowDays ?? null,
+            artifactCount: manifest.artifactCount ?? null,
+            recordCount: manifest.recordCount ?? null,
+          }
+        : null,
+    },
     sourceWindow: {
       asOf: new Date(asOf).toISOString(),
       cutoff: new Date(cutoff).toISOString(),
@@ -124,7 +144,7 @@ try {
   }
 }
 
-async function resolveSnapshotDirectory(regionName, requested, cleanup) {
+async function resolveSnapshot(regionName, requested, cleanup) {
   if (requested) {
     const explicit = path.resolve(projectRoot, requested);
     if (await exists(explicit)) return resolveExplicitInput(explicit, cleanup);
@@ -148,7 +168,9 @@ async function resolveSnapshotDirectory(regionName, requested, cleanup) {
 async function resolveExplicitInput(explicit, cleanup) {
   const explicitStat = await stat(explicit);
   if (explicitStat.isDirectory()) {
-    if (await exists(path.join(explicit, "artifacts"))) return explicit;
+    if (await exists(path.join(explicit, "artifacts"))) {
+      return { directory: explicit, sha256: await hashCacheDirectory(explicit) };
+    }
     throw new Error(`Pricing input is not a cache directory: ${path.relative(projectRoot, explicit)}`);
   }
   if (explicitStat.isFile() && explicit.endsWith(".tar.gz")) {
@@ -158,9 +180,36 @@ async function resolveExplicitInput(explicit, cleanup) {
     if (!(await exists(path.join(tempDirectory, "artifacts")))) {
       throw new Error(`Pricing cache archive does not contain artifacts/: ${path.relative(projectRoot, explicit)}`);
     }
-    return tempDirectory;
+    return { directory: tempDirectory, sha256: await hashFile(explicit) };
   }
   throw new Error(`Unsupported pricing cache input: ${path.relative(projectRoot, explicit)}`);
+}
+
+async function hashCacheDirectory(directory) {
+  const hash = createHash("sha256");
+  const files = (await exists(path.join(directory, "manifest.json"))) ? ["manifest.json"] : [];
+  const artifactEntries = await readdir(path.join(directory, "artifacts"), { withFileTypes: true });
+  files.push(
+    ...artifactEntries
+      .filter((entry) => entry.isFile() && entry.name.endsWith(".jsonl"))
+      .map((entry) => path.posix.join("artifacts", entry.name))
+      .sort(),
+  );
+  for (const relativeFile of files) {
+    hash.update(relativeFile);
+    hash.update("\0");
+    hash.update(await readFile(path.join(directory, relativeFile)));
+    hash.update("\0");
+  }
+  return hash.digest("hex");
+}
+
+async function hashFile(file) {
+  return createHash("sha256").update(await readFile(file)).digest("hex");
+}
+
+async function hashOptionalFile(file) {
+  return (await exists(file)) ? hashFile(file) : null;
 }
 
 async function readHistoryRecords(directory) {
