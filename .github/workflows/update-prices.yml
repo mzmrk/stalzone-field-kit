@@ -1,0 +1,98 @@
+name: Refresh prices and deploy
+
+on:
+  schedule:
+    - cron: "23 4 * * 1"
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pricing-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - name: Check out main
+        uses: actions/checkout@v6
+        with:
+          ref: main
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Restore newest retained cache
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/restore-pricing-cache.mjs eu
+
+      - name: Refresh EU auction history
+        env:
+          STALZONE_CLIENT_ID: ${{ vars.STALZONE_CLIENT_ID }}
+          STALZONE_CLIENT_SECRET: ${{ secrets.STALZONE_CLIENT_SECRET }}
+        run: npm run pricing:update-cache -- eu
+
+      - name: Generate bundled prices
+        run: npm run pricing:build
+
+      - name: Run unit tests
+        run: npm test
+
+      - name: Build static site
+        run: npm run build
+
+      - name: Upload rolling cache
+        uses: actions/upload-artifact@v7
+        with:
+          name: auction-history-cache-eu
+          path: data/pricing/cache/eu/auction-history-cache-eu.tar.gz
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0
+
+      - name: Commit refreshed prices
+        run: |
+          if git diff --quiet -- src/generated/pricing-index.json; then
+            echo "Bundled prices are unchanged."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/generated/pricing-index.json
+          git commit -m "pricing: refresh weekly estimates (update generated index)"
+          git push origin HEAD:main
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v6
+
+      - name: Upload static site
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: dist
+
+  deploy:
+    needs: refresh
+    runs-on: ubuntu-latest
+    concurrency:
+      group: pages
+      cancel-in-progress: true
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

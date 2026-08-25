@@ -83,6 +83,14 @@ every push to `main`; it can also be started manually. The deployment uses the
 requires no stored deployment secret. The public URL is
 `https://mzmrk.github.io/stalzone-field-kit/`.
 
+[`update-prices.yml`](../.github/workflows/update-prices.yml) runs every Monday
+or on manual dispatch. It restores the newest EU cache, refreshes history,
+regenerates prices, verifies tests and the build, retains the cache for 90 days,
+and commits only a changed index. Because a `GITHUB_TOKEN` push does not trigger
+the ordinary Pages workflow, this run deploys its tested `dist/` itself. It
+requires variable `STALZONE_CLIENT_ID` and secret `STALZONE_CLIENT_SECRET`; the
+secret is scoped to the history-update step.
+
 ## Market price cache
 
 The rolling market cache lives at
@@ -101,14 +109,14 @@ STALZONE_CLIENT_ID=... STALZONE_CLIENT_SECRET=... npm run pricing:update-cache -
 
 [`scripts/update-auction-history-cache.mjs`](../scripts/update-auction-history-cache.mjs)
 extracts the existing region cache when present, fetches each artifact until the
-downloaded history overlaps the newest cached sale, then fetches one additional
-page to protect same-timestamp pagination boundaries. It merges and deduplicates
-rows, prunes records outside the rolling one-year window and files absent from
-the current artifact listing, and writes the replacement archive to a temporary
-path. The updater verifies its manifest and members before atomically replacing
-the known-good archive. If no cache exists yet, it creates one and fetches pages
-until the downloaded history crosses the one-year cutoff. It can also read
-credentials from an ignored JSON file passed after the region argument.
+newest cached sale plus one overlap page. It merges and deduplicates rows, prunes
+the one-year window and obsolete artifact files, then verifies the temporary
+archive before atomically replacing the known-good cache. Without an existing
+cache it fetches through the cutoff. An ignored credentials JSON file may be
+passed after the region argument.
+[`scripts/restore-pricing-cache.mjs`](../scripts/restore-pricing-cache.mjs)
+selects the newest unexpired Actions artifact. Absence triggers bootstrap;
+invalid restoration fails without replacing an existing cache.
 
 Regenerate the bundled price index from the default local cache archive with:
 
