@@ -45,11 +45,11 @@ GitHub.
 
 Pricing is not fetched at runtime. [`src/pricing.ts`](../src/pricing.ts) reads a
 compact generated index derived from EU auction-history inputs. Displayed prices
-are labelled `Market` for direct completed-sale estimates, `Estimated` for
-same-artifact adjacent-rarity extrapolation, or `Unknown`; their details expose
-the sample count, calculation method, and source-window date. Unknown tiers have
-no same-artifact anchor and are excluded when a price cap is active. Raw captures
-and cache archives remain build-time inputs and are not shipped to the browser.
+are lime for direct completed-sale estimates, amber for same-artifact
+adjacent-rarity extrapolation, or gray when unknown. Hover and accessibility text
+expose the source, sample count, method, and source-window date. Unknown tiers
+have no same-artifact anchor and are excluded when a price cap is active. Raw
+captures and cache archives remain build-time inputs and are not shipped.
 
 ## Source ownership
 

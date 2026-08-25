@@ -15,8 +15,10 @@ test("creates and restores a live EXBO-backed artifact build", async ({ page }) 
   await page.getByPlaceholder("Search artifacts…").fill("Bracelet");
   const braceletResult = page.getByRole("button", { name: /^Bracelet/ });
   await expect(braceletResult).toContainText("₽");
-  await expect(braceletResult.getByText("Market", { exact: true })).toBeVisible();
-  await expect(braceletResult.locator(".price-display")).toHaveAttribute("title", /eligible completed sales.*EU data through/);
+  const braceletPrice = braceletResult.locator(".price-display");
+  await expect(braceletPrice).toHaveClass(/price-display--market/);
+  await expect(braceletPrice).toHaveAttribute("aria-label", /^Market price:/);
+  await expect(braceletPrice).toHaveAttribute("title", /eligible completed sales.*EU data through/);
   await page.getByRole("button", { name: /^Bracelet/ }).click();
 
   await expect(page.getByRole("heading", { name: "Bracelet" })).toBeVisible();

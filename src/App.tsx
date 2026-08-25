@@ -277,10 +277,14 @@ function StatPill({ label, value }: { label: string; value: string }) {
 
 function PriceDisplay({ estimate, className = "" }: { estimate: PriceEstimate | null; className?: string }) {
   const source = priceSource(estimate);
+  const formattedPrice = estimate ? formatPrice(estimate.median) : "Price unavailable";
   return (
-    <span className={`price-display price-display--${source} ${className}`.trim()} title={priceSourceDetails(estimate)}>
-      <strong>{estimate ? formatPrice(estimate.median) : "No price"}</strong>
-      <small>{priceSourceLabel(estimate)}</small>
+    <span
+      aria-label={estimate ? `${priceSourceLabel(estimate)} price: ${formattedPrice}` : formattedPrice}
+      className={`price-display price-display--${source} ${className}`.trim()}
+      title={priceSourceDetails(estimate)}
+    >
+      <strong>{formattedPrice}</strong>
     </span>
   );
 }
