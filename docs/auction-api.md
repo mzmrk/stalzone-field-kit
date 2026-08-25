@@ -54,16 +54,18 @@ The field or rule behind the in-game Freshness level is also unknown.
 
 ## Pricing guardrails
 
-For optimizer pricing, normalize with `qlt ?? 0`, require `ptn ?? 0` to equal
-`0`, require no `bonus_properties`, and exclude positive `md_k` with a small
-tolerance such as `1e-6`. Studied and unstudied `+0` sales are both
-build-equivalent enough for the generated price index, while upgraded or
-bonus-property sales are too distorted for budget constraints. Current charge
-loss (`ndmg`) is recoverable and may remain in the pricing pool.
+For optimizer pricing, normalize `qlt ?? 0`; require `ptn ?? 0` to be `0`, no
+`bonus_properties`, and `md_k <= 1e-6`. Studied and unstudied `+0` sales are
+build-equivalent, and recoverable current-charge loss (`ndmg`) is allowed.
 
 [`scripts/generate-pricing-index.mjs`](../scripts/generate-pricing-index.mjs)
-uses a one-year completed-sale window, recency weighting only after enough
-recent same-tier samples exist, and adjacent rarity extrapolation only when no
-same-artifact same-rarity build-equivalent sale exists. Do not use active offers,
-upgraded sales, or cross-artifact absolute averages as optimizer prices without a
-new validation pass.
+uses one year of completed sales, enables recency weighting only with enough
+recent same-tier samples, and extrapolates adjacent rarities only when direct
+same-artifact, same-rarity sales are absent. Active offers, upgraded sales, and
+cross-artifact absolute averages require a new validation pass.
+
+Never transfer history across artifact IDs. On 4 March 2026, EXBO [replaced the existing Snares with
+Peg-Top](https://steamcommunity.com/games/1818450/announcements/detail/523118018927001619):
+`g34p` became Peg-Top and new Snares became `rnkl`. On 25 August 2026, production
+API checks returned zero history and zero active `rnkl` lots in both EU and RU;
+keep it unknown until that ID records sales.
