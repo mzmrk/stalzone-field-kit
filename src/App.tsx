@@ -75,8 +75,12 @@ import {
 import {
   artifactPrice,
   formatPrice,
+  priceSource,
+  priceSourceDetails,
+  priceSourceLabel,
+  PRICING_AS_OF_LABEL,
   PRICING_REGION,
-  PRICING_SNAPSHOT,
+  type PriceEstimate,
 } from "./pricing";
 import type {
   ArtifactConfig,
@@ -271,6 +275,16 @@ function StatPill({ label, value }: { label: string; value: string }) {
   );
 }
 
+function PriceDisplay({ estimate, className = "" }: { estimate: PriceEstimate | null; className?: string }) {
+  const source = priceSource(estimate);
+  return (
+    <span className={`price-display price-display--${source} ${className}`.trim()} title={priceSourceDetails(estimate)}>
+      <strong>{estimate ? formatPrice(estimate.median) : "No price"}</strong>
+      <small>{priceSourceLabel(estimate)}</small>
+    </span>
+  );
+}
+
 function Picker({
   state,
   catalog,
@@ -348,9 +362,7 @@ function Picker({
                       : entry.data.split("/").at(-2)?.replaceAll("_", " ")}
                 </span>
                 {state.kind === "artifact" && (
-                  <span className="picker-row__price" title={`Ordinary median from ${price?.samples ?? 0} completed sales`}>
-                    {price ? formatPrice(price.median) : "No price"}
-                  </span>
+                  <PriceDisplay estimate={price} className="picker-row__price" />
                 )}
                 {isLoading ? <LoaderCircle className="spin" size={18} /> : <ChevronRight size={18} />}
               </button>
@@ -363,7 +375,7 @@ function Picker({
             </div>
           )}
         </div>
-        <p className="picker-footer">Items load live from EXBO Studio. Artifact prices are saved {PRICING_REGION} auction medians.</p>
+        <p className="picker-footer">Items load live from EXBO Studio. Prices use saved {PRICING_REGION} completed-sale data through {PRICING_AS_OF_LABEL}.</p>
       </section>
     </div>
   );
@@ -448,9 +460,7 @@ function ContainerPanel({
                         <strong>{artifact.name}</strong>
                         <small>+{artifact.level} · {artifact.quality}% · {RARITY_NAMES[artifact.rarityIndex]}</small>
                       </span>
-                      <span className="artifact-slot__price">
-                        {formatPrice(artifactPrice(artifact.entry, artifact.rarityIndex)?.median ?? null)}
-                      </span>
+                      <PriceDisplay estimate={artifactPrice(artifact.entry, artifact.rarityIndex)} className="artifact-slot__price" />
                     </>
                   ) : (
                     <span className="artifact-slot__empty"><Plus size={16} /> Add artifact</span>
@@ -550,7 +560,7 @@ function ArtifactEditor({
         <ItemImage entry={artifact.entry} size="large" />
         <div>
           <h3>{artifact.name}</h3>
-          <p>{artifact.entry.data.split("/").at(-2)?.replaceAll("_", " ")} · {formatPrice(artifactPrice(artifact.entry, artifact.rarityIndex)?.median ?? null)}</p>
+          <p>{artifact.entry.data.split("/").at(-2)?.replaceAll("_", " ")} <PriceDisplay estimate={artifactPrice(artifact.entry, artifact.rarityIndex)} /></p>
         </div>
         <button className="text-button" onClick={onReplace}>Replace</button>
       </div>
@@ -1118,7 +1128,7 @@ function OptimizerPanel({
               <label className="optimizer-budget">
                 <span>Maximum total price</span>
                 <input aria-label="Maximum total price" type="number" min="1" step="1000" placeholder="No limit" value={maxTotalPrice} onChange={(event) => setMaxTotalPrice(event.target.value)} />
-                <small>Median completed-sale estimates, {PRICING_REGION} snapshot {PRICING_SNAPSHOT}. Unknown-price artifacts are excluded when enabled.</small>
+                <small>{PRICING_REGION} completed-sale estimates through {PRICING_AS_OF_LABEL}. Market uses direct eligible sales; Estimated uses same-artifact rarity extrapolation. Unknown prices are excluded when enabled.</small>
               </label>
               <div className="search-estimate">
                 <span>SEARCH SPACE</span><strong>{estimatedCombinations.toLocaleString()}</strong><small>canonical combinations · {estimatedEngine === "milp" ? "MILP" : "Brute force"} selected automatically</small>
@@ -1171,7 +1181,7 @@ function OptimizerPanel({
                         </p>
                         <div className="optimizer-artifacts">{selected.map((artifact, index) => {
                           const estimate = artifactPrice(artifact.entry, artifact.rarityIndex);
-                          return <span key={`${artifact.entry.data}-${artifact.rarityIndex}-${index}`} title={`${artifact.name} · ${RARITY_NAMES[artifact.rarityIndex]} · ${formatPrice(estimate?.median ?? null)}`}><ItemImage entry={artifact.entry} /><small>{artifact.name} · {RARITY_NAMES[artifact.rarityIndex]}</small><em>{formatPrice(estimate?.median ?? null)}</em></span>;
+                          return <span key={`${artifact.entry.data}-${artifact.rarityIndex}-${index}`} title={`${artifact.name} · ${RARITY_NAMES[artifact.rarityIndex]} · ${priceSourceDetails(estimate)}`}><ItemImage entry={artifact.entry} /><small>{artifact.name} · {RARITY_NAMES[artifact.rarityIndex]}</small><PriceDisplay estimate={estimate} className="optimizer-artifact__price" /></span>;
                         })}</div>
                         <div className="optimizer-metrics">
                           {run.objectives.map((objective, objectiveIndex) => {

@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { artifactId, artifactPrice, formatPrice } from "./pricing";
+import {
+  artifactId,
+  artifactPrice,
+  formatPrice,
+  priceSource,
+  priceSourceDetails,
+  priceSourceLabel,
+  type PriceEstimate,
+} from "./pricing";
 
 describe("auction pricing", () => {
   it("extracts opaque EXBO artifact IDs from listing paths", () => {
@@ -21,5 +29,40 @@ describe("auction pricing", () => {
   it("formats ruble estimates and unavailable values", () => {
     expect(formatPrice(12_345.5)).toBe("12,346 ₽");
     expect(formatPrice(null)).toBe("Price unavailable");
+  });
+
+  it("labels direct, extrapolated, and unavailable prices consistently", () => {
+    const market: PriceEstimate = {
+      median: 100,
+      samples: 12,
+      condition: "build-equivalent",
+      confidence: "medium",
+      weighted: true,
+      windowDays: 365,
+    };
+    const estimated: PriceEstimate = {
+      median: 188,
+      samples: 0,
+      condition: "adjacent-extrapolated",
+      confidence: "estimated",
+      weighted: false,
+      windowDays: 365,
+      anchorRarityName: "Ordinary",
+      multiplier: 1.88,
+    };
+
+    expect([priceSource(market), priceSource(estimated), priceSource(null)]).toEqual([
+      "market",
+      "estimated",
+      "unknown",
+    ]);
+    expect([priceSourceLabel(market), priceSourceLabel(estimated), priceSourceLabel(null)]).toEqual([
+      "Market",
+      "Estimated",
+      "Unknown",
+    ]);
+    expect(priceSourceDetails(market)).toContain("recency-weighted median from 12 eligible completed sales");
+    expect(priceSourceDetails(estimated)).toContain("Ordinary price using 1.88× multiplier");
+    expect(priceSourceDetails(null)).toContain("No eligible completed-sale estimate");
   });
 });
