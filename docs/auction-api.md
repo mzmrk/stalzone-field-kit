@@ -16,7 +16,7 @@ normalize the fields with the rules below.
 
 | Field | Rule |
 | --- | --- |
-| `qlt` | Rarity index: `0` Ordinary, `1` Uncommon, `2` Special, `3` Rare, `4` Exceptional, `5` Legendary. Missing means `0`. |
+| `qlt` | Rarity index: `0` Ordinary, `1` Uncommon, `2` Special, `3` Rare, `4` Exclusive, `5` Legendary. Missing means `0`. |
 | `stats_random` | Present means studied and locates exact quality within the rarity range. Missing means unstudied; it is an unrevealed range, not a measured midpoint. |
 | `ptn` | Upgrade level shown as `+X`. Missing means `0`. |
 | `bonus_properties` | Property IDs unlocked by upgrades. Exact rolled values are not exposed. |

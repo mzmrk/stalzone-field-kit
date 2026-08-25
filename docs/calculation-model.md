@@ -258,7 +258,7 @@ feasibility remains stable as realistic ruble caps increase, compares its ordere
 top ten with brute force both with and without duplicates, checks preservation
 of every selected rarity variant and combined constraints, and verifies that the
 enumeration guard is not applied. Bounded-solve coverage verifies the
-one- and ten-second options, the rank-two presolve boundary, carrier-aware
+five- and ten-second options, the rank-two presolve boundary, carrier-aware
 uncertainty percentages, residual-gap `Optimal` statuses, and rejection of
 invalid solver incumbents.
 The solver migration gate additionally runs previous and current HiGHS wrappers

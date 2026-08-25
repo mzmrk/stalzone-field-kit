@@ -32,6 +32,3 @@ documentation and code disagree.
 | Commands, dependencies, tests, build configuration, or local operation | [Development](development.md) |
 | Auction fields, snapshots, pricing inputs, or artifact-market assumptions | [EXBO auction artifact metadata](auction-api.md) and [Development](development.md) |
 | A new documentation topic, rename, or ownership change | This index and every affected owner |
-
-Repository-wide working and commit policy remains in
-[`AGENTS.md`](../AGENTS.md).

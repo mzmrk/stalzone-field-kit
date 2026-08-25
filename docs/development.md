@@ -138,18 +138,27 @@ Run unit tests and the static build after replacing the bundled index.
 ## Documentation workflow
 
 The repository-scoped
-[`update-project-documentation` skill](../.agents/skills/update-project-documentation/SKILL.md)
+[`maintain-project-documentation` skill](../.agents/skills/maintain-project-documentation/SKILL.md)
 defines the documentation review and maintenance workflow for Codex contributors.
 Its validator is also exposed through the package script below.
 
-Project memory belongs in `docs/`; the user-facing root
-[`README.md`](../README.md), root [`AGENTS.md`](../AGENTS.md), and skill resources
-are the supported exceptions. Update the canonical owner named in
-[the documentation index](README.md) in the same change as code, configuration,
-data, test, or workflow changes. Avoid duplicating source-level inventories or
-formulas outside their owning document.
+Project memory uses the validator defaults: `docs/` for core documents,
+`docs/README.md` for the index, `docs/references/` for last-resort explanatory
+detail, and `docs/evidence/` for optional raw artifacts.
+The root `README.md` is maintained for human readers and is outside the skill's
+project-memory inventory and validation. Other Markdown outside that tree is
+likewise outside this validator's scope.
+Mandatory core documentation is capped at 6,000 words. Non-authoritative
+`docs/references/` material is allowed only as
+a last resort after consolidation cannot keep necessary detail in core; each
+reference must name its core owner, verification sources, and review triggers.
+Evidence is not mandatory reading or authority; every evidence file must be
+linked from the core or reference document that explains its purpose.
+Update the canonical owner named in [the documentation index](README.md) in the
+same change as code, configuration, data, test, or workflow changes.
 
-Validate documentation links, index coverage, boundaries, and policy placement:
+Validate core size, links, index coverage, reference contracts, and evidence
+ownership:
 
 ```bash
 npm run docs:check
