@@ -280,9 +280,14 @@ function stableStringify(value) {
 
 function unflattenCacheRow(row) {
   const raw = {};
-  const additional = {};
+  const additional =
+    row.additional && typeof row.additional === "object" && !Array.isArray(row.additional)
+      ? { ...row.additional }
+      : {};
   for (const [key, value] of Object.entries(row)) {
-    if (key.startsWith("additional.")) {
+    if (key === "additional") {
+      continue;
+    } else if (key.startsWith("additional.")) {
       additional[key.slice("additional.".length)] = value;
     } else {
       raw[key] = value;

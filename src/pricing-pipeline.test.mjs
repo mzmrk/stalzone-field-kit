@@ -237,6 +237,14 @@ describe("pricing index builder", () => {
     await writeJsonLines(path.join(cacheDirectory, "artifacts", "delta.jsonl"), [
       { amount: 1, price: 600, time: "2026-01-09T00:00:00.000Z", "additional.qlt": 2 },
     ]);
+    await writeJsonLines(path.join(cacheDirectory, "artifacts", "epsilon.jsonl"), [
+      {
+        amount: 1,
+        price: 700,
+        time: "2026-01-09T00:00:00.000Z",
+        additional: { qlt: 1, ptn: 0, md_k: 0 },
+      },
+    ]);
 
     await execFileAsync("node", [
       path.join(projectRoot, "scripts", "generate-pricing-index.mjs"),
@@ -292,6 +300,11 @@ describe("pricing index builder", () => {
       anchorRarity: 2,
       anchorPrice: 600,
       multiplier: 1 / 3,
+    });
+    expect(index.artifacts.epsilon[1]).toMatchObject({
+      median: 700,
+      samples: 1,
+      condition: "build-equivalent",
     });
     expect(index.artifacts.delta[0]).toBeUndefined();
   });

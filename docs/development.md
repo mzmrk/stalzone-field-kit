@@ -128,7 +128,8 @@ npm run pricing:merge -- src/generated/pricing-index.json data/pricing/generated
 
 [`scripts/generate-pricing-index.mjs`](../scripts/generate-pricing-index.mjs)
 normalizes `additional.qlt ?? 0` and estimates each artifact-rarity price from
-one-year build-equivalent completed sales. The workflow writes regional files,
+one-year build-equivalent completed sales. It accepts legacy flattened rows and
+nested market-history API objects. The workflow writes regional files,
 then merges them into [`src/generated/pricing-index.json`](../src/generated/pricing-index.json).
 Build-equivalent sales are `+0`, have no bonus properties, and have full maximum
 charge; researched and unstudied sales are both eligible, and current charge loss

@@ -7,10 +7,10 @@ response: <https://eapi.stalzone.com/reference>.
 
 Request `additional=true`; otherwise `additional` is empty. Preserve raw
 responses because undocumented fields may change.
-The rolling cache archive used by local tooling and future automation keeps one
-JSONL file per artifact and flattens `additional` fields with dotted keys such
-as `additional.qlt`; this is a storage shape only. Pricing code must still
-normalize the fields with the rules below.
+Legacy calculator caches flatten `additional` fields with dotted keys such as
+`additional.qlt`. Public market-history archives preserve the nested API object.
+The pricing builder accepts both storage shapes and normalizes them with the
+rules below.
 
 ## Normalization contract
 
