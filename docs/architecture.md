@@ -19,7 +19,7 @@ The production site is a static GitHub Pages deployment at
 ```mermaid
 flowchart LR
     EXBO["EXBO Global repository"] -->|listing.json| Catalog["Filtered catalog"]
-    Market["stalzone-market-history canonical index"] --> PriceIndex["Bundled regional rarity medians"]
+    Market["stalzone-market-history canonical index"] -->|runtime fetch| PriceIndex["In-memory regional rarity medians"]
     Catalog --> Picker["Container and artifact pickers"]
     EXBO -->|selected item JSON and icons| Picker
     PriceIndex --> Picker
@@ -43,10 +43,11 @@ from the same listing. Both data and images are requested directly from
 `raw.githubusercontent.com`; runtime use therefore requires the browser to reach
 GitHub.
 
-Pricing is not fetched at runtime. The separately maintained
-`stalzone-market-history` repository owns auction acquisition and price
-estimation; this repository validates and mirrors its canonical index into
-[`src/generated/pricing-index.json`](../src/generated/pricing-index.json).
+Pricing is fetched at runtime directly from the canonical index committed by
+the separately maintained `stalzone-market-history` repository, which owns
+auction acquisition and price estimation. This application validates the
+response and keeps it only in memory; it contains no bundled price data, cache,
+or fallback.
 [`src/pricing.ts`](../src/pricing.ts) selects
 EU, RU, NA, SEA, or NEA from one generated bundle; EU is the persisted default.
 Direct completed-sale prices are lime, adjacent-rarity estimates amber, and
@@ -76,9 +77,8 @@ tiers are excluded by an active price cap. Raw caches are not shipped.
   loads the WebAssembly solver away from the UI thread and streams each ranked
   build before the remaining ranks finish.
 - [`src/pricing.ts`](../src/pricing.ts) maps EXBO artifact IDs and rarity indices
-  to bundled market estimates and owns ruble display formatting. The bundled
-  index is authoritative at runtime; its algorithm and source history are owned
-  by `stalzone-market-history`.
+  to the validated in-memory market estimates and owns ruble display formatting.
+  Its algorithm and source history are owned by `stalzone-market-history`.
 - [`src/i18n.ts`](../src/i18n.ts) owns EN/RU selection and locale helpers;
   [`src/locales/`](../src/locales/) owns UI translations.
 - [`src/App.tsx`](../src/App.tsx) owns item selection, slot management, artifact
@@ -128,16 +128,17 @@ item translations and locale-aware number, ruble, and date formatting follow it.
 
 ## Failure and privacy boundaries
 
-Catalog-loading errors and selected-item errors are separate UI states. A catalog
+Catalog-loading, price-index, and selected-item errors are separate UI states. A catalog
 failure disables new selection but does not delete a saved build. A selected-item
 failure names the item and surfaces the underlying exception. There is no retry,
-offline catalog cache, schema validator, or upstream-version pin at present.
+offline catalog cache or upstream-version pin at present. A failed or invalid
+price-index request leaves prices unavailable and disables a configured
+price-capped search; no previous or bundled price data is substituted.
 
 No build data is sent to an application backend. Build configuration stays in
 the user's browser, while normal HTTP request metadata is visible to GitHub when
 the browser loads EXBO JSON and icons. The code contains no runtime secrets.
-Bundled auction snapshots are historical regional data, not active-lot quotes or
-guarantees.
+Market estimates are historical regional data, not active-lot quotes or guarantees.
 
 ## Optimizer boundary
 

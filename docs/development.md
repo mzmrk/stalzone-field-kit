@@ -84,29 +84,15 @@ repository's built-in `GITHUB_TOKEN`, so it requires no stored deployment
 secret. The public URL is
 `https://mzmrk.github.io/stalzone-field-kit/`.
 
-[`update-prices.yml`](../.github/workflows/update-prices.yml) runs daily or
-manually. It downloads the canonical merged index from
-`mzmrk/stalzone-market-history`, validates its schema and every regional price,
-then atomically replaces the bundled
-[`src/generated/pricing-index.json`](../src/generated/pricing-index.json). It
-tests and builds before committing a changed mirror; the normal Pages workflow
-deploys that commit. This synchronization needs no auction API credentials.
+## Market prices
 
-## Market price synchronization
-
-Run the same validated synchronization locally with:
-
-```bash
-npm run pricing:sync
-```
-
-[`scripts/sync-pricing-index.mjs`](../scripts/sync-pricing-index.mjs) fails closed
-on a download error, unsupported bundle schema, invalid region, malformed source
-window, or non-positive estimate. It writes a temporary file and renames it only
-after successful validation, so a bad upstream response cannot destroy the
-known-good bundled index. Auction acquisition, raw history, estimator rules,
-and provenance are intentionally outside this repository and are maintained by
-`stalzone-market-history`.
+[`src/pricing.ts`](../src/pricing.ts) fetches the canonical merged index from
+`mzmrk/stalzone-market-history` whenever the application starts. It rejects a
+download error, unsupported bundle schema, invalid region, malformed source
+window, or non-positive estimate. Valid data remains in memory for the page
+lifetime only. There is no bundled snapshot, browser persistence, synchronization
+workflow, or fallback price source. Auction acquisition, raw history, estimator
+rules, and provenance are maintained exclusively by `stalzone-market-history`.
 
 ## Documentation workflow
 

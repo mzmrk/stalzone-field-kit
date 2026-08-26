@@ -1,10 +1,12 @@
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import i18n from "./i18n";
 import {
   artifactId,
   artifactPrice,
+  clearPricingIndex,
   DEFAULT_PRICING_REGION,
   formatPrice,
+  loadPricingIndex,
   pricingMetadata,
   pricingRegionAvailable,
   PRICING_REGIONS,
@@ -15,7 +17,11 @@ import {
 } from "./pricing";
 
 describe("auction pricing", () => {
+  beforeEach(async () => {
+    await loadPricingIndex(undefined, async () => new Response(JSON.stringify(testPricingBundle())));
+  });
   afterEach(async () => {
+    clearPricingIndex();
     await i18n.changeLanguage("en");
   });
   it("extracts opaque EXBO artifact IDs from listing paths", () => {
@@ -23,7 +29,7 @@ describe("auction pricing", () => {
     expect(artifactId("zyw2")).toBe("zyw2");
   });
 
-  it("returns the generated median and sample count for a rarity tier", () => {
+  it("returns the downloaded median and sample count for a rarity tier", () => {
     const ordinary = artifactPrice("zyw2", 0);
     expect(ordinary?.median).toBeGreaterThan(0);
     expect(ordinary?.samples).toBeGreaterThan(0);
@@ -40,6 +46,14 @@ describe("auction pricing", () => {
   it("does not substitute another rarity when market data is unavailable", () => {
     expect(artifactPrice("missing-artifact", 0)).toBeNull();
     expect(artifactPrice("zyw2", 6)).toBeNull();
+  });
+
+  it("has no price fallback when the live index cannot be loaded", async () => {
+    clearPricingIndex();
+    await expect(loadPricingIndex(undefined, async () => new Response("offline", { status: 503 })))
+      .rejects.toThrow("HTTP 503");
+    expect(pricingRegionAvailable("eu")).toBe(false);
+    expect(artifactPrice("zyw2", 0)).toBeNull();
   });
 
   it("formats ruble estimates and unavailable values", () => {
@@ -99,3 +113,23 @@ describe("auction pricing", () => {
     expect(pricingMetadata("eu").asOfLabel).toMatch(/[а-я]/i);
   });
 });
+
+function testPricingBundle() {
+  return {
+    schemaVersion: 1,
+    defaultRegion: "eu",
+    regions: {
+      eu: {
+        region: "eu",
+        snapshot: "test",
+        method: "test",
+        sourceWindow: { asOf: "2026-08-01T00:00:00.000Z", cutoff: "2025-08-01T00:00:00.000Z", days: 365 },
+        artifacts: {
+          zyw2: {
+            0: { median: 100, samples: 5, condition: "build-equivalent", confidence: "medium", weighted: false, windowDays: 365 },
+          },
+        },
+      },
+    },
+  };
+}

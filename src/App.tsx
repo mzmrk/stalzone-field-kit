@@ -79,10 +79,12 @@ import {
   DEFAULT_PRICING_REGION,
   formatPrice,
   isPricingRegion,
+  loadPricingIndex,
   priceSource,
   priceSourceDetails,
   priceSourceLabel,
   pricingMetadata,
+  pricingRegionAvailable,
   PRICING_REGIONS,
   type PriceEstimate,
   type PricingRegion,
@@ -408,7 +410,7 @@ function Picker({
             </div>
           )}
         </div>
-        <p className="picker-footer">{t("Items load live from EXBO Studio. Prices use the saved {{region}} completed-sale snapshot ({{date}}).", { region: pricingMetadata(pricingRegion).region, date: pricingMetadata(pricingRegion).asOfLabel })}</p>
+        <p className="picker-footer">{t("Items load live from EXBO Studio. Prices load directly from the {{region}} market-history index ({{date}}).", { region: pricingMetadata(pricingRegion).region, date: pricingMetadata(pricingRegion).asOfLabel })}</p>
       </section>
     </div>
   );
@@ -767,11 +769,13 @@ function OptimizerPanel({
   container,
   onApply,
   pricingRegion,
+  pricingReady,
 }: {
   catalog: Catalog | null;
   container: ContainerData | null;
   onApply: (artifacts: ArtifactConfig[]) => void;
   pricingRegion: PricingRegion;
+  pricingReady: boolean;
 }) {
   const { t } = useTranslation();
   const savedSettings = useMemo(loadSavedOptimizerSettings, []);
@@ -801,6 +805,8 @@ function OptimizerPanel({
     pricingRegion,
   });
   const signatureRef = useRef(searchSignature);
+  const priceConstraintUnavailable = maxTotalPrice.trim() !== ""
+    && (!pricingReady || !pricingRegionAvailable(pricingRegion));
 
   useEffect(() => () => workerRef.current?.terminate(), []);
   useEffect(() => {
@@ -899,7 +905,7 @@ function OptimizerPanel({
 
   const startSearch = async () => {
     if (!catalog || !container || activeObjectives.length === 0 || selectedRarities.length === 0
-      || invalidMaxTotalPrice || invalidPositiveMinimum || invalidCustomLimit) return;
+      || invalidMaxTotalPrice || invalidPositiveMinimum || invalidCustomLimit || priceConstraintUnavailable) return;
     const runId = runIdRef.current + 1;
     runIdRef.current = runId;
     workerRef.current?.terminate();
@@ -1175,7 +1181,7 @@ function OptimizerPanel({
               <label className="optimizer-budget">
                 <span>{t("Maximum total price")}</span>
                 <input aria-label={t("Maximum total price")} type="number" min="1" step="1000" placeholder={t("No limit")} value={maxTotalPrice} onChange={(event) => setMaxTotalPrice(event.target.value)} />
-                <small>{t("{{region}} completed-sale estimates ({{date}}). Market uses direct eligible sales; Estimated uses same-artifact rarity extrapolation. Unknown prices are excluded when enabled.", { region: pricingMetadata(pricingRegion).region, date: pricingMetadata(pricingRegion).asOfLabel })}</small>
+                <small>{t("Live {{region}} completed-sale estimates ({{date}}). Market uses direct eligible sales; Estimated uses same-artifact rarity extrapolation. Unknown prices are excluded when enabled.", { region: pricingMetadata(pricingRegion).region, date: pricingMetadata(pricingRegion).asOfLabel })}</small>
               </label>
               <div className="search-estimate">
                 <span>{t("SEARCH SPACE")}</span><strong>{formatInteger(estimatedCombinations)}</strong><small>{t("canonical combinations · {{engine}} selected automatically", { engine: estimatedEngine === "milp" ? "MILP" : t("Brute force") })}</small>
@@ -1185,7 +1191,8 @@ function OptimizerPanel({
               {invalidPositiveMinimum && <p className="optimizer-error">{t("Positive minimums must be greater than zero.")}</p>}
               {invalidCustomLimit && <p className="optimizer-error">{t("Every accepted penalty must be zero or greater.")}</p>}
               {invalidMaxTotalPrice && <p className="optimizer-error">{t("Maximum total price must be greater than zero.")}</p>}
-              <button className="optimizer-search" disabled={!catalog || selectedRarities.length === 0 || activeObjectives.length === 0 || invalidPositiveMinimum || invalidCustomLimit || invalidMaxTotalPrice || state === "loading" || state === "searching"} onClick={startSearch}>
+              {priceConstraintUnavailable && <p className="optimizer-error">{t("Live price data is required to use a maximum total price.")}</p>}
+              <button className="optimizer-search" disabled={!catalog || selectedRarities.length === 0 || activeObjectives.length === 0 || invalidPositiveMinimum || invalidCustomLimit || invalidMaxTotalPrice || priceConstraintUnavailable || state === "loading" || state === "searching"} onClick={startSearch}>
                 {state === "loading"
                   ? t("Loading artifacts {{completed}}/{{total}}", loadProgress)
                   : state === "searching"
@@ -1281,6 +1288,8 @@ export default function App() {
   const [picker, setPicker] = useState<PickerState>(null);
   const [selecting, setSelecting] = useState<string | null>(null);
   const [pricingRegion, setPricingRegion] = useState<PricingRegion>(savedPricingRegion);
+  const [pricingStatus, setPricingStatus] = useState<"loading" | "ready" | "error">("loading");
+  const [pricingError, setPricingError] = useState<string | null>(null);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -1288,6 +1297,19 @@ export default function App() {
       .then(setCatalog)
       .catch((error: unknown) => {
         if ((error as Error).name !== "AbortError") setCatalogError((error as Error).message);
+      });
+    return () => controller.abort();
+  }, []);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    loadPricingIndex(controller.signal)
+      .then(() => setPricingStatus("ready"))
+      .catch((error: unknown) => {
+        if ((error as Error).name !== "AbortError") {
+          setPricingError((error as Error).message);
+          setPricingStatus("error");
+        }
       });
     return () => controller.abort();
   }, []);
@@ -1427,6 +1449,13 @@ export default function App() {
           </div>
         )}
 
+        {pricingStatus === "error" && (
+          <div className="data-error" role="alert">
+            <AlertTriangle size={19} />
+            <span><strong>{t("Couldn’t load live market prices.")}</strong> {t("Price displays and price-capped searches are unavailable: {{message}}", { message: pricingError })}</span>
+          </div>
+        )}
+
         {selectionError && (
           <div className="data-error" role="alert">
             <AlertTriangle size={19} />
@@ -1437,6 +1466,9 @@ export default function App() {
 
         {!catalog && !catalogError && (
           <div className="loading-catalog"><LoaderCircle className="spin" size={22} /><span>{t("Loading the current artifact catalog from EXBO…")}</span></div>
+        )}
+        {pricingStatus === "loading" && (
+          <div className="loading-catalog"><LoaderCircle className="spin" size={22} /><span>{t("Loading current market prices…")}</span></div>
         )}
 
         <nav className="mobile-steps" aria-label={t("Calculator sections")}>
@@ -1471,6 +1503,7 @@ export default function App() {
           catalog={catalog}
           container={container}
           pricingRegion={pricingRegion}
+          pricingReady={pricingStatus === "ready"}
           onApply={(nextArtifacts) => {
             setArtifacts(Array.from({ length: container?.capacity ?? nextArtifacts.length }, (_, index) => nextArtifacts[index] ?? null));
             setActiveIndex(nextArtifacts.length > 0 ? 0 : null);
