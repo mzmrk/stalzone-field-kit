@@ -63,7 +63,7 @@ describe("auction history cache updater", () => {
     expect(fetchedOffsets).toEqual([0, 1]);
     expect(
       logs.some((message) =>
-        message.includes("Heartbeat eu: 0/1 artifacts complete, current alpha (1 rows across 1 pages), fetched 1 new/overlap rows."),
+        message.includes("Heartbeat eu: 0/1 artifacts complete, current alpha (1 rows across 1 pages, 0.3% of 365-day window), fetched 1 new/overlap rows."),
       ),
     ).toBe(true);
 

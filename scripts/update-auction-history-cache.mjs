@@ -93,11 +93,12 @@ export async function updateAuctionHistoryCache({
     let currentArtifactId = null;
     let currentArtifactFetched = 0;
     let currentArtifactPages = 0;
+    let currentArtifactWindowPercent = 0;
     let totalFetched = 0;
     let totalRetained = 0;
     heartbeat = setInterval(() => {
       log(
-        `Heartbeat ${region}: ${completedArtifacts}/${artifactIds.length} artifacts complete, current ${currentArtifactId ?? "finalizing"} (${currentArtifactFetched} rows across ${currentArtifactPages} pages), fetched ${totalFetched + currentArtifactFetched} new/overlap rows.`,
+        `Heartbeat ${region}: ${completedArtifacts}/${artifactIds.length} artifacts complete, current ${currentArtifactId ?? "finalizing"} (${currentArtifactFetched} rows across ${currentArtifactPages} pages, ${currentArtifactWindowPercent.toFixed(1)}% of ${days}-day window), fetched ${totalFetched + currentArtifactFetched} new/overlap rows.`,
       );
     }, heartbeatInterval);
     heartbeat.unref?.();
@@ -106,6 +107,7 @@ export async function updateAuctionHistoryCache({
       currentArtifactId = artifactId;
       currentArtifactFetched = 0;
       currentArtifactPages = 0;
+      currentArtifactWindowPercent = 0;
       const file = path.join(artifactsDirectory, `${artifactId}.jsonl`);
       const existingRows = await readCacheRows(file);
       const newestExistingSale = latestSaleTimestamp(existingRows);
@@ -117,9 +119,12 @@ export async function updateAuctionHistoryCache({
         newestExistingSale,
         pageLimit: limit,
         region,
-        onPage: ({ fetchedRecords, pagesFetched }) => {
+        onPage: ({ fetchedRecords, historyExhausted, oldestTimestamp, pagesFetched }) => {
           currentArtifactFetched = fetchedRecords;
           currentArtifactPages = pagesFetched;
+          currentArtifactWindowPercent = historyExhausted
+            ? 100
+            : historyWindowPercent({ capturedAt: capturedAt.getTime(), cutoff, oldestTimestamp });
         },
       });
       const mergedRows = mergeCacheRows({
@@ -137,6 +142,7 @@ export async function updateAuctionHistoryCache({
       totalFetched += fetchedRows.length;
       currentArtifactFetched = 0;
       currentArtifactPages = 0;
+      currentArtifactWindowPercent = 0;
       totalRetained += mergedRows.length;
       completedArtifacts = artifactIndex + 1;
       summary.artifacts[artifactId] = {
@@ -260,13 +266,6 @@ export async function fetchNewRows({
     const pageRows = parsed.prices.map(flattenRecord).filter(Boolean);
     rows.push(...pageRows);
     pagesFetched += 1;
-    onPage({
-      artifactId,
-      fetchedRecords: rows.length,
-      pageRecords: pageRows.length,
-      pagesFetched,
-    });
-
     const timestamps = pageRows.map(parseSoldAt).filter(Number.isFinite);
     const overlapsExistingCache =
       Number.isFinite(newestExistingSale) &&
@@ -274,6 +273,14 @@ export async function fetchNewRows({
     const crossedCutoff = timestamps.some((timestamp) => timestamp < cutoff);
     exhausted = parsed.prices.length === 0 || offset + parsed.prices.length >= parsed.total;
     offset += parsed.prices.length;
+    onPage({
+      artifactId,
+      fetchedRecords: rows.length,
+      historyExhausted: exhausted,
+      oldestTimestamp: timestamps.length ? Math.min(...timestamps) : null,
+      pageRecords: pageRows.length,
+      pagesFetched,
+    });
 
     if (exhausted || fetchOneMoreAfterOverlap) break;
     if (overlapsExistingCache) {
@@ -284,6 +291,11 @@ export async function fetchNewRows({
   }
 
   return rows;
+}
+
+function historyWindowPercent({ capturedAt, cutoff, oldestTimestamp }) {
+  if (!Number.isFinite(oldestTimestamp) || capturedAt <= cutoff) return 0;
+  return Math.min(100, Math.max(0, ((capturedAt - oldestTimestamp) / (capturedAt - cutoff)) * 100));
 }
 
 async function pruneStaleArtifactFiles(artifactsDirectory, currentArtifactIds) {
