@@ -85,9 +85,9 @@ secret. The public URL is
 `https://mzmrk.github.io/stalzone-field-kit/`.
 
 [`update-prices.yml`](../.github/workflows/update-prices.yml) runs weekly or
-manually. A fail-fast-disabled matrix independently restores, refreshes, and
-retains 90-day cache artifacts for EU, RU, NA, SEA, and NEA. Each successful job
-emits one regional index. The final job preserves previously bundled data for
+manually. Its fail-fast-disabled EU, RU, NA, SEA, and NEA jobs run sequentially
+because they share one API quota. Each restores and refreshes its 90-day cache,
+then emits a regional index. The final job preserves previously bundled data for
 failed regions, merges successful outputs with
 [`scripts/merge-pricing-indexes.mjs`](../scripts/merge-pricing-indexes.mjs),
 tests, builds, commits changes, and deploys Pages. It requires variable

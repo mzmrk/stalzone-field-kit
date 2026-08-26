@@ -114,6 +114,7 @@ describe("regional pricing workflow", () => {
   it("isolates refresh failures and merges only successful region outputs", async () => {
     const workflow = await readFile(path.join(projectRoot, ".github", "workflows", "update-prices.yml"), "utf8");
     expect(workflow).toContain("fail-fast: false");
+    expect(workflow).toContain("max-parallel: 1");
     expect(workflow).toContain("region: [eu, ru, na, sea, nea]");
     expect(workflow).toContain("name: auction-history-cache-${{ matrix.region }}");
     expect(workflow).toContain("name: pricing-index-${{ matrix.region }}");

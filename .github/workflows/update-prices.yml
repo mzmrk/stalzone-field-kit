@@ -19,6 +19,7 @@ jobs:
   refresh-region:
     strategy:
       fail-fast: false
+      max-parallel: 1
       matrix:
         region: [eu, ru, na, sea, nea]
     runs-on: ubuntu-latest
