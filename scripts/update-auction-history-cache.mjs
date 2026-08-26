@@ -346,7 +346,8 @@ async function request({ credentials, fetchImpl, label, url }) {
     if (response.status !== 429 && response.status < 500) {
       throw new Error(`${label} failed (${response.status}): ${body.slice(0, 200)}`);
     }
-    const retryAfter = Number(response.headers.get("retry-after"));
+    const retryAfterHeader = response.headers.get("retry-after");
+    const retryAfter = retryAfterHeader === null ? Number.NaN : Number(retryAfterHeader);
     await delay(Number.isFinite(retryAfter) ? retryAfter * 1_000 : Math.min(30_000, 1_000 * 2 ** attempt));
   }
   throw new Error(`${label} failed after retries.`);
@@ -447,4 +448,6 @@ async function exists(file) {
   }
 }
 
-const delay = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds));
+function delay(milliseconds) {
+  return new Promise((resolve) => setTimeout(resolve, milliseconds));
+}

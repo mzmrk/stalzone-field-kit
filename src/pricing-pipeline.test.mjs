@@ -116,6 +116,28 @@ describe("auction history cache updater", () => {
     expect(mergedRows.map((row) => row.price)).toEqual([120, 100, 90]);
   });
 
+  it("retries a rate-limited history page", async () => {
+    let attempts = 0;
+    const fetchedRows = await fetchNewRows({
+      artifactId: "alpha",
+      cutoff: Date.parse("2025-01-10T00:00:00.000Z"),
+      credentials: fakeCredentials(),
+      fetchImpl: async () => {
+        attempts += 1;
+        if (attempts === 1) {
+          return jsonResponse({ message: "rate limited" }, { status: 429, headers: { "retry-after": "0" } });
+        }
+        return jsonResponse(page(1, [{ price: 100, time: "2026-01-09T00:00:00.000Z" }]));
+      },
+      newestExistingSale: Number.NaN,
+      pageLimit: 200,
+      region: "eu",
+    });
+
+    expect(attempts).toBe(2);
+    expect(fetchedRows).toHaveLength(1);
+  });
+
   it("prunes artifact files absent from the current listing", async () => {
     const tempDirectory = await temporaryDirectory();
     const archive = path.join(tempDirectory, "auction-history-cache-eu.tar.gz");
