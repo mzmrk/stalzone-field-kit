@@ -28,5 +28,5 @@ documentation and code disagree.
 | UI flow, state ownership, EXBO loading, persistence, or product scope | [Architecture](architecture.md) |
 | Stat formulas, optimizer constraints, keys, quality tiers, protection, warnings, or bonus handling | [Calculation model](calculation-model.md) |
 | Commands, dependencies, tests, build configuration, or local operation | [Development](development.md) |
-| Price-index synchronization or bundled market estimates | [Architecture](architecture.md) and [Development](development.md) |
+| Runtime price-index source, validation, regions, or estimate contract | [Architecture](architecture.md) and [Development](development.md) |
 | A new documentation topic, rename, or ownership change | This index and every affected owner |
