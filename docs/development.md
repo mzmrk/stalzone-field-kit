@@ -84,74 +84,29 @@ repository's built-in `GITHUB_TOKEN`, so it requires no stored deployment
 secret. The public URL is
 `https://mzmrk.github.io/stalzone-field-kit/`.
 
-[`update-prices.yml`](../.github/workflows/update-prices.yml) runs weekly or
-manually. Fail-fast-disabled regional jobs run sequentially because they share
-one API quota. After uploading a verified cache, each deletes older artifacts of
-the same region while retaining the exact new upload ID. The final job preserves
-bundled data for failed regions, merges successful outputs with
-[`scripts/merge-pricing-indexes.mjs`](../scripts/merge-pricing-indexes.mjs),
-tests, builds, commits changes, and deploys Pages. It requires variable
-`STALZONE_CLIENT_ID` and secret `STALZONE_CLIENT_SECRET` only during acquisition.
+[`update-prices.yml`](../.github/workflows/update-prices.yml) runs daily or
+manually. It downloads the canonical merged index from
+`mzmrk/stalzone-market-history`, validates its schema and every regional price,
+then atomically replaces the bundled
+[`src/generated/pricing-index.json`](../src/generated/pricing-index.json). It
+tests and builds before committing a changed mirror; the normal Pages workflow
+deploys that commit. This synchronization needs no auction API credentials.
 
-## Market price cache
+## Market price synchronization
 
-The rolling market cache lives at
-`data/pricing/cache/<region>/auction-history-cache-<region>.tar.gz`. Caches are
-ignored by git and are intended for local use or GitHub Actions artifacts. The
-cache contains `manifest.json` plus one `artifacts/<artifactId>.jsonl` file per
-STALZONE artifact. Rows preserve auction sale fields and flatten the untyped
-auction metadata as dotted `additional.*` keys. Acquisition request credentials
-must never be written to the repository.
-
-Refresh or bootstrap a cache from the official auction-history API with:
+Run the same validated synchronization locally with:
 
 ```bash
-STALZONE_CLIENT_ID=... STALZONE_CLIENT_SECRET=... npm run pricing:update-cache -- eu
+npm run pricing:sync
 ```
 
-[`scripts/update-auction-history-cache.mjs`](../scripts/update-auction-history-cache.mjs)
-extracts an existing cache, fetches through the cutoff or the newest cached sale
-plus one overlap page, merges/deduplicates rows, prunes the one-year window and
-stale artifact files, then validates a temporary archive before atomic replacement.
-Its five-minute heartbeat includes live row/page counts and year-window progress; `PRICING_PROGRESS_EVERY=1` logs every artifact. Transient API and rate-limit responses retry automatically.
-An ignored credentials JSON may follow the region.
-[`scripts/restore-pricing-cache.mjs`](../scripts/restore-pricing-cache.mjs)
-selects the newest unexpired Actions artifact. Absence triggers bootstrap;
-invalid restoration fails without replacing an existing cache.
-
-Generate one regional index from its default cache archive with:
-
-```bash
-npm run pricing:build -- eu
-npm run pricing:merge -- src/generated/pricing-index.json data/pricing/generated/pricing-index-eu.json
-```
-
-[`scripts/generate-pricing-index.mjs`](../scripts/generate-pricing-index.mjs)
-normalizes `additional.qlt ?? 0` and estimates each artifact-rarity price from
-one-year build-equivalent completed sales. It accepts legacy flattened rows and
-nested market-history API objects. The workflow writes regional files,
-then merges them into [`src/generated/pricing-index.json`](../src/generated/pricing-index.json).
-Build-equivalent sales are `+0`, have no bonus properties, and have full maximum
-charge; researched and unstudied sales are both eligible, and current charge loss
-is allowed. The price is a plain one-year median until a tier has at least ten
-sales in the last 90 days, then switches to a recency-weighted median; plain
-`recent30Median`, `recent90Median`, and `recent365Median` values are retained as
-diagnostics. Missing tiers use only direct adjacent same-artifact anchors;
-multi-tier chains remain unknown. Output records the pricing-algorithm version,
-cache and manifest SHA-256 hashes, and selected
-source-manifest fields. `generatedAt` comes
-from the cache's `asOf` timestamp, so rebuilding unchanged input is byte-for-byte
-deterministic. Without an explicit input, the script uses
-`data/pricing/cache/<region>/auction-history-cache-<region>.tar.gz`. It also
-accepts an explicit cache archive or extracted cache directory plus an optional
-output path:
-
-```bash
-node scripts/generate-pricing-index.mjs eu path/to/cache.tar.gz optional/output.json
-```
-
-Supported region arguments are `eu`, `ru`, `na`, `sea`, and `nea`. All use the
-Global catalog IDs consumed by the app; only the auction API region changes.
+[`scripts/sync-pricing-index.mjs`](../scripts/sync-pricing-index.mjs) fails closed
+on a download error, unsupported bundle schema, invalid region, malformed source
+window, or non-positive estimate. It writes a temporary file and renames it only
+after successful validation, so a bad upstream response cannot destroy the
+known-good bundled index. Auction acquisition, raw history, estimator rules,
+and provenance are intentionally outside this repository and are maintained by
+`stalzone-market-history`.
 
 ## Documentation workflow
 

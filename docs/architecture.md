@@ -19,7 +19,7 @@ The production site is a static GitHub Pages deployment at
 ```mermaid
 flowchart LR
     EXBO["EXBO Global repository"] -->|listing.json| Catalog["Filtered catalog"]
-    Snapshot["Saved regional auction history"] --> PriceIndex["Generated regional rarity medians"]
+    Market["stalzone-market-history canonical index"] --> PriceIndex["Bundled regional rarity medians"]
     Catalog --> Picker["Container and artifact pickers"]
     EXBO -->|selected item JSON and icons| Picker
     PriceIndex --> Picker
@@ -43,7 +43,11 @@ from the same listing. Both data and images are requested directly from
 `raw.githubusercontent.com`; runtime use therefore requires the browser to reach
 GitHub.
 
-Pricing is not fetched at runtime. [`src/pricing.ts`](../src/pricing.ts) selects
+Pricing is not fetched at runtime. The separately maintained
+`stalzone-market-history` repository owns auction acquisition and price
+estimation; this repository validates and mirrors its canonical index into
+[`src/generated/pricing-index.json`](../src/generated/pricing-index.json).
+[`src/pricing.ts`](../src/pricing.ts) selects
 EU, RU, NA, SEA, or NEA from one generated bundle; EU is the persisted default.
 Direct completed-sale prices are lime, adjacent-rarity estimates amber, and
 unknowns gray. Source details include samples, method, date, and region. Unknown
@@ -72,8 +76,9 @@ tiers are excluded by an active price cap. Raw caches are not shipped.
   loads the WebAssembly solver away from the UI thread and streams each ranked
   build before the remaining ranks finish.
 - [`src/pricing.ts`](../src/pricing.ts) maps EXBO artifact IDs and rarity indices
-  to bundled market estimates and owns ruble display formatting. Its generated
-  index is authoritative at runtime; raw histories remain source inputs.
+  to bundled market estimates and owns ruble display formatting. The bundled
+  index is authoritative at runtime; its algorithm and source history are owned
+  by `stalzone-market-history`.
 - [`src/i18n.ts`](../src/i18n.ts) owns EN/RU selection and locale helpers;
   [`src/locales/`](../src/locales/) owns UI translations.
 - [`src/App.tsx`](../src/App.tsx) owns item selection, slot management, artifact

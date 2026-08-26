@@ -20,8 +20,6 @@ documentation and code disagree.
   protection, warning thresholds, and calculation limitations.
 - [Development](development.md) owns local setup, Docker-facing development,
   verification, static builds, and documentation maintenance.
-- [EXBO auction artifact metadata](auction-api.md) owns auction `additional`
-  normalization, unknowns, and pricing guardrails.
 
 ## Change routing
 
@@ -30,5 +28,5 @@ documentation and code disagree.
 | UI flow, state ownership, EXBO loading, persistence, or product scope | [Architecture](architecture.md) |
 | Stat formulas, optimizer constraints, keys, quality tiers, protection, warnings, or bonus handling | [Calculation model](calculation-model.md) |
 | Commands, dependencies, tests, build configuration, or local operation | [Development](development.md) |
-| Auction fields, snapshots, pricing inputs, or artifact-market assumptions | [EXBO auction artifact metadata](auction-api.md) and [Development](development.md) |
+| Price-index synchronization or bundled market estimates | [Architecture](architecture.md) and [Development](development.md) |
 | A new documentation topic, rename, or ownership change | This index and every affected owner |

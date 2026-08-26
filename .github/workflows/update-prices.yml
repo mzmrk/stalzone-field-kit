@@ -1,29 +1,21 @@
-name: Refresh prices and deploy
+name: Synchronize prices
 
 on:
   schedule:
-    - cron: "23 4 * * 1"
+    - cron: "17 3 * * *"
   workflow_dispatch:
 
 permissions:
-  actions: write
   contents: write
-  pages: write
-  id-token: write
 
 concurrency:
-  group: pricing-refresh
+  group: pricing-sync
   cancel-in-progress: false
 
 jobs:
-  refresh-region:
-    strategy:
-      fail-fast: false
-      max-parallel: 1
-      matrix:
-        region: [eu, ru, na, sea, nea]
+  synchronize:
     runs-on: ubuntu-latest
-    timeout-minutes: 360
+    timeout-minutes: 15
     steps:
       - name: Check out main
         uses: actions/checkout@v6
@@ -39,80 +31,11 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Restore newest retained cache
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        run: node scripts/restore-pricing-cache.mjs ${{ matrix.region }}
+      - name: Synchronize canonical price index
+        run: npm run pricing:sync
 
-      - name: Refresh regional auction history
-        env:
-          STALZONE_CLIENT_ID: ${{ vars.STALZONE_CLIENT_ID }}
-          STALZONE_CLIENT_SECRET: ${{ secrets.STALZONE_CLIENT_SECRET }}
-        run: npm run pricing:update-cache -- ${{ matrix.region }}
-
-      - name: Upload rolling regional cache
-        id: cache-upload
-        uses: actions/upload-artifact@v7
-        with:
-          name: auction-history-cache-${{ matrix.region }}
-          path: data/pricing/cache/${{ matrix.region }}/auction-history-cache-${{ matrix.region }}.tar.gz
-          if-no-files-found: error
-          retention-days: 90
-          compression-level: 0
-
-      - name: Keep only the newest regional cache
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        run: node scripts/prune-pricing-cache-artifacts.mjs ${{ matrix.region }} ${{ steps.cache-upload.outputs.artifact-id }}
-
-      - name: Generate regional prices
-        run: npm run pricing:build -- ${{ matrix.region }} data/pricing/cache/${{ matrix.region }}/auction-history-cache-${{ matrix.region }}.tar.gz data/pricing/generated/pricing-index-${{ matrix.region }}.json
-
-      - name: Upload regional price index
-        uses: actions/upload-artifact@v7
-        with:
-          name: pricing-index-${{ matrix.region }}
-          path: data/pricing/generated/pricing-index-${{ matrix.region }}.json
-          if-no-files-found: error
-          retention-days: 1
-
-  publish:
-    needs: refresh-region
-    if: always()
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    steps:
-      - name: Check out main
-        uses: actions/checkout@v6
-        with:
-          ref: main
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: 22
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Download successful regional indexes
-        continue-on-error: true
-        uses: actions/download-artifact@v7
-        with:
-          pattern: pricing-index-*
-          path: .pricing-updates
-
-      - name: Merge successful regional prices
-        run: |
-          mapfile -t indexes < <(find .pricing-updates -type f -name 'pricing-index-*.json' 2>/dev/null | sort)
-          npm run pricing:merge -- src/generated/pricing-index.json "${indexes[@]}"
-
-      - name: Run unit tests
-        run: npm test
-
-      - name: Build static site
-        run: npm run build
+      - name: Verify synchronized application
+        run: npm test && npm run build
 
       - name: Commit refreshed prices
         run: |
@@ -123,28 +46,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add src/generated/pricing-index.json
-          git commit -m "pricing: refresh regional estimates (merge successful indexes)"
+          git commit -m "pricing: synchronize canonical estimates (bundle market-history index)"
           git push origin HEAD:main
-
-      - name: Configure GitHub Pages
-        uses: actions/configure-pages@v6
-
-      - name: Upload static site
-        uses: actions/upload-pages-artifact@v5
-        with:
-          path: dist
-
-  deploy:
-    needs: publish
-    if: always() && needs.publish.result == 'success'
-    runs-on: ubuntu-latest
-    concurrency:
-      group: pages
-      cancel-in-progress: true
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v5
