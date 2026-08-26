@@ -6,6 +6,7 @@ import type {
   RawElement,
   RawItem,
 } from "./types";
+import i18n, { appLanguage } from "./i18n";
 
 export const EXBO_REPOSITORY =
   "https://github.com/EXBO-Studio/stalzone-database";
@@ -24,7 +25,7 @@ export type Catalog = {
 };
 
 export function translated(text?: { lines?: Record<string, string>; text?: string }) {
-  return text?.lines?.en ?? text?.text ?? "Unknown item";
+  return text?.lines?.[appLanguage()] ?? text?.lines?.en ?? text?.text ?? i18n.t("Unknown item");
 }
 
 export function assetUrl(path: string) {
@@ -34,7 +35,7 @@ export function assetUrl(path: string) {
 export async function fetchJson<T>(path: string, signal?: AbortSignal): Promise<T> {
   const response = await fetch(assetUrl(path), { signal });
   if (!response.ok) {
-    throw new Error(`EXBO data request failed (${response.status})`);
+    throw new Error(i18n.t("EXBO data request failed ({{status}})", { status: response.status }));
   }
   return response.json() as Promise<T>;
 }
@@ -96,7 +97,7 @@ export function parseStats(item: RawItem): ParsedStat[] {
       const formatted = element.formatted?.value?.en ?? "";
       return {
         key: elementKey(element),
-        name: translated(element.name),
+        name: element.name?.lines?.en ?? element.name?.text ?? i18n.t("Unknown item", { lng: "en" }),
         min,
         max,
         positive: element.formatted?.valueColor?.toUpperCase() !== "C15252",

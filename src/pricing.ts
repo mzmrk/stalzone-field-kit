@@ -1,4 +1,5 @@
 import pricingIndexJson from "./generated/pricing-index.json";
+import i18n, { appLocale } from "./i18n";
 import type { ListingEntry } from "./types";
 
 export const PRICING_REGIONS = ["eu", "ru", "na", "sea", "nea"] as const;
@@ -55,7 +56,7 @@ export function pricingMetadata(region: PricingRegion) {
     available: index !== undefined,
     region: region.toUpperCase(),
     asOf: index?.sourceWindow.asOf ?? null,
-    asOfLabel: index ? formatDate(index.sourceWindow.asOf) : "snapshot unavailable",
+    asOfLabel: index ? formatDate(index.sourceWindow.asOf) : i18n.t("snapshot unavailable"),
     windowDays: index?.sourceWindow.days ?? null,
   };
 }
@@ -75,8 +76,8 @@ export function artifactPrice(
 
 export function formatPrice(value: number | null) {
   return value === null
-    ? "Price unavailable"
-    : `${Math.round(value).toLocaleString("en-US")} ₽`;
+    ? i18n.t("Price unavailable")
+    : `${Math.round(value).toLocaleString(appLocale())} ₽`;
 }
 
 export function priceSource(estimate: PriceEstimate | null): PriceSource {
@@ -86,7 +87,7 @@ export function priceSource(estimate: PriceEstimate | null): PriceSource {
 
 export function priceSourceLabel(estimate: PriceEstimate | null) {
   const source = priceSource(estimate);
-  return source === "market" ? "Market" : source === "estimated" ? "Estimated" : "Unknown";
+  return source === "market" ? i18n.t("Market") : source === "estimated" ? i18n.t("Estimated") : i18n.t("Unknown");
 }
 
 export function priceSourceDetails(
@@ -95,23 +96,27 @@ export function priceSourceDetails(
 ) {
   const metadata = pricingMetadata(region);
   const suffix = metadata.available
-    ? `${metadata.region} data through ${metadata.asOfLabel}`
-    : `${metadata.region} price snapshot unavailable`;
+    ? i18n.t("{{region}} data through {{date}}", { region: metadata.region, date: metadata.asOfLabel })
+    : i18n.t("{{region}} price snapshot unavailable", { region: metadata.region });
   if (!estimate) {
-    return `No eligible completed-sale estimate or same-artifact rarity anchor · ${suffix}`;
+    return i18n.t("No eligible completed-sale estimate or same-artifact rarity anchor · {{suffix}}", { suffix });
   }
   if (estimate.condition === "adjacent-extrapolated") {
-    const anchor = estimate.anchorRarityName ?? "another rarity";
-    const multiplier = estimate.multiplier === undefined ? "an adjacent-rarity" : `${estimate.multiplier.toFixed(2)}×`;
-    return `Estimated from this artifact's ${anchor} price using ${multiplier} multiplier · no direct eligible sales · ${suffix}`;
+    const anchor = estimate.anchorRarityName ? i18n.t(estimate.anchorRarityName) : i18n.t("another rarity");
+    const multiplier = estimate.multiplier === undefined
+      ? i18n.t("an adjacent-rarity")
+      : `${new Intl.NumberFormat(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(estimate.multiplier)}×`;
+    return i18n.t("Estimated from this artifact's {{anchor}} price using {{multiplier}} multiplier · no direct eligible sales · {{suffix}}", { anchor, multiplier, suffix });
   }
-  const method = estimate.weighted ? "recency-weighted median" : `${estimate.windowDays}-day median`;
-  const sales = `${estimate.samples} eligible completed ${estimate.samples === 1 ? "sale" : "sales"}`;
-  return `Market ${method} from ${sales} · ${suffix}`;
+  const method = estimate.weighted
+    ? i18n.t("recency-weighted median")
+    : i18n.t("{{days}}-day median", { days: estimate.windowDays });
+  const sales = i18n.t("completedSale", { count: estimate.samples });
+  return i18n.t("Market {{method}} from {{sales}} · {{suffix}}", { method, sales, suffix });
 }
 
 function formatDate(value: string) {
-  return new Intl.DateTimeFormat("en-US", {
+  return new Intl.DateTimeFormat(appLocale(), {
     day: "numeric",
     month: "short",
     year: "numeric",

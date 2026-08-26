@@ -27,6 +27,8 @@ import {
   useRef,
   useState,
 } from "react";
+import { useTranslation } from "react-i18next";
+import { appLanguage, appLocale, LANGUAGE_STORAGE_KEY, type AppLanguage } from "./i18n";
 import {
   CARRY_WEIGHT_KEY,
   calculateStat,
@@ -256,19 +258,29 @@ function clamp(value: number, min: number, max: number) {
 
 function formatNumber(value: number, percentage: boolean) {
   const clean = Math.abs(value) < 0.005 ? 0 : value;
-  const sign = clean > 0 ? "+" : "";
-  return `${sign}${clean.toFixed(2)}${percentage ? "%" : ""}`;
+  return `${new Intl.NumberFormat(appLocale(), {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+    signDisplay: "exceptZero",
+  }).format(clean)}${percentage ? "%" : ""}`;
 }
 
 function formatAccuracy(value: number) {
-  if (value >= 10) return value.toFixed(1);
-  if (value >= 1) return value.toFixed(2);
-  if (value >= 0.01) return value.toFixed(3);
-  return value.toFixed(4);
+  const digits = value >= 10 ? 1 : value >= 1 ? 2 : value >= 0.01 ? 3 : 4;
+  return new Intl.NumberFormat(appLocale(), { minimumFractionDigits: digits, maximumFractionDigits: digits }).format(value);
 }
 
 function formatSolveSeconds(value: number) {
-  return value < 1 ? `${value.toFixed(2)}s` : `${value.toFixed(1)}s`;
+  const digits = value < 1 ? 2 : 1;
+  return `${new Intl.NumberFormat(appLocale(), { minimumFractionDigits: digits, maximumFractionDigits: digits }).format(value)}s`;
+}
+
+function formatInteger(value: number | bigint) {
+  return new Intl.NumberFormat(appLocale(), { maximumFractionDigits: 0 }).format(value);
+}
+
+function formatDecimal(value: number, maximumFractionDigits = 2) {
+  return new Intl.NumberFormat(appLocale(), { maximumFractionDigits }).format(value);
 }
 
 function ItemImage({ entry, size = "normal" }: { entry: ListingEntry; size?: "normal" | "large" }) {
@@ -289,11 +301,12 @@ function StatPill({ label, value }: { label: string; value: string }) {
 }
 
 function PriceDisplay({ estimate, region, className = "" }: { estimate: PriceEstimate | null; region: PricingRegion; className?: string }) {
+  const { t } = useTranslation();
   const source = priceSource(estimate);
-  const formattedPrice = estimate ? formatPrice(estimate.median) : "Price unavailable";
+  const formattedPrice = estimate ? formatPrice(estimate.median) : t("Price unavailable");
   return (
     <span
-      aria-label={estimate ? `${priceSourceLabel(estimate)} price: ${formattedPrice}` : formattedPrice}
+      aria-label={estimate ? t("{{source}} price: {{price}}", { source: priceSourceLabel(estimate), price: formattedPrice }) : formattedPrice}
       className={`price-display price-display--${source} ${className}`.trim()}
       title={priceSourceDetails(estimate, region)}
     >
@@ -317,6 +330,7 @@ function Picker({
   selecting: string | null;
   pricingRegion: PricingRegion;
 }) {
+  const { t } = useTranslation();
   const [query, setQuery] = useState("");
   const deferredQuery = useDeferredValue(query.trim().toLowerCase());
   const inputRef = useRef<HTMLInputElement>(null);
@@ -338,15 +352,15 @@ function Picker({
         className="picker-dialog"
         role="dialog"
         aria-modal="true"
-        aria-label={state.kind === "container" ? "Choose container" : "Choose artifact"}
+        aria-label={state.kind === "container" ? t("Choose your carrier") : t("Choose an artifact")}
         onMouseDown={(event) => event.stopPropagation()}
       >
         <div className="picker-header">
           <div>
-            <p className="eyebrow">EXBO DATABASE</p>
-            <h2>{state.kind === "container" ? "Choose your carrier" : "Choose an artifact"}</h2>
+            <p className="eyebrow">{t("EXBO DATABASE")}</p>
+            <h2>{state.kind === "container" ? t("Choose your carrier") : t("Choose an artifact")}</h2>
           </div>
-          <button className="icon-button" onClick={onClose} aria-label="Close">
+          <button className="icon-button" onClick={onClose} aria-label={t("Close")}>
             <X size={20} />
           </button>
         </div>
@@ -356,7 +370,7 @@ function Picker({
             ref={inputRef}
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder={state.kind === "container" ? "Search backpacks and containers…" : "Search artifacts…"}
+            placeholder={state.kind === "container" ? t("Search backpacks and containers…") : t("Search artifacts…")}
           />
           <kbd>{filtered.length}</kbd>
         </label>
@@ -375,10 +389,10 @@ function Picker({
                 <span className="picker-row__name">{translated(entry.name)}</span>
                 <span className="picker-row__type">
                   {entry.data.includes("/backpacks/")
-                    ? "Backpack"
+                    ? t("Backpack")
                     : entry.data.includes("/containers/")
-                      ? "Container"
-                      : entry.data.split("/").at(-2)?.replaceAll("_", " ")}
+                      ? t("Container")
+                      : t(entry.data.split("/").at(-2)?.replaceAll("_", " ") ?? "")}
                 </span>
                 {state.kind === "artifact" && (
                   <PriceDisplay estimate={price} region={pricingRegion} className="picker-row__price" />
@@ -390,11 +404,11 @@ function Picker({
           {filtered.length === 0 && (
             <div className="empty-search">
               <PackageOpen size={30} />
-              <p>No items match “{query}”.</p>
+              <p>{t("No items match “{{query}}”.", { query })}</p>
             </div>
           )}
         </div>
-        <p className="picker-footer">Items load live from EXBO Studio. Prices use the saved {pricingMetadata(pricingRegion).region} completed-sale snapshot ({pricingMetadata(pricingRegion).asOfLabel}).</p>
+        <p className="picker-footer">{t("Items load live from EXBO Studio. Prices use the saved {{region}} completed-sale snapshot ({{date}}).", { region: pricingMetadata(pricingRegion).region, date: pricingMetadata(pricingRegion).asOfLabel })}</p>
       </section>
     </div>
   );
@@ -421,14 +435,15 @@ function ContainerPanel({
   onCopy: (index: number) => void;
   pricingRegion: PricingRegion;
 }) {
+  const { t } = useTranslation();
   const carrierCarryWeight = container?.stats.find((stat) => stat.key === CARRY_WEIGHT_KEY)?.max;
 
   return (
     <section className="panel loadout-panel" id="loadout">
       <div className="panel-heading">
         <div>
-          <p className="eyebrow">01 / LOADOUT</p>
-          <h2>Carrier & artifacts</h2>
+          <p className="eyebrow">{t("01 / LOADOUT")}</p>
+          <h2>{t("Carrier & artifacts")}</h2>
         </div>
         <Backpack size={22} />
       </div>
@@ -437,30 +452,30 @@ function ContainerPanel({
         <button className="container-card" onClick={onChooseContainer}>
           <ItemImage entry={container.entry} size="large" />
           <span className="container-card__main">
-            <small>{container.entry.data.includes("/backpacks/") ? "BACKPACK" : "CONTAINER"}</small>
-            <strong>{container.name}</strong>
-            <span>Click to replace</span>
+            <small>{container.entry.data.includes("/backpacks/") ? t("Backpack").toUpperCase() : t("Container").toUpperCase()}</small>
+            <strong>{translated(container.item.name)}</strong>
+            <span>{t("Click to replace")}</span>
           </span>
           <ChevronRight size={20} />
         </button>
       ) : (
         <button className="container-empty" onClick={onChooseContainer}>
           <span className="container-empty__icon"><Plus size={24} /></span>
-          <strong>Select a backpack or container</strong>
-          <span>Your available artifact slots will appear here.</span>
+          <strong>{t("Select a backpack or container")}</strong>
+          <span>{t("Your available artifact slots will appear here.")}</span>
         </button>
       )}
 
       {container && (
         <>
           <div className="container-specs">
-            <StatPill label="SLOTS" value={String(container.capacity)} />
-            <StatPill label="PROTECTION" value={`${container.protection.toFixed(1)}%`} />
-            <StatPill label="EFFECT" value={`${container.effectiveness.toFixed(1)}%`} />
-            {carrierCarryWeight !== undefined && <StatPill label="CARRY WEIGHT" value={`+${carrierCarryWeight.toFixed(2)} kg`} />}
+            <StatPill label={t("SLOTS")} value={String(container.capacity)} />
+            <StatPill label={t("PROTECTION")} value={`${formatAccuracy(container.protection)}%`} />
+            <StatPill label={t("EFFECT")} value={`${formatAccuracy(container.effectiveness)}%`} />
+            {carrierCarryWeight !== undefined && <StatPill label={t("CARRY WEIGHT")} value={`${formatNumber(carrierCarryWeight, false)} kg`} />}
           </div>
           <div className="slot-heading">
-            <span>Artifact slots</span>
+            <span>{t("Artifact slots")}</span>
             <span>{artifacts.filter(Boolean).length} / {container.capacity}</span>
           </div>
           <div className="artifact-slots">
@@ -478,21 +493,21 @@ function ContainerPanel({
                     <>
                       <ItemImage entry={artifact.entry} />
                       <span className="artifact-slot__name">
-                        <strong>{artifact.name}</strong>
-                        <small>+{artifact.level} · {artifact.quality}% · {RARITY_NAMES[artifact.rarityIndex]}</small>
+                        <strong>{translated(artifact.item.name)}</strong>
+                        <small>+{artifact.level} · {formatDecimal(artifact.quality)}% · {t(RARITY_NAMES[artifact.rarityIndex])}</small>
                       </span>
                       <PriceDisplay estimate={artifactPrice(artifact.entry, artifact.rarityIndex, pricingRegion)} region={pricingRegion} className="artifact-slot__price" />
                     </>
                   ) : (
-                    <span className="artifact-slot__empty"><Plus size={16} /> Add artifact</span>
+                    <span className="artifact-slot__empty"><Plus size={16} /> {t("Add artifact")}</span>
                   )}
                 </button>
                 {artifact && (
                   <span className="slot-actions">
-                    <button onClick={() => onCopy(index)} aria-label={`Copy ${artifact.name}`} title="Copy to next empty slot">
+                    <button onClick={() => onCopy(index)} aria-label={t("Copy {{name}}", { name: translated(artifact.item.name) })} title={t("Copy to next empty slot")}>
                       <Copy size={15} />
                     </button>
-                    <button onClick={() => onRemove(index)} aria-label={`Remove ${artifact.name}`}>
+                    <button onClick={() => onRemove(index)} aria-label={t("Remove {{name}}", { name: translated(artifact.item.name) })}>
                       <Trash2 size={15} />
                     </button>
                   </span>
@@ -519,17 +534,18 @@ function ArtifactEditor({
   onReplace: () => void;
   pricingRegion: PricingRegion;
 }) {
+  const { t } = useTranslation();
   if (!artifact || index === null) {
     return (
       <section className="panel editor-panel" id="artifact">
         <div className="panel-heading">
-          <div><p className="eyebrow">02 / TUNE</p><h2>Artifact settings</h2></div>
+          <div><p className="eyebrow">{t("02 / TUNE")}</p><h2>{t("Artifact settings")}</h2></div>
           <FlaskConical size={22} />
         </div>
         <div className="editor-empty">
           <span><FlaskConical size={34} /></span>
-          <h3>Select an artifact slot</h3>
-          <p>Choose an artifact to set its upgrade, quality, rarity, and bonus properties.</p>
+          <h3>{t("Select an artifact slot")}</h3>
+          <p>{t("Choose an artifact to set its upgrade, quality, rarity, and bonus properties.")}</p>
         </div>
       </section>
     );
@@ -576,20 +592,20 @@ function ArtifactEditor({
   return (
     <section className="panel editor-panel" id="artifact">
       <div className="panel-heading">
-        <div><p className="eyebrow">02 / TUNE · SLOT {index + 1}</p><h2>Artifact settings</h2></div>
+        <div><p className="eyebrow">{t("02 / TUNE · SLOT {{slot}}", { slot: index + 1 })}</p><h2>{t("Artifact settings")}</h2></div>
         <FlaskConical size={22} />
       </div>
       <div className="selected-artifact">
         <ItemImage entry={artifact.entry} size="large" />
         <div>
-          <h3>{artifact.name}</h3>
-          <p>{artifact.entry.data.split("/").at(-2)?.replaceAll("_", " ")} <PriceDisplay estimate={artifactPrice(artifact.entry, artifact.rarityIndex, pricingRegion)} region={pricingRegion} /></p>
+          <h3>{translated(artifact.item.name)}</h3>
+          <p>{t(artifact.entry.data.split("/").at(-2)?.replaceAll("_", " ") ?? "")} <PriceDisplay estimate={artifactPrice(artifact.entry, artifact.rarityIndex, pricingRegion)} region={pricingRegion} /></p>
         </div>
-        <button className="text-button" onClick={onReplace}>Replace</button>
+        <button className="text-button" onClick={onReplace}>{t("Replace")}</button>
       </div>
 
       <div className="control-group">
-        <div className="control-label"><label htmlFor="level">Upgrade level</label><strong>+{artifact.level}</strong></div>
+        <div className="control-label"><label htmlFor="level">{t("Upgrade level")}</label><strong>+{artifact.level}</strong></div>
         <input id="level" type="range" min="0" max="15" step="1" value={artifact.level} onChange={(event) => updateLevel(Number(event.target.value))} />
         <div className="quick-values">
           {[0, 5, 10, 15].map((value) => <button key={value} className={artifact.level === value ? "active" : ""} onClick={() => updateLevel(value)}>+{value}</button>)}
@@ -597,32 +613,32 @@ function ArtifactEditor({
       </div>
 
       <div className="control-group">
-        <div className="control-label"><label htmlFor="quality">Quality</label><strong>{artifact.quality}%</strong></div>
+        <div className="control-label"><label htmlFor="quality">{t("Quality")}</label><strong>{formatDecimal(artifact.quality)}%</strong></div>
         <div className="number-control">
           <input id="quality" type="range" min="0" max="190" step="0.1" value={artifact.quality} onChange={(event) => updateQuality(Number(event.target.value))} />
-          <input aria-label="Exact quality" type="number" min="0" max="190" step="0.1" value={artifact.quality} onChange={(event) => updateQuality(Number(event.target.value))} />
+          <input aria-label={t("Exact quality")} type="number" min="0" max="190" step="0.1" value={artifact.quality} onChange={(event) => updateQuality(Number(event.target.value))} />
         </div>
         <div className="quality-scale" aria-hidden="true"><span>0</span><span>100</span><span>115</span><span>145</span><span>190</span></div>
       </div>
 
       <div className="control-group">
-        <div className="control-label"><span>Rarity</span><strong>{RARITY_NAMES[artifact.rarityIndex]}</strong></div>
+        <div className="control-label"><span>{t("Rarity")}</span><strong>{t(RARITY_NAMES[artifact.rarityIndex])}</strong></div>
         <div className="rarity-options">
           {options.map((option) => (
             <button key={option} data-rarity={option} className={artifact.rarityIndex === option ? "active" : ""} onClick={() => update({ rarityIndex: option })}>
-              {artifact.rarityIndex === option && <Check size={14} />}{RARITY_NAMES[option]}
+              {artifact.rarityIndex === option && <Check size={14} />}{t(RARITY_NAMES[option])}
             </button>
           ))}
         </div>
-        {options.length > 1 && <p className="field-note">This exact quality sits on a rarity boundary. Choose the color shown in game.</p>}
+        {options.length > 1 && <p className="field-note">{t("This exact quality sits on a rarity boundary. Choose the color shown in game.")}</p>}
       </div>
 
       <div className="base-properties">
-        <div className="section-label"><span>Calculated base properties</span><span>{artifact.stats.length}</span></div>
+        <div className="section-label"><span>{t("Calculated base properties")}</span><span>{artifact.stats.length}</span></div>
         <ul>
           {artifact.stats.map((stat) => (
             <li key={stat.key} className={stat.positive ? "positive" : "negative"}>
-              <span>{stat.name}</span>
+              <span>{t(stat.name)}</span>
               <span>{formatNumber(
                 calculateStat(
                   stat,
@@ -639,27 +655,27 @@ function ArtifactEditor({
       </div>
 
       <div className="bonus-section">
-        <div className="section-label"><span>Additional properties</span><span>{artifact.bonuses.length} / {unlocked}</span></div>
-        <p className="field-note">EXBO does not publish the random bonus pool. Enter the exact bonus shown on your artifact.</p>
+        <div className="section-label"><span>{t("Additional properties")}</span><span>{artifact.bonuses.length} / {unlocked}</span></div>
+        <p className="field-note">{t("EXBO does not publish the random bonus pool. Enter the exact bonus shown on your artifact.")}</p>
         {artifact.bonuses.map((bonus) => (
           <div className="bonus-row" key={bonus.id}>
             <select
-              aria-label="Bonus property"
+              aria-label={t("Bonus property")}
               value={bonus.key}
               onChange={(event) => {
                 const option = STAT_OPTIONS.find(([key]) => key === event.target.value)!;
                 updateBonus(bonus.id, { key: option[0], name: option[1], percentage: option[2] });
               }}
             >
-              {STAT_OPTIONS.map(([key, name]) => <option value={key} key={key}>{name}</option>)}
+              {STAT_OPTIONS.map(([key, name]) => <option value={key} key={key}>{t(name)}</option>)}
             </select>
-            <input aria-label={`${bonus.name} exact value`} type="number" step="0.01" value={bonus.value} onChange={(event) => updateBonus(bonus.id, { value: Number(event.target.value) })} />
+            <input aria-label={t("{{name}} exact value", { name: t(bonus.name) })} type="number" step="0.01" value={bonus.value} onChange={(event) => updateBonus(bonus.id, { value: Number(event.target.value) })} />
             <span>{bonus.percentage ? "%" : ""}</span>
-            <button className="icon-button" onClick={() => update({ bonuses: artifact.bonuses.filter((item) => item.id !== bonus.id) })} aria-label="Remove bonus"><X size={16} /></button>
+            <button className="icon-button" onClick={() => update({ bonuses: artifact.bonuses.filter((item) => item.id !== bonus.id) })} aria-label={t("Remove bonus")}><X size={16} /></button>
           </div>
         ))}
-        {artifact.bonuses.length < unlocked && <button className="add-bonus" onClick={addBonus}><Plus size={16} /> Add unlocked property</button>}
-        {unlocked === 0 && <div className="locked-bonuses"><Sparkles size={16} /> First property unlocks at +5</div>}
+        {artifact.bonuses.length < unlocked && <button className="add-bonus" onClick={addBonus}><Plus size={16} /> {t("Add unlocked property")}</button>}
+        {unlocked === 0 && <div className="locked-bonuses"><Sparkles size={16} /> {t("First property unlocks at +5")}</div>}
       </div>
     </section>
   );
@@ -674,6 +690,7 @@ function ResultPanel({
   totals: TotalStat[];
   warnings: TotalStat[];
 }) {
+  const { t } = useTranslation();
   const grouped = CATEGORY_ORDER.map((category) => ({
     category,
     stats: totals.filter((stat) => statCategory(stat) === category),
@@ -682,40 +699,40 @@ function ResultPanel({
   return (
     <section className="panel result-panel" id="results">
       <div className="panel-heading">
-        <div><p className="eyebrow">03 / READOUT</p><h2>Build totals</h2></div>
+        <div><p className="eyebrow">{t("03 / READOUT")}</p><h2>{t("Build totals")}</h2></div>
         <CircleGauge size={22} />
       </div>
       {!container ? (
         <div className="editor-empty compact">
           <span><Gauge size={32} /></span>
-          <h3>Waiting for a carrier</h3>
-          <p>Select a backpack or container to begin your calculation.</p>
+          <h3>{t("Waiting for a carrier")}</h3>
+          <p>{t("Select a backpack or container to begin your calculation.")}</p>
         </div>
       ) : (
         <>
           <div className={`build-status ${warnings.length ? "build-status--danger" : "build-status--safe"}`}>
             {warnings.length ? <AlertTriangle size={22} /> : <ShieldCheck size={22} />}
             <div>
-              <strong>{warnings.length ? "Unsafe exposure" : "Exposure balanced"}</strong>
-              <span>{warnings.length ? `${warnings.length} harmful threshold${warnings.length > 1 ? "s" : ""} exceeded` : "No damage thresholds exceeded"}</span>
+              <strong>{warnings.length ? t("Unsafe exposure") : t("Exposure balanced")}</strong>
+              <span>{warnings.length ? t("harmfulThreshold", { count: warnings.length }) : t("No damage thresholds exceeded")}</span>
             </div>
           </div>
           {warnings.map((warning) => (
             <div className="warning" key={warning.key}>
               <AlertTriangle size={16} />
-              <span><strong>{warning.name}</strong> is high enough to cause damage ({formatNumber(warning.value, false)}).</span>
+              <span>{t("{{name}} is high enough to cause damage ({{value}}).", { name: t(warning.name), value: formatNumber(warning.value, false) })}</span>
             </div>
           ))}
           {grouped.length ? grouped.map(({ category, stats }) => (
             <div className="result-group" key={category}>
-              <div className="section-label"><span>{category}</span><span>{stats.length}</span></div>
+              <div className="section-label"><span>{t(category)}</span><span>{stats.length}</span></div>
               <ul>
                 {stats.map((stat) => {
                   const dangerous = warnings.some((warning) => warning.key === stat.key);
                   const beneficial = EXPOSURE_KEYS.has(stat.key) ? stat.value <= 0 : !stat.harmful || stat.value > 0;
                   return (
                     <li key={stat.key} className={dangerous || !beneficial ? "negative" : "positive"}>
-                      <span>{stat.name}</span>
+                      <span>{t(stat.name)}</span>
                       <strong>{formatNumber(stat.value, stat.percentage)}</strong>
                     </li>
                   );
@@ -723,7 +740,7 @@ function ResultPanel({
               </ul>
             </div>
           )) : (
-            <div className="no-results"><PackageOpen size={27} /><p>Add an artifact to see combined properties.</p></div>
+            <div className="no-results"><PackageOpen size={27} /><p>{t("Add an artifact to see combined properties.")}</p></div>
           )}
         </>
       )}
@@ -756,6 +773,7 @@ function OptimizerPanel({
   onApply: (artifacts: ArtifactConfig[]) => void;
   pricingRegion: PricingRegion;
 }) {
+  const { t } = useTranslation();
   const savedSettings = useMemo(loadSavedOptimizerSettings, []);
   const [level, setLevel] = useState(savedSettings.level);
   const [selectedRarities, setSelectedRarities] = useState<number[]>(savedSettings.selectedRarities);
@@ -1055,49 +1073,49 @@ function OptimizerPanel({
     <section className="optimizer-panel" id="optimizer">
       <div className="optimizer-heading">
         <div>
-          <p className="eyebrow">04 / OPTIMIZE</p>
-          <h2>Weighted combination search</h2>
-          <p>Evaluate every canonical loadout against neutral zero, derive each best possible stat value, then rank the tradeoffs.</p>
+          <p className="eyebrow">{t("04 / OPTIMIZE")}</p>
+          <h2>{t("Weighted combination search")}</h2>
+          <p>{t("Evaluate every canonical loadout against neutral zero, derive each best possible stat value, then rank the tradeoffs.")}</p>
         </div>
         <div className="optimizer-heading-actions">
-          <button type="button" className="optimizer-reset" aria-label="Reset optimizer filters" onClick={resetOptimizerSettings}><RotateCcw size={14} /> Reset filters</button>
+          <button type="button" className="optimizer-reset" aria-label={t("Reset optimizer filters")} onClick={resetOptimizerSettings}><RotateCcw size={14} /> {t("Reset filters")}</button>
           <SlidersHorizontal size={24} />
         </div>
       </div>
 
       {!container ? (
-        <div className="optimizer-empty"><Gauge size={28} /><span>Select a carrier before searching combinations.</span></div>
+        <div className="optimizer-empty"><Gauge size={28} /><span>{t("Select a carrier before searching combinations.")}</span></div>
       ) : (
         <div className="optimizer-body">
           <div className="optimizer-settings">
             <div className="optimizer-block">
-              <div className="section-label"><span>Artifact assumptions</span><span>Catalog mode</span></div>
+              <div className="section-label"><span>{t("Artifact assumptions")}</span><span>{t("Catalog mode")}</span></div>
               <div className="optimizer-assumptions">
-                <label><span>Level</span><input aria-label="Optimizer level" type="number" min="0" max="15" step="1" value={level} onChange={(event) => setLevel(clamp(Math.round(Number(event.target.value)), 0, 15))} /></label>
+                <label><span>{t("Level")}</span><input aria-label={t("Optimizer level")} type="number" min="0" max="15" step="1" value={level} onChange={(event) => setLevel(clamp(Math.round(Number(event.target.value)), 0, 15))} /></label>
               </div>
-              <div className="optimizer-rarity-list" role="group" aria-label="Rarities to search">
+              <div className="optimizer-rarity-list" role="group" aria-label={t("Rarities to search")}>
                 {RARITY_NAMES.map((rarityName, candidateRarity) => (
                   <label data-rarity={candidateRarity} key={rarityName}>
                     <input
                       type="checkbox"
-                      aria-label={`Search ${rarityName} rarity`}
+                      aria-label={t("Search {{rarity}} rarity", { rarity: t(rarityName) })}
                       checked={selectedRarities.includes(candidateRarity)}
                       onChange={(event) => setSelectedRarities((current) => event.target.checked
                         ? [...current, candidateRarity].sort((left, right) => left - right)
                         : current.filter((value) => value !== candidateRarity))}
                     />
                     <span>
-                      <strong>{rarityName}</strong>
-                      <small>{RARITY_MIDPOINT_QUALITIES[candidateRarity]}% midpoint{candidateRarity === 6 ? " · unpriced" : ""}</small>
+                      <strong>{t(rarityName)}</strong>
+                      <small>{t("{{quality}}% midpoint", { quality: formatDecimal(RARITY_MIDPOINT_QUALITIES[candidateRarity]) })}{candidateRarity === 6 ? ` · ${t("unpriced")}` : ""}</small>
                     </span>
                   </label>
                 ))}
               </div>
-              <p className="field-note">Each enabled rarity uses the midpoint of its unstudied stat range. Unique is retained for legacy or future artifacts but has no current market estimate. Random additional properties are excluded.</p>
+              <p className="field-note">{t("Each enabled rarity uses the midpoint of its unstudied stat range. Unique is retained for legacy or future artifacts but has no current market estimate. Random additional properties are excluded.")}</p>
             </div>
 
             <div className="optimizer-block">
-              <div className="section-label"><span>Desired benefits</span><span>{activeObjectives.length} optimized</span></div>
+              <div className="section-label"><span>{t("Desired benefits")}</span><span>{t("{{count}} optimized", { count: activeObjectives.length })}</span></div>
               <div className="positive-filter-list">
                 {positiveFilters.map((filter) => {
                   const option = OPTIMIZER_STAT_OPTIONS.find(([key]) => key === filter.key)!;
@@ -1105,47 +1123,47 @@ function OptimizerPanel({
                     <div className={`positive-filter ${filter.enabled ? "positive-filter--enabled" : ""} ${filter.minimum !== "" ? "positive-filter--constrained" : ""}`} key={filter.key}>
                       <div className="positive-filter__top">
                         <label className="positive-filter__toggle">
-                          <input type="checkbox" aria-label={`Optimize ${option[1]}`} checked={filter.enabled} onChange={(event) => setPositiveFilters((current) => current.map((item) => item.key === filter.key ? { ...item, enabled: event.target.checked, minimum: event.target.checked ? item.minimum : "" } : item))} />
-                          <strong>{option[1]}</strong>
+                          <input type="checkbox" aria-label={t("Optimize {{name}}", { name: t(option[1]) })} checked={filter.enabled} onChange={(event) => setPositiveFilters((current) => current.map((item) => item.key === filter.key ? { ...item, enabled: event.target.checked, minimum: event.target.checked ? item.minimum : "" } : item))} />
+                          <strong>{t(option[1])}</strong>
                         </label>
-                        {filter.enabled && <span className="objective-share">{objectiveWeightPercentage(filter.weight, objectiveWeights).toFixed(1).replace(".0", "")}%</span>}
+                        {filter.enabled && <span className="objective-share">{formatDecimal(objectiveWeightPercentage(filter.weight, objectiveWeights), 1)}%</span>}
                         {filter.enabled && <label className="positive-filter__minimum">
-                          <span>{option[3] === -1 ? "Min magnitude" : "Minimum"}</span>
-                          <input aria-label={`Minimum ${option[1]}${option[3] === -1 ? " magnitude" : ""} from artifacts`} type="number" min="0" step="0.01" placeholder={option[3] === -1 ? "Any < 0" : "Any > 0"} value={filter.minimum} onChange={(event) => setPositiveFilters((current) => current.map((item) => item.key === filter.key ? { ...item, minimum: event.target.value } : item))} />
+                          <span>{option[3] === -1 ? t("Min magnitude") : t("Minimum")}</span>
+                          <input aria-label={t(option[3] === -1 ? "Minimum {{name}} magnitude from artifacts" : "Minimum {{name}} from artifacts", { name: t(option[1]) })} type="number" min="0" step="0.01" placeholder={option[3] === -1 ? t("Any < 0") : t("Any > 0")} value={filter.minimum} onChange={(event) => setPositiveFilters((current) => current.map((item) => item.key === filter.key ? { ...item, minimum: event.target.value } : item))} />
                         </label>}
                       </div>
                       {filter.enabled && (
-                        <div className="objective-priority" role="group" aria-label={`${option[1]} importance`}>
-                          {OBJECTIVE_PRIORITIES.map((priority) => <button type="button" className={filter.weight === priority.weight ? "active" : ""} aria-pressed={filter.weight === priority.weight} title={`${priority.label}: ${priority.factor} scoring influence`} key={priority.weight} onClick={() => setPositiveFilters((current) => current.map((item) => item.key === filter.key ? { ...item, weight: priority.weight } : item))}><span>{priority.label}</span><small>{priority.factor}</small></button>)}
+                        <div className="objective-priority" role="group" aria-label={t("{{name}} importance", { name: t(option[1]) })}>
+                          {OBJECTIVE_PRIORITIES.map((priority) => <button type="button" className={filter.weight === priority.weight ? "active" : ""} aria-pressed={filter.weight === priority.weight} title={t("{{label}}: {{factor}} scoring influence", { label: t(priority.label), factor: priority.factor })} key={priority.weight} onClick={() => setPositiveFilters((current) => current.map((item) => item.key === filter.key ? { ...item, weight: priority.weight } : item))}><span>{t(priority.label)}</span><small>{priority.factor}</small></button>)}
                         </div>
                       )}
                     </div>
                   );
                 })}
               </div>
-              <p className="field-note">Every enabled benefit must be present in the artifact contribution. Countering and reduction goals prefer stronger negative values. Enter a minimum magnitude to require more; built-in carrier bonuses do not count.</p>
+              <p className="field-note">{t("Every enabled benefit must be present in the artifact contribution. Countering and reduction goals prefer stronger negative values. Enter a minimum magnitude to require more; built-in carrier bonuses do not count.")}</p>
             </div>
 
             <div className="optimizer-block">
-              <div className="section-label"><span>Accepted consequences</span><span>Final build values</span></div>
-              <div className="negative-presets" role="group" aria-label="Negative effect presets">
-                <button type="button" onClick={() => setNegativeFilters((current) => current.map((filter) => ({ ...filter, policy: "allow" })))}>Allow all</button>
-                <button type="button" onClick={() => setNegativeFilters((current) => current.map((filter) => ({ ...filter, policy: OPTIMIZER_HARMFUL_OPTIONS.find((option) => option.key === filter.key)!.safeLimit === null ? "strict" : "safe" })))}>Game-safe</button>
-                <button type="button" onClick={() => setNegativeFilters((current) => current.map((filter) => ({ ...filter, policy: "strict" })))}>Counter all</button>
+              <div className="section-label"><span>{t("Accepted consequences")}</span><span>{t("Final build values")}</span></div>
+              <div className="negative-presets" role="group" aria-label={t("Negative effect presets")}>
+                <button type="button" onClick={() => setNegativeFilters((current) => current.map((filter) => ({ ...filter, policy: "allow" })))}>{t("Allow all")}</button>
+                <button type="button" onClick={() => setNegativeFilters((current) => current.map((filter) => ({ ...filter, policy: OPTIMIZER_HARMFUL_OPTIONS.find((option) => option.key === filter.key)!.safeLimit === null ? "strict" : "safe" })))}>{t("Game-safe")}</button>
+                <button type="button" onClick={() => setNegativeFilters((current) => current.map((filter) => ({ ...filter, policy: "strict" })))}>{t("Counter all")}</button>
               </div>
               <div className="negative-filter-list">
                 {negativeFilters.map((filter) => {
                   const option = OPTIMIZER_HARMFUL_OPTIONS.find((item) => item.key === filter.key)!;
                   return (
                     <div className="negative-filter" key={filter.key}>
-                      <strong>{option.name}</strong>
-                      <select aria-label={`${option.name} policy`} value={filter.policy} onChange={(event) => setNegativeFilters((current) => current.map((item) => item.key === filter.key ? { ...item, policy: event.target.value as NegativeEffectPolicy } : item))}>
-                        <option value="allow">Allow</option>
-                        {option.safeLimit !== null && <option value="safe">Game-safe · ≤ {option.safeLimit}</option>}
-                        <option value="strict">No negative · {option.harmfulDirection === 1 ? "≤" : "≥"} 0</option>
-                        <option value="custom">Custom accepted penalty</option>
+                      <strong>{t(option.name)}</strong>
+                      <select aria-label={t("{{name}} policy", { name: t(option.name) })} value={filter.policy} onChange={(event) => setNegativeFilters((current) => current.map((item) => item.key === filter.key ? { ...item, policy: event.target.value as NegativeEffectPolicy } : item))}>
+                        <option value="allow">{t("Allow")}</option>
+                        {option.safeLimit !== null && <option value="safe">{t("Game-safe · ≤ {{limit}}", { limit: option.safeLimit })}</option>}
+                        <option value="strict">{t(option.harmfulDirection === 1 ? "No negative · ≤ 0" : "No negative · ≥ 0")}</option>
+                        <option value="custom">{t("Custom accepted penalty")}</option>
                       </select>
-                      {filter.policy === "custom" && <input aria-label={`${option.name} accepted penalty`} type="number" min="0" step="0.01" placeholder="Penalty" value={filter.limit} onChange={(event) => setNegativeFilters((current) => current.map((item) => item.key === filter.key ? { ...item, limit: event.target.value } : item))} />}
+                      {filter.policy === "custom" && <input aria-label={t("{{name}} accepted penalty", { name: t(option.name) })} type="number" min="0" step="0.01" placeholder={t("Penalty")} value={filter.limit} onChange={(event) => setNegativeFilters((current) => current.map((item) => item.key === filter.key ? { ...item, limit: event.target.value } : item))} />}
                     </div>
                   );
                 })}
@@ -1153,45 +1171,55 @@ function OptimizerPanel({
             </div>
 
             <div className="optimizer-block">
-              <div className="section-label"><span>Search rules</span><span>Exact</span></div>
+              <div className="section-label"><span>{t("Search rules")}</span><span>{t("Exact")}</span></div>
               <label className="optimizer-budget">
-                <span>Maximum total price</span>
-                <input aria-label="Maximum total price" type="number" min="1" step="1000" placeholder="No limit" value={maxTotalPrice} onChange={(event) => setMaxTotalPrice(event.target.value)} />
-                <small>{pricingMetadata(pricingRegion).region} completed-sale estimates ({pricingMetadata(pricingRegion).asOfLabel}). Market uses direct eligible sales; Estimated uses same-artifact rarity extrapolation. Unknown prices are excluded when enabled.</small>
+                <span>{t("Maximum total price")}</span>
+                <input aria-label={t("Maximum total price")} type="number" min="1" step="1000" placeholder={t("No limit")} value={maxTotalPrice} onChange={(event) => setMaxTotalPrice(event.target.value)} />
+                <small>{t("{{region}} completed-sale estimates ({{date}}). Market uses direct eligible sales; Estimated uses same-artifact rarity extrapolation. Unknown prices are excluded when enabled.", { region: pricingMetadata(pricingRegion).region, date: pricingMetadata(pricingRegion).asOfLabel })}</small>
               </label>
               <div className="search-estimate">
-                <span>SEARCH SPACE</span><strong>{estimatedCombinations.toLocaleString()}</strong><small>canonical combinations · {estimatedEngine === "milp" ? "MILP" : "Brute force"} selected automatically</small>
+                <span>{t("SEARCH SPACE")}</span><strong>{formatInteger(estimatedCombinations)}</strong><small>{t("canonical combinations · {{engine}} selected automatically", { engine: estimatedEngine === "milp" ? "MILP" : t("Brute force") })}</small>
               </div>
-              {selectedRarities.length === 0 && <p className="optimizer-error">Select at least one artifact rarity.</p>}
-              {activeObjectives.length === 0 && <p className="optimizer-error">At least one positive effect must be enabled for optimization.</p>}
-              {invalidPositiveMinimum && <p className="optimizer-error">Positive minimums must be greater than zero.</p>}
-              {invalidCustomLimit && <p className="optimizer-error">Every accepted penalty must be zero or greater.</p>}
-              {invalidMaxTotalPrice && <p className="optimizer-error">Maximum total price must be greater than zero.</p>}
+              {selectedRarities.length === 0 && <p className="optimizer-error">{t("Select at least one artifact rarity.")}</p>}
+              {activeObjectives.length === 0 && <p className="optimizer-error">{t("At least one positive effect must be enabled for optimization.")}</p>}
+              {invalidPositiveMinimum && <p className="optimizer-error">{t("Positive minimums must be greater than zero.")}</p>}
+              {invalidCustomLimit && <p className="optimizer-error">{t("Every accepted penalty must be zero or greater.")}</p>}
+              {invalidMaxTotalPrice && <p className="optimizer-error">{t("Maximum total price must be greater than zero.")}</p>}
               <button className="optimizer-search" disabled={!catalog || selectedRarities.length === 0 || activeObjectives.length === 0 || invalidPositiveMinimum || invalidCustomLimit || invalidMaxTotalPrice || state === "loading" || state === "searching"} onClick={startSearch}>
-                {state === "loading" ? `Loading artifacts ${loadProgress.completed}/${loadProgress.total}` : state === "searching" ? `${displayedEngine === "milp" ? "Solving bounded search" : "Searching"} ${progressPercent.toFixed(0)}%` : estimatedEngine === "milp" ? "Find optimal build with MILP" : `Search ${estimatedCombinations.toLocaleString()} combinations`}
+                {state === "loading"
+                  ? t("Loading artifacts {{completed}}/{{total}}", loadProgress)
+                  : state === "searching"
+                    ? t(displayedEngine === "milp" ? "Solving bounded search {{percent}}%" : "Searching {{percent}}%", { percent: Math.round(progressPercent) })
+                    : estimatedEngine === "milp"
+                      ? t("Find optimal build with MILP")
+                      : t("Search {{count}} combinations", { count: formatInteger(estimatedCombinations) })}
               </button>
               {(state === "loading" || state === "searching") && <div className="optimizer-progress"><span style={{ width: `${state === "loading" ? (loadProgress.completed / Math.max(1, loadProgress.total)) * 100 : progressPercent}%` }} /></div>}
               {state === "searching" && displayedEngine === "milp" && milpNotice === "slow" && (
-                <p className="optimizer-search-note">Still solving this large search. High price caps with many rarities can take much longer.</p>
+                <p className="optimizer-search-note">{t("Still solving this large search. High price caps with many rarities can take much longer.")}</p>
               )}
-              {error && <p className="optimizer-error" role="alert">{error}</p>}
+              {error && <p className="optimizer-error" role="alert">{t(error)}</p>}
             </div>
           </div>
 
           <div className="optimizer-results">
-            <div className="section-label"><span>Ranked results</span><span>{run ? `${run.search.results.length} shown` : "Waiting"}</span></div>
+            <div className="section-label"><span>{t("Ranked results")}</span><span>{run ? t("{{count}} shown", { count: run.search.results.length }) : t("Waiting")}</span></div>
             {!run ? (
-              <div className="optimizer-results-empty"><CircleGauge size={31} /><strong>Configure and run a bounded search</strong><span>Weights compare each build against neutral zero and the best possible value found for every objective.</span></div>
+              <div className="optimizer-results-empty"><CircleGauge size={31} /><strong>{t("Configure and run a bounded search")}</strong><span>{t("Weights compare each build against neutral zero and the best possible value found for every objective.")}</span></div>
             ) : run.search.results.length === 0 ? (
-              <div className="optimizer-results-empty"><AlertTriangle size={31} /><strong>No feasible combinations</strong><span>Relax a minimum, negative-effect policy, budget, or artifact assumption.</span></div>
+              <div className="optimizer-results-empty"><AlertTriangle size={31} /><strong>{t("No feasible combinations")}</strong><span>{t("Relax a minimum, negative-effect policy, budget, or artifact assumption.")}</span></div>
             ) : (
               <>
                 <div className="optimizer-summary">
-                  {run.engine === "milp" ? state === "searching" ? <><strong>MILP bounded</strong> · {run.search.results.length} of 10 ranked {run.search.results.length === 1 ? "build" : "builds"} found · solving next</> : <><strong>MILP bounded</strong> · {run.search.results.length} ranked builds · {run.search.combinations.toLocaleString()} possible combinations were not enumerated</> : <><strong>{run.search.combinations.toLocaleString()}</strong> combinations evaluated · <strong>{run.search.feasibleCombinations?.toLocaleString()}</strong> feasible</>}
-                  {run.failedItems > 0 && <span> · {run.failedItems} artifact file{run.failedItems === 1 ? "" : "s"} unavailable</span>}
+                  {run.engine === "milp"
+                    ? state === "searching"
+                      ? <><strong>{t("MILP bounded")}</strong> · {t("{{count}} of 10 ranked builds found · solving next", { count: run.search.results.length })}</>
+                      : <><strong>{t("MILP bounded")}</strong> · {t("{{count}} ranked builds · {{combinations}} possible combinations were not enumerated", { count: run.search.results.length, combinations: formatInteger(run.search.combinations) })}</>
+                    : t("{{combinations}} combinations evaluated · {{feasible}} feasible", { combinations: formatInteger(run.search.combinations), feasible: formatInteger(run.search.feasibleCombinations ?? 0) })}
+                  {run.failedItems > 0 && <span> · {t("artifactFilesUnavailable", { count: run.failedItems })}</span>}
                 </div>
                 {run.search.ranges.some((range) => range.approximate) && (
-                  <p className="optimizer-accuracy-note">Approximate best values: one or more objective solves did not finish within the 5-second limit. The affected stats show the maximum possible best-value error.</p>
+                  <p className="optimizer-accuracy-note">{t("Approximate best values: one or more objective solves did not finish within the 5-second limit. The affected stats show the maximum possible best-value error.")}</p>
                 )}
                 <div className="optimizer-result-list">
                   {run.search.results.map((result, resultIndex) => {
@@ -1199,18 +1227,19 @@ function OptimizerPanel({
                     const resultTotals = calculateTotals(container, selected);
                     return (
                       <article className="optimizer-result" key={result.indices.join("-")}>
-                        <div className="optimizer-result__top"><span>#{resultIndex + 1}</span><strong>{(result.score * 100).toFixed(1)} score</strong><span className="optimizer-result__price">{formatPrice(result.totalPrice)}</span><small className={resultTotals.warnings.length ? "unsafe" : "safe"}>{resultTotals.warnings.length ? "Unsafe" : "Safe"}</small></div>
+                        <div className="optimizer-result__top"><span>#{resultIndex + 1}</span><strong>{t("{{score}} score", { score: formatAccuracy(result.score * 100) })}</strong><span className="optimizer-result__price">{formatPrice(result.totalPrice)}</span><small className={resultTotals.warnings.length ? "unsafe" : "safe"}>{resultTotals.warnings.length ? t("Unsafe") : t("Safe")}</small></div>
                         <p className={`optimizer-result__accuracy ${result.approximate ? "approximate" : "exact"}`}>
                           {result.approximate
                             ? result.errorPercent === undefined
-                              ? "Best build found within 10 seconds · possible error unavailable"
-                              : `Best build found within 10 seconds · possible error ≤ ${formatAccuracy(result.errorPercent)}%`
-                            : "Proven optimal for this rank"}
+                              ? t("Best build found within 10 seconds · possible error unavailable")
+                              : t("Best build found within 10 seconds · possible error ≤ {{error}}%", { error: formatAccuracy(result.errorPercent) })
+                            : t("Proven optimal for this rank")}
                           {result.solveSeconds === undefined ? "" : ` · ${formatSolveSeconds(result.solveSeconds)}`}
                         </p>
                         <div className="optimizer-artifacts">{selected.map((artifact, index) => {
                           const estimate = artifactPrice(artifact.entry, artifact.rarityIndex, pricingRegion);
-                          return <span key={`${artifact.entry.data}-${artifact.rarityIndex}-${index}`} title={`${artifact.name} · ${RARITY_NAMES[artifact.rarityIndex]} · ${priceSourceDetails(estimate, pricingRegion)}`}><ItemImage entry={artifact.entry} /><small>{artifact.name} · {RARITY_NAMES[artifact.rarityIndex]}</small><PriceDisplay estimate={estimate} region={pricingRegion} className="optimizer-artifact__price" /></span>;
+                          const artifactName = translated(artifact.item.name);
+                          return <span key={`${artifact.entry.data}-${artifact.rarityIndex}-${index}`} title={`${artifactName} · ${t(RARITY_NAMES[artifact.rarityIndex])} · ${priceSourceDetails(estimate, pricingRegion)}`}><ItemImage entry={artifact.entry} /><small>{artifactName} · {t(RARITY_NAMES[artifact.rarityIndex])}</small><PriceDisplay estimate={estimate} region={pricingRegion} className="optimizer-artifact__price" /></span>;
                         })}</div>
                         <div className="optimizer-metrics">
                           {run.objectives.map((objective, objectiveIndex) => {
@@ -1218,10 +1247,10 @@ function OptimizerPanel({
                             const range = run.search.ranges[objectiveIndex];
                             const normalized = normalizedObjectiveValue(result.values[objectiveIndex], range.min, range.max, objective.direction);
                             const best = objective.direction === -1 ? range.min : range.max;
-                            return <div key={objective.key}><span>{option[1]}</span><strong>{formatNumber(result.values[objectiveIndex], option[2])}</strong><small>{(normalized * 100).toFixed(0)}% of best possible · best {formatNumber(best, option[2])}{range.approximate ? range.errorPercent === undefined ? " · approximate best (5s limit, error unavailable)" : ` · approximate best (5s limit, ≤ ${formatAccuracy(range.errorPercent)}% error)` : " · proven best"}{range.solveSeconds === undefined ? "" : ` · ${formatSolveSeconds(range.solveSeconds)}`}</small></div>;
+                            return <div key={objective.key}><span>{t(option[1])}</span><strong>{formatNumber(result.values[objectiveIndex], option[2])}</strong><small>{t("{{percent}}% of best possible · best {{best}}", { percent: Math.round(normalized * 100), best: formatNumber(best, option[2]) })}{range.approximate ? range.errorPercent === undefined ? t(" · approximate best (5s limit, error unavailable)") : t(" · approximate best (5s limit, ≤ {{error}}% error)", { error: formatAccuracy(range.errorPercent) }) : t(" · proven best")}{range.solveSeconds === undefined ? "" : ` · ${formatSolveSeconds(range.solveSeconds)}`}</small></div>;
                           })}
                         </div>
-                        <button className="optimizer-apply" onClick={() => applyResult(resultIndex)}>Load into calculator</button>
+                        <button className="optimizer-apply" onClick={() => applyResult(resultIndex)}>{t("Load into calculator")}</button>
                       </article>
                     );
                   })}
@@ -1236,11 +1265,13 @@ function OptimizerPanel({
 }
 
 export default function App() {
+  const { t, i18n } = useTranslation();
+  const language = appLanguage(i18n.resolvedLanguage ?? i18n.language);
   const saved = useMemo(loadSavedBuild, []);
   const savedPricingRegion = useMemo(loadSavedPricingRegion, []);
   const [catalog, setCatalog] = useState<Catalog | null>(null);
   const [catalogError, setCatalogError] = useState<string | null>(null);
-  const [selectionError, setSelectionError] = useState<string | null>(null);
+  const [selectionError, setSelectionError] = useState<{ name: string; message: string } | null>(null);
   const [container, setContainer] = useState<ContainerData | null>(saved?.container ?? null);
   const [artifacts, setArtifacts] = useState<Array<ArtifactConfig | null>>(saved?.artifacts ?? []);
   const [activeIndex, setActiveIndex] = useState<number | null>(() => {
@@ -1269,6 +1300,15 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem(PRICING_REGION_STORAGE_KEY, pricingRegion);
   }, [pricingRegion]);
+
+  useEffect(() => {
+    localStorage.setItem(LANGUAGE_STORAGE_KEY, language);
+    document.documentElement.lang = language;
+  }, [language]);
+
+  const changeLanguage = (nextLanguage: AppLanguage) => {
+    void i18n.changeLanguage(nextLanguage);
+  };
 
   const { totals, warnings } = useMemo(
     () => calculateTotals(container, artifacts),
@@ -1302,9 +1342,7 @@ export default function App() {
       }
       setPicker(null);
     } catch (error) {
-      setSelectionError(
-        `Could not add ${translated(entry.name)}: ${(error as Error).message}`,
-      );
+      setSelectionError({ name: translated(entry.name), message: (error as Error).message });
       setPicker(null);
     } finally {
       setSelecting(null);
@@ -1341,61 +1379,68 @@ export default function App() {
       <header className="site-header">
         <div className="brand">
           <span className="brand-mark"><FlaskConical size={22} /></span>
-          <span><strong>FIELD KIT</strong><small>ARTIFACT CALCULATOR</small></span>
+          <span><strong>FIELD KIT</strong><small>{t("ARTIFACT CALCULATOR")}</small></span>
         </div>
         <div className="source-state">
           <span className={`source-dot ${catalogError ? "source-dot--error" : catalog ? "source-dot--ready" : ""}`} />
-          <span>{catalogError ? "DATA OFFLINE" : catalog ? `EXBO LIVE · ${catalog.artifacts.length + catalog.containers.length} ITEMS` : "SYNCING EXBO DATA"}</span>
+          <span>{catalogError ? t("DATA OFFLINE") : catalog ? t("EXBO LIVE · {{count}} ITEMS", { count: catalog.artifacts.length + catalog.containers.length }) : t("SYNCING EXBO DATA")}</span>
         </div>
+        <label className="language-select">
+          <span>{t("LANGUAGE")}</span>
+          <select aria-label={t("LANGUAGE")} value={language} onChange={(event) => changeLanguage(event.target.value as AppLanguage)}>
+            <option value="en">English</option>
+            <option value="ru">Русский</option>
+          </select>
+        </label>
         <label className="market-region">
-          <span>MARKET</span>
-          <select aria-label="Market region" value={pricingRegion} onChange={(event) => setPricingRegion(event.target.value as PricingRegion)}>
+          <span>{t("MARKET")}</span>
+          <select aria-label={t("Market region")} value={pricingRegion} onChange={(event) => setPricingRegion(event.target.value as PricingRegion)}>
             {PRICING_REGIONS.map((region) => {
               const metadata = pricingMetadata(region);
-              return <option value={region} key={region}>{metadata.region}{metadata.available ? "" : " · unavailable"}</option>;
+              return <option value={region} key={region}>{metadata.region}{metadata.available ? "" : ` · ${t("unavailable")}`}</option>;
             })}
           </select>
         </label>
         <button className="reset-button" onClick={resetBuild} disabled={!container}>
-          <RotateCcw size={16} /> <span>Reset build</span>
+          <RotateCcw size={16} /> <span>{t("Reset build")}</span>
         </button>
       </header>
 
       <main>
         <section className="hero">
           <div>
-            <p className="eyebrow"><span>FIELD TOOL 01</span> / BUILD WITH CONFIDENCE</p>
-            <h1>Balance the benefits.<br /><em>Contain the consequences.</em></h1>
-            <p className="hero-copy">Configure your exact artifact loadout and see every effect after container efficiency and inner protection.</p>
+            <p className="eyebrow"><span>{t("FIELD TOOL 01")}</span> / {t("BUILD WITH CONFIDENCE")}</p>
+            <h1>{t("Balance the benefits.")}<br /><em>{t("Contain the consequences.")}</em></h1>
+            <p className="hero-copy">{t("Configure your exact artifact loadout and see every effect after container efficiency and inner protection.")}</p>
           </div>
           <div className="hero-readout">
             <Database size={18} />
-            <span><small>DATA SOURCE</small><strong>EXBO Studio / Global</strong></span>
-            <span className="live-badge">LIVE</span>
+            <span><small>{t("DATA SOURCE")}</small><strong>EXBO Studio / Global</strong></span>
+            <span className="live-badge">{t("LIVE")}</span>
           </div>
         </section>
 
         {catalogError && (
           <div className="data-error" role="alert">
             <AlertTriangle size={19} />
-            <span><strong>Couldn’t reach the EXBO database.</strong> Check your connection and refresh the page. Your saved build is still available.</span>
+            <span><strong>{t("Couldn’t reach the EXBO database.")}</strong> {t("Check your connection and refresh the page. Your saved build is still available.")}</span>
           </div>
         )}
 
         {selectionError && (
           <div className="data-error" role="alert">
             <AlertTriangle size={19} />
-            <span><strong>Item selection failed.</strong> {selectionError}</span>
-            <button className="icon-button" onClick={() => setSelectionError(null)} aria-label="Dismiss item error"><X size={16} /></button>
+            <span><strong>{t("Item selection failed.")}</strong> {t("Could not add {{name}}: {{message}}", selectionError)}</span>
+            <button className="icon-button" onClick={() => setSelectionError(null)} aria-label={t("Dismiss item error")}><X size={16} /></button>
           </div>
         )}
 
         {!catalog && !catalogError && (
-          <div className="loading-catalog"><LoaderCircle className="spin" size={22} /><span>Loading the current artifact catalog from EXBO…</span></div>
+          <div className="loading-catalog"><LoaderCircle className="spin" size={22} /><span>{t("Loading the current artifact catalog from EXBO…")}</span></div>
         )}
 
-        <nav className="mobile-steps" aria-label="Calculator sections">
-          <a href="#loadout">01 Loadout</a><a href="#artifact">02 Tune</a><a href="#results">03 Results</a><a href="#optimizer">04 Optimize</a>
+        <nav className="mobile-steps" aria-label={t("Calculator sections")}>
+          <a href="#loadout">{t("01 Loadout")}</a><a href="#artifact">{t("02 Tune")}</a><a href="#results">{t("03 Results")}</a><a href="#optimizer">{t("04 Optimize")}</a>
         </nav>
 
         <div className="calculator-grid">
@@ -1434,8 +1479,8 @@ export default function App() {
       </main>
 
       <footer>
-        <span>FIELD KIT · Browser-side artifact planning</span>
-        <a href={EXBO_REPOSITORY} target="_blank" rel="noreferrer">Data by EXBO Studio <ExternalLink size={13} /></a>
+        <span>{t("FIELD KIT · Browser-side artifact planning")}</span>
+        <a href={EXBO_REPOSITORY} target="_blank" rel="noreferrer">{t("Data by EXBO Studio")} <ExternalLink size={13} /></a>
       </footer>
 
       {picker && catalog && <Picker state={picker} catalog={catalog} onClose={() => setPicker(null)} onChoose={chooseItem} selecting={selecting} pricingRegion={pricingRegion} />}

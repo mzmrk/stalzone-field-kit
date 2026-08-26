@@ -9,9 +9,8 @@ under shared artifact assumptions and weighted objectives. Armor, consumable
 buffs, accounts, remote build storage, owned-artifact inventory, and comparisons
 remain outside the implemented product boundary.
 
-The application is a React single-page app built by Vite. The active entry point
-is [`src/main.tsx`](../src/main.tsx), and
-[`src/App.tsx`](../src/App.tsx) owns the screen flow and application state.
+The application is a React/Vite single-page app. [`src/main.tsx`](../src/main.tsx)
+initializes i18next; [`src/App.tsx`](../src/App.tsx) owns screen flow and state.
 The production site is a static GitHub Pages deployment at
 `https://mzmrk.github.io/stalzone-field-kit/`; it has no application server.
 
@@ -27,7 +26,7 @@ flowchart LR
     Picker --> Build["In-memory build state"]
     Build --> Calculator["Pure calculation module"]
     Calculator --> Results["Totals and warnings"]
-    Build <--> Storage["localStorage: build and optimizer settings"]
+    Build <--> Storage["localStorage: build, optimizer, region, language"]
     Catalog -->|all artifact JSON on search| Optimizer["Brute-force or MILP Web Worker"]
     PriceIndex --> Optimizer
     Optimizer --> Ranked["Weighted ranked builds"]
@@ -36,7 +35,8 @@ flowchart LR
 
 At startup, [`loadCatalog`](../src/data.ts) fetches the Global
 `listing.json`, keeps base artifact entries plus `containers` and `backpacks`,
-and sorts them by English name. Manual item JSON is fetched after selection; the
+and sorts them by English name. UI names use the active EXBO English or Russian
+translation. Manual item JSON is fetched after selection; the
 first optimizer run loads every artifact JSON with up to ten concurrent requests
 and retains parsed data in memory for later searches. Images use the icon paths
 from the same listing. Both data and images are requested directly from
@@ -74,6 +74,8 @@ tiers are excluded by an active price cap. Raw caches are not shipped.
 - [`src/pricing.ts`](../src/pricing.ts) maps EXBO artifact IDs and rarity indices
   to bundled market estimates and owns ruble display formatting. Its generated
   index is authoritative at runtime; raw histories remain source inputs.
+- [`src/i18n.ts`](../src/i18n.ts) owns EN/RU selection and locale helpers;
+  [`src/locales/`](../src/locales/) owns UI translations.
 - [`src/App.tsx`](../src/App.tsx) owns item selection, slot management, artifact
   editing, optimizer controls and live-data loading, result application, error
   presentation, persistence, and responsive screen composition.
@@ -102,11 +104,9 @@ Changing to a smaller container truncates artifacts beyond its capacity. Copying
 an artifact targets the first empty slot. Decreasing artifact level removes bonus
 entries beyond the new `+5`, `+10`, and `+15` unlock count.
 
-Every container or artifact change writes a versioned `PersistedBuild` to
-`localStorage` under `field-kit-build-v1`. Startup accepts only persistence
-version `1`; invalid JSON or other versions are ignored. The saved record includes
-the selected raw item data and parsed stats, allowing an existing build to render
-when catalog loading fails. Reset clears both state and the storage key.
+Build changes write versioned state to `field-kit-build-v1`. Startup accepts only
+version `1`; malformed or other versions are ignored. Raw item data lets a saved
+build render when catalog loading fails. Reset clears state and storage.
 
 Optimizer controls are stored separately under `field-kit-optimizer-v1`: shared
 level, enabled rarities, positive objectives and minimums, harmful policies and
@@ -116,10 +116,10 @@ catalog/UI update does not require an all-or-nothing settings migration. Reset
 filters restores the current defaults and cancels an active optimizer run without
 changing the manual carrier or artifacts.
 
-Generated UI IDs prefer `crypto.randomUUID()` and fall back to a timestamp plus
-`Math.random()` when that Web Crypto helper is unavailable. These IDs only
-identify local artifact and bonus rows; they are not credentials or security
-tokens.
+Language is stored under `field-kit-language-v1`. An explicit choice wins;
+otherwise any `ru` browser preference selects Russian and English is the fallback.
+Switching language is immediate and does not recreate the build. Official EXBO
+item translations and locale-aware number, ruble, and date formatting follow it.
 
 ## Failure and privacy boundaries
 

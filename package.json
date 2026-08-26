@@ -17,9 +17,11 @@
   },
   "dependencies": {
     "highs": "1.15.3-pre.4",
+    "i18next": "^26.4.0",
     "lucide-react": "latest",
     "react": "latest",
-    "react-dom": "latest"
+    "react-dom": "latest",
+    "react-i18next": "^17.0.12"
   },
   "devDependencies": {
     "@playwright/test": "^1.62.1",

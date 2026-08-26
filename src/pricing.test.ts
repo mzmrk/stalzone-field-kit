@@ -1,4 +1,5 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
+import i18n from "./i18n";
 import {
   artifactId,
   artifactPrice,
@@ -14,6 +15,9 @@ import {
 } from "./pricing";
 
 describe("auction pricing", () => {
+  afterEach(async () => {
+    await i18n.changeLanguage("en");
+  });
   it("extracts opaque EXBO artifact IDs from listing paths", () => {
     expect(artifactId("/items/artefact/thermal/zyw2.json")).toBe("zyw2");
     expect(artifactId("zyw2")).toBe("zyw2");
@@ -77,5 +81,21 @@ describe("auction pricing", () => {
     expect(priceSourceDetails(estimated)).toContain("Ordinary price using 1.88× multiplier");
     expect(priceSourceDetails(null)).toContain("No eligible completed-sale estimate");
     expect(priceSourceDetails(null, "ru")).toContain("RU");
+  });
+
+  it("localizes price numbers, dates, and source details", async () => {
+    await i18n.changeLanguage("ru");
+    const market: PriceEstimate = {
+      median: 12_345.5,
+      samples: 12,
+      condition: "build-equivalent",
+      confidence: "medium",
+      weighted: true,
+      windowDays: 365,
+    };
+    expect(formatPrice(market.median)).toBe("12 346 ₽");
+    expect(priceSourceLabel(market)).toBe("Рыночная");
+    expect(priceSourceDetails(market)).toContain("подходящих завершённых продаж");
+    expect(pricingMetadata("eu").asOfLabel).toMatch(/[а-я]/i);
   });
 });

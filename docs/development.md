@@ -54,8 +54,8 @@ npm run test:e2e
 On a minimal Linux container, Chromium may also require system packages installed
 by `npx playwright install-deps chromium`; that command modifies the container and
 may require root privileges. The Playwright suite starts its own Vite server on
-port `4173`, selects a live EXBO-backed Berloga-6 and Bracelet build, verifies
-persistence after reload, checks phone-width overflow, verifies optimizer filter
+port `4173`, selects a live EXBO-backed build, verifies build/language persistence,
+browser-language detection, live EN/RU switching, phone-width overflow, and optimizer filter
 persistence and isolated reset behavior, runs the live
 4,967,690-combination Errand Junior automatically selected brute-force flow
 through fixed positive and direction-aware harmful filters, including

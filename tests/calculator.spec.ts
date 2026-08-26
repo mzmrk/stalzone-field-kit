@@ -46,6 +46,36 @@ test("persists the selected market region independently of the build", async ({ 
   await expect(page.getByLabel("Market region")).toHaveValue("ru");
 });
 
+test("switches to Russian without resetting the saved build and persists the choice", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByText(/EXBO LIVE/)).toBeVisible({ timeout: 20_000 });
+
+  await page.getByRole("button", { name: /Select a backpack or container/i }).click();
+  await page.getByPlaceholder(/Search backpacks and containers/).fill("Berloga-6 Container");
+  await page.getByRole("button", { name: /Berloga-6 Container/ }).click();
+
+  await page.getByLabel("LANGUAGE").selectOption("ru");
+  await expect(page.getByRole("heading", { name: "Рюкзак и артефакты" })).toBeVisible();
+  await expect(page.getByText("Контейнер «Берлога-6»").first()).toBeVisible();
+  await expect(page.locator("html")).toHaveAttribute("lang", "ru");
+
+  await page.reload();
+  await expect(page.getByLabel("ЯЗЫК")).toHaveValue("ru");
+  await expect(page.getByText("Контейнер «Берлога-6»").first()).toBeVisible();
+
+  await page.getByLabel("ЯЗЫК").selectOption("en");
+  await expect(page.getByText("Berloga-6 Container").first()).toBeVisible();
+});
+
+test("uses Russian for a new visitor whose browser prefers Russian", async ({ browser }) => {
+  const context = await browser.newContext({ locale: "ru-RU" });
+  const page = await context.newPage();
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: "Рюкзак и артефакты" })).toBeVisible();
+  await expect(page.getByLabel("ЯЗЫК")).toHaveValue("ru");
+  await context.close();
+});
+
 test("keeps the calculator usable at a phone viewport", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
