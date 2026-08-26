@@ -12,6 +12,8 @@ const execFileAsync = promisify(execFile);
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const pageLimit = 200;
 const windowDays = 365;
+const progressEvery = Math.max(1, Number.parseInt(process.env.PRICING_PROGRESS_EVERY ?? "10", 10) || 10);
+const heartbeatMs = Math.max(1, Number.parseInt(process.env.PRICING_HEARTBEAT_MS ?? "120000", 10) || 120000);
 const listingUrl = "https://raw.githubusercontent.com/EXBO-Studio/stalzone-database/main/global/listing.json";
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
@@ -41,6 +43,7 @@ async function main() {
     projectRoot,
     region,
     windowDays,
+    heartbeatMs,
   });
 }
 
@@ -55,11 +58,13 @@ export async function updateAuctionHistoryCache({
   projectRoot: root = projectRoot,
   region,
   windowDays: days = windowDays,
+  heartbeatMs: heartbeatInterval = heartbeatMs,
   execFileImpl = execFileAsync,
 }) {
   const cutoff = capturedAt.getTime() - days * 24 * 60 * 60 * 1000;
   const workDirectory = await mkdtemp(path.join(tmpdir(), "field-kit-cache-update-"));
   const extractedCache = path.join(workDirectory, "cache");
+  let heartbeat = null;
 
   try {
     await mkdir(extractedCache, { recursive: true });
@@ -84,10 +89,19 @@ export async function updateAuctionHistoryCache({
       artifacts: {},
     };
 
+    let completedArtifacts = 0;
+    let currentArtifactId = null;
     let totalFetched = 0;
     let totalRetained = 0;
+    heartbeat = setInterval(() => {
+      log(
+        `Heartbeat ${region}: ${completedArtifacts}/${artifactIds.length} artifacts complete, current ${currentArtifactId ?? "finalizing"}, fetched ${totalFetched} new/overlap rows.`,
+      );
+    }, heartbeatInterval);
+    heartbeat.unref?.();
 
     for (const [artifactIndex, artifactId] of artifactIds.entries()) {
+      currentArtifactId = artifactId;
       const file = path.join(artifactsDirectory, `${artifactId}.jsonl`);
       const existingRows = await readCacheRows(file);
       const newestExistingSale = latestSaleTimestamp(existingRows);
@@ -114,6 +128,7 @@ export async function updateAuctionHistoryCache({
 
       totalFetched += fetchedRows.length;
       totalRetained += mergedRows.length;
+      completedArtifacts = artifactIndex + 1;
       summary.artifacts[artifactId] = {
         existingRecords: existingRows.length,
         fetchedRecords: fetchedRows.length,
@@ -122,12 +137,13 @@ export async function updateAuctionHistoryCache({
         oldestSaleAt: formatTimestamp(mergedRows.at(-1)),
       };
 
-      if ((artifactIndex + 1) % 10 === 0 || artifactIndex + 1 === artifactIds.length) {
+      if ((artifactIndex + 1) % progressEvery === 0 || artifactIndex + 1 === artifactIds.length) {
         log(
-          `Updated ${artifactIndex + 1}/${artifactIds.length} artifacts, fetched ${totalFetched} new/overlap rows.`,
+          `Updated ${artifactIndex + 1}/${artifactIds.length} artifacts (${artifactId}), fetched ${totalFetched} new/overlap rows.`,
         );
       }
     }
+    currentArtifactId = null;
 
     const manifest = {
       schemaVersion: 1,
@@ -167,6 +183,7 @@ export async function updateAuctionHistoryCache({
     );
     return { artifactCount: artifactIds.length, fetchedRecords: totalFetched, retainedRecords: totalRetained };
   } finally {
+    if (heartbeat !== null) clearInterval(heartbeat);
     await rm(workDirectory, { recursive: true, force: true });
   }
 }

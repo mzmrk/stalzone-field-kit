@@ -110,12 +110,11 @@ STALZONE_CLIENT_ID=... STALZONE_CLIENT_SECRET=... npm run pricing:update-cache -
 ```
 
 [`scripts/update-auction-history-cache.mjs`](../scripts/update-auction-history-cache.mjs)
-extracts the existing region cache when present, fetches each artifact until the
-newest cached sale plus one overlap page. It merges and deduplicates rows, prunes
-the one-year window and obsolete artifact files, then verifies the temporary
-archive before atomically replacing the known-good cache. Without an existing
-cache it fetches through the cutoff. An ignored credentials JSON file may be
-passed after the region argument.
+extracts an existing cache, fetches through the cutoff or the newest cached sale
+plus one overlap page, merges/deduplicates rows, prunes the one-year window and
+stale artifact files, then validates a temporary archive before atomic replacement.
+It logs a two-minute heartbeat; `PRICING_PROGRESS_EVERY=1` logs every artifact.
+An ignored credentials JSON may follow the region.
 [`scripts/restore-pricing-cache.mjs`](../scripts/restore-pricing-cache.mjs)
 selects the newest unexpired Actions artifact. Absence triggers bootstrap;
 invalid restoration fails without replacing an existing cache.

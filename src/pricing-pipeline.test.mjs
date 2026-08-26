@@ -26,7 +26,7 @@ describe("auction history cache updater", () => {
     const archive = path.join(tempDirectory, "auction-history-cache-eu.tar.gz");
     const capturedAt = new Date("2026-01-10T00:00:00.000Z");
     const fetchedOffsets = [];
-    const fetchImpl = createFetch({
+    const sourceFetch = createFetch({
       listing: [{ data: "/items/artefact/alpha.json" }],
       histories: {
         alpha: {
@@ -37,6 +37,13 @@ describe("auction history cache updater", () => {
       },
       onHistoryRequest: ({ offset }) => fetchedOffsets.push(offset),
     });
+    const fetchImpl = async (...args) => {
+      if (String(args[0]).includes("/auction/")) {
+        await new Promise((resolve) => setTimeout(resolve, 5));
+      }
+      return sourceFetch(...args);
+    };
+    const logs = [];
 
     const summary = await updateAuctionHistoryCache({
       cacheArchive: archive,
@@ -44,7 +51,8 @@ describe("auction history cache updater", () => {
       credentials: fakeCredentials(),
       fetchImpl,
       listingUrl: "https://example.test/listing.json",
-      log: () => {},
+      heartbeatMs: 1,
+      log: (message) => logs.push(message),
       pageLimit: 1,
       projectRoot,
       region: "eu",
@@ -53,6 +61,7 @@ describe("auction history cache updater", () => {
 
     expect(summary).toEqual({ artifactCount: 1, fetchedRecords: 2, retainedRecords: 1 });
     expect(fetchedOffsets).toEqual([0, 1]);
+    expect(logs.some((message) => message.startsWith("Heartbeat eu:"))).toBe(true);
 
     const manifest = JSON.parse(await tarOutput(archive, "./manifest.json"));
     expect(manifest.recordCount).toBe(1);
