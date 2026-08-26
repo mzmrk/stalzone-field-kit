@@ -4,12 +4,13 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { promisify } from "node:util";
+import { normalizePricingRegion } from "./pricing-regions.mjs";
 
 const execFileAsync = promisify(execFile);
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  const region = process.argv[2] ?? "eu";
+  const region = normalizePricingRegion(process.argv[2] ?? "eu");
   const repository = process.env.GITHUB_REPOSITORY;
   const token = process.env.GITHUB_TOKEN;
   if (!repository || !token) {

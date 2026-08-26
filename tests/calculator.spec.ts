@@ -37,6 +37,15 @@ test("creates and restores a live EXBO-backed artifact build", async ({ page }) 
   await page.screenshot({ path: "test-results/calculator.png", fullPage: true });
 });
 
+test("persists the selected market region independently of the build", async ({ page }) => {
+  await page.goto("/");
+  const marketRegion = page.getByLabel("Market region");
+  await marketRegion.selectOption("ru");
+  await expect(marketRegion).toHaveValue("ru");
+  await page.reload();
+  await expect(page.getByLabel("Market region")).toHaveValue("ru");
+});
+
 test("keeps the calculator usable at a phone viewport", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");

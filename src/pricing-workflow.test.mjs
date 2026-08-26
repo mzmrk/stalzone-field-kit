@@ -1,10 +1,12 @@
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
 import { restoreLatestPricingCache } from "../scripts/restore-pricing-cache.mjs";
 
 const tempDirectories = [];
+const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 afterEach(async () => {
   await Promise.all(tempDirectories.splice(0).map((directory) => rm(directory, { recursive: true, force: true })));
@@ -105,6 +107,18 @@ describe("pricing cache artifact restoration", () => {
     ).rejects.toThrow("not a valid pricing cache archive");
 
     expect(await readFile(outputArchive, "utf8")).toBe("known-good-cache");
+  });
+});
+
+describe("regional pricing workflow", () => {
+  it("isolates refresh failures and merges only successful region outputs", async () => {
+    const workflow = await readFile(path.join(projectRoot, ".github", "workflows", "update-prices.yml"), "utf8");
+    expect(workflow).toContain("fail-fast: false");
+    expect(workflow).toContain("region: [eu, ru, na, sea, nea]");
+    expect(workflow).toContain("name: auction-history-cache-${{ matrix.region }}");
+    expect(workflow).toContain("name: pricing-index-${{ matrix.region }}");
+    expect(workflow).toContain("needs: refresh-region\n    if: always()");
+    expect(workflow).toContain("npm run pricing:merge -- src/generated/pricing-index.json");
   });
 });
 

@@ -74,13 +74,16 @@ import {
 } from "./objective-priorities";
 import {
   artifactPrice,
+  DEFAULT_PRICING_REGION,
   formatPrice,
+  isPricingRegion,
   priceSource,
   priceSourceDetails,
   priceSourceLabel,
-  PRICING_AS_OF_LABEL,
-  PRICING_REGION,
+  pricingMetadata,
+  PRICING_REGIONS,
   type PriceEstimate,
+  type PricingRegion,
 } from "./pricing";
 import type {
   ArtifactConfig,
@@ -94,6 +97,7 @@ import type {
 
 const STORAGE_KEY = "field-kit-build-v1";
 const OPTIMIZER_STORAGE_KEY = "field-kit-optimizer-v1";
+const PRICING_REGION_STORAGE_KEY = "field-kit-pricing-region-v1";
 const MILP_SLOW_NOTICE_MS = 15_000;
 const MILP_STALLED_TIMEOUT_MS = 60_000;
 const CATEGORY_ORDER = [
@@ -214,6 +218,15 @@ function loadSavedOptimizerSettings(): PersistedOptimizerSettings {
   }
 }
 
+function loadSavedPricingRegion(): PricingRegion {
+  try {
+    const value = localStorage.getItem(PRICING_REGION_STORAGE_KEY);
+    return value && isPricingRegion(value) ? value : DEFAULT_PRICING_REGION;
+  } catch {
+    return DEFAULT_PRICING_REGION;
+  }
+}
+
 type PickerState =
   | { kind: "container" }
   | { kind: "artifact"; index: number }
@@ -275,14 +288,14 @@ function StatPill({ label, value }: { label: string; value: string }) {
   );
 }
 
-function PriceDisplay({ estimate, className = "" }: { estimate: PriceEstimate | null; className?: string }) {
+function PriceDisplay({ estimate, region, className = "" }: { estimate: PriceEstimate | null; region: PricingRegion; className?: string }) {
   const source = priceSource(estimate);
   const formattedPrice = estimate ? formatPrice(estimate.median) : "Price unavailable";
   return (
     <span
       aria-label={estimate ? `${priceSourceLabel(estimate)} price: ${formattedPrice}` : formattedPrice}
       className={`price-display price-display--${source} ${className}`.trim()}
-      title={priceSourceDetails(estimate)}
+      title={priceSourceDetails(estimate, region)}
     >
       <strong>{formattedPrice}</strong>
     </span>
@@ -295,12 +308,14 @@ function Picker({
   onClose,
   onChoose,
   selecting,
+  pricingRegion,
 }: {
   state: Exclude<PickerState, null>;
   catalog: Catalog;
   onClose: () => void;
   onChoose: (entry: ListingEntry) => void;
   selecting: string | null;
+  pricingRegion: PricingRegion;
 }) {
   const [query, setQuery] = useState("");
   const deferredQuery = useDeferredValue(query.trim().toLowerCase());
@@ -348,7 +363,7 @@ function Picker({
         <div className="picker-list">
           {filtered.map((entry) => {
             const isLoading = selecting === entry.data;
-            const price = state.kind === "artifact" ? artifactPrice(entry, 0) : null;
+            const price = state.kind === "artifact" ? artifactPrice(entry, 0, pricingRegion) : null;
             return (
               <button
                 className="picker-row"
@@ -366,7 +381,7 @@ function Picker({
                       : entry.data.split("/").at(-2)?.replaceAll("_", " ")}
                 </span>
                 {state.kind === "artifact" && (
-                  <PriceDisplay estimate={price} className="picker-row__price" />
+                  <PriceDisplay estimate={price} region={pricingRegion} className="picker-row__price" />
                 )}
                 {isLoading ? <LoaderCircle className="spin" size={18} /> : <ChevronRight size={18} />}
               </button>
@@ -379,7 +394,7 @@ function Picker({
             </div>
           )}
         </div>
-        <p className="picker-footer">Items load live from EXBO Studio. Prices use saved {PRICING_REGION} completed-sale data through {PRICING_AS_OF_LABEL}.</p>
+        <p className="picker-footer">Items load live from EXBO Studio. Prices use the saved {pricingMetadata(pricingRegion).region} completed-sale snapshot ({pricingMetadata(pricingRegion).asOfLabel}).</p>
       </section>
     </div>
   );
@@ -394,6 +409,7 @@ function ContainerPanel({
   onActivate,
   onRemove,
   onCopy,
+  pricingRegion,
 }: {
   container: ContainerData | null;
   artifacts: Array<ArtifactConfig | null>;
@@ -403,6 +419,7 @@ function ContainerPanel({
   onActivate: (index: number) => void;
   onRemove: (index: number) => void;
   onCopy: (index: number) => void;
+  pricingRegion: PricingRegion;
 }) {
   const carrierCarryWeight = container?.stats.find((stat) => stat.key === CARRY_WEIGHT_KEY)?.max;
 
@@ -464,7 +481,7 @@ function ContainerPanel({
                         <strong>{artifact.name}</strong>
                         <small>+{artifact.level} · {artifact.quality}% · {RARITY_NAMES[artifact.rarityIndex]}</small>
                       </span>
-                      <PriceDisplay estimate={artifactPrice(artifact.entry, artifact.rarityIndex)} className="artifact-slot__price" />
+                      <PriceDisplay estimate={artifactPrice(artifact.entry, artifact.rarityIndex, pricingRegion)} region={pricingRegion} className="artifact-slot__price" />
                     </>
                   ) : (
                     <span className="artifact-slot__empty"><Plus size={16} /> Add artifact</span>
@@ -494,11 +511,13 @@ function ArtifactEditor({
   index,
   onChange,
   onReplace,
+  pricingRegion,
 }: {
   artifact: ArtifactConfig | null;
   index: number | null;
   onChange: (artifact: ArtifactConfig) => void;
   onReplace: () => void;
+  pricingRegion: PricingRegion;
 }) {
   if (!artifact || index === null) {
     return (
@@ -564,7 +583,7 @@ function ArtifactEditor({
         <ItemImage entry={artifact.entry} size="large" />
         <div>
           <h3>{artifact.name}</h3>
-          <p>{artifact.entry.data.split("/").at(-2)?.replaceAll("_", " ")} <PriceDisplay estimate={artifactPrice(artifact.entry, artifact.rarityIndex)} /></p>
+          <p>{artifact.entry.data.split("/").at(-2)?.replaceAll("_", " ")} <PriceDisplay estimate={artifactPrice(artifact.entry, artifact.rarityIndex, pricingRegion)} region={pricingRegion} /></p>
         </div>
         <button className="text-button" onClick={onReplace}>Replace</button>
       </div>
@@ -730,10 +749,12 @@ function OptimizerPanel({
   catalog,
   container,
   onApply,
+  pricingRegion,
 }: {
   catalog: Catalog | null;
   container: ContainerData | null;
   onApply: (artifacts: ArtifactConfig[]) => void;
+  pricingRegion: PricingRegion;
 }) {
   const savedSettings = useMemo(loadSavedOptimizerSettings, []);
   const [level, setLevel] = useState(savedSettings.level);
@@ -759,6 +780,7 @@ function OptimizerPanel({
     positiveFilters,
     negativeFilters,
     maxTotalPrice,
+    pricingRegion,
   });
   const signatureRef = useRef(searchSignature);
 
@@ -888,7 +910,7 @@ function OptimizerPanel({
         rarityIndex: candidateRarity,
         bonuses: [],
       })));
-    const candidatePrices = candidateConfigs.map((artifact) => artifactPrice(artifact.entry, artifact.rarityIndex)?.median ?? null);
+    const candidatePrices = candidateConfigs.map((artifact) => artifactPrice(artifact.entry, artifact.rarityIndex, pricingRegion)?.median ?? null);
     const optimizerCandidates = candidateConfigs.map((candidate, index) => ({
       name: candidate.name,
       stats: candidate.stats,
@@ -1135,7 +1157,7 @@ function OptimizerPanel({
               <label className="optimizer-budget">
                 <span>Maximum total price</span>
                 <input aria-label="Maximum total price" type="number" min="1" step="1000" placeholder="No limit" value={maxTotalPrice} onChange={(event) => setMaxTotalPrice(event.target.value)} />
-                <small>{PRICING_REGION} completed-sale estimates through {PRICING_AS_OF_LABEL}. Market uses direct eligible sales; Estimated uses same-artifact rarity extrapolation. Unknown prices are excluded when enabled.</small>
+                <small>{pricingMetadata(pricingRegion).region} completed-sale estimates ({pricingMetadata(pricingRegion).asOfLabel}). Market uses direct eligible sales; Estimated uses same-artifact rarity extrapolation. Unknown prices are excluded when enabled.</small>
               </label>
               <div className="search-estimate">
                 <span>SEARCH SPACE</span><strong>{estimatedCombinations.toLocaleString()}</strong><small>canonical combinations · {estimatedEngine === "milp" ? "MILP" : "Brute force"} selected automatically</small>
@@ -1187,8 +1209,8 @@ function OptimizerPanel({
                           {result.solveSeconds === undefined ? "" : ` · ${formatSolveSeconds(result.solveSeconds)}`}
                         </p>
                         <div className="optimizer-artifacts">{selected.map((artifact, index) => {
-                          const estimate = artifactPrice(artifact.entry, artifact.rarityIndex);
-                          return <span key={`${artifact.entry.data}-${artifact.rarityIndex}-${index}`} title={`${artifact.name} · ${RARITY_NAMES[artifact.rarityIndex]} · ${priceSourceDetails(estimate)}`}><ItemImage entry={artifact.entry} /><small>{artifact.name} · {RARITY_NAMES[artifact.rarityIndex]}</small><PriceDisplay estimate={estimate} className="optimizer-artifact__price" /></span>;
+                          const estimate = artifactPrice(artifact.entry, artifact.rarityIndex, pricingRegion);
+                          return <span key={`${artifact.entry.data}-${artifact.rarityIndex}-${index}`} title={`${artifact.name} · ${RARITY_NAMES[artifact.rarityIndex]} · ${priceSourceDetails(estimate, pricingRegion)}`}><ItemImage entry={artifact.entry} /><small>{artifact.name} · {RARITY_NAMES[artifact.rarityIndex]}</small><PriceDisplay estimate={estimate} region={pricingRegion} className="optimizer-artifact__price" /></span>;
                         })}</div>
                         <div className="optimizer-metrics">
                           {run.objectives.map((objective, objectiveIndex) => {
@@ -1215,6 +1237,7 @@ function OptimizerPanel({
 
 export default function App() {
   const saved = useMemo(loadSavedBuild, []);
+  const savedPricingRegion = useMemo(loadSavedPricingRegion, []);
   const [catalog, setCatalog] = useState<Catalog | null>(null);
   const [catalogError, setCatalogError] = useState<string | null>(null);
   const [selectionError, setSelectionError] = useState<string | null>(null);
@@ -1226,6 +1249,7 @@ export default function App() {
   });
   const [picker, setPicker] = useState<PickerState>(null);
   const [selecting, setSelecting] = useState<string | null>(null);
+  const [pricingRegion, setPricingRegion] = useState<PricingRegion>(savedPricingRegion);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -1241,6 +1265,10 @@ export default function App() {
     const build: PersistedBuild = { version: 1, container, artifacts };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(build));
   }, [container, artifacts]);
+
+  useEffect(() => {
+    localStorage.setItem(PRICING_REGION_STORAGE_KEY, pricingRegion);
+  }, [pricingRegion]);
 
   const { totals, warnings } = useMemo(
     () => calculateTotals(container, artifacts),
@@ -1319,6 +1347,15 @@ export default function App() {
           <span className={`source-dot ${catalogError ? "source-dot--error" : catalog ? "source-dot--ready" : ""}`} />
           <span>{catalogError ? "DATA OFFLINE" : catalog ? `EXBO LIVE · ${catalog.artifacts.length + catalog.containers.length} ITEMS` : "SYNCING EXBO DATA"}</span>
         </div>
+        <label className="market-region">
+          <span>MARKET</span>
+          <select aria-label="Market region" value={pricingRegion} onChange={(event) => setPricingRegion(event.target.value as PricingRegion)}>
+            {PRICING_REGIONS.map((region) => {
+              const metadata = pricingMetadata(region);
+              return <option value={region} key={region}>{metadata.region}{metadata.available ? "" : " · unavailable"}</option>;
+            })}
+          </select>
+        </label>
         <button className="reset-button" onClick={resetBuild} disabled={!container}>
           <RotateCcw size={16} /> <span>Reset build</span>
         </button>
@@ -1374,18 +1411,21 @@ export default function App() {
               if (activeIndex === index) setActiveIndex(null);
             }}
             onCopy={copyArtifact}
+            pricingRegion={pricingRegion}
           />
           <ArtifactEditor
             artifact={activeIndex === null ? null : artifacts[activeIndex] ?? null}
             index={activeIndex}
             onChange={updateArtifact}
             onReplace={() => activeIndex !== null && setPicker({ kind: "artifact", index: activeIndex })}
+            pricingRegion={pricingRegion}
           />
           <ResultPanel container={container} totals={totals} warnings={warnings} />
         </div>
         <OptimizerPanel
           catalog={catalog}
           container={container}
+          pricingRegion={pricingRegion}
           onApply={(nextArtifacts) => {
             setArtifacts(Array.from({ length: container?.capacity ?? nextArtifacts.length }, (_, index) => nextArtifacts[index] ?? null));
             setActiveIndex(nextArtifacts.length > 0 ? 0 : null);
@@ -1398,7 +1438,7 @@ export default function App() {
         <a href={EXBO_REPOSITORY} target="_blank" rel="noreferrer">Data by EXBO Studio <ExternalLink size={13} /></a>
       </footer>
 
-      {picker && catalog && <Picker state={picker} catalog={catalog} onClose={() => setPicker(null)} onChoose={chooseItem} selecting={selecting} />}
+      {picker && catalog && <Picker state={picker} catalog={catalog} onClose={() => setPicker(null)} onChoose={chooseItem} selecting={selecting} pricingRegion={pricingRegion} />}
     </div>
   );
 }

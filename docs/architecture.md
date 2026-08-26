@@ -20,7 +20,7 @@ The production site is a static GitHub Pages deployment at
 ```mermaid
 flowchart LR
     EXBO["EXBO Global repository"] -->|listing.json| Catalog["Filtered catalog"]
-    Snapshot["Saved EU auction history"] --> PriceIndex["Generated rarity medians"]
+    Snapshot["Saved regional auction history"] --> PriceIndex["Generated regional rarity medians"]
     Catalog --> Picker["Container and artifact pickers"]
     EXBO -->|selected item JSON and icons| Picker
     PriceIndex --> Picker
@@ -43,13 +43,11 @@ from the same listing. Both data and images are requested directly from
 `raw.githubusercontent.com`; runtime use therefore requires the browser to reach
 GitHub.
 
-Pricing is not fetched at runtime. [`src/pricing.ts`](../src/pricing.ts) reads a
-compact generated index derived from EU auction-history inputs. Displayed prices
-are lime for direct completed-sale estimates, amber for same-artifact
-adjacent-rarity extrapolation, or gray when unknown. Hover and accessibility text
-expose the source, sample count, method, and source-window date. Unknown tiers
-have no same-artifact anchor and are excluded when a price cap is active. Raw
-captures and cache archives remain build-time inputs and are not shipped.
+Pricing is not fetched at runtime. [`src/pricing.ts`](../src/pricing.ts) selects
+EU, RU, NA, SEA, or NEA from one generated bundle; EU is the persisted default.
+Direct completed-sale prices are lime, adjacent-rarity estimates amber, and
+unknowns gray. Source details include samples, method, date, and region. Unknown
+tiers are excluded by an active price cap. Raw caches are not shipped.
 
 ## Source ownership
 
@@ -133,8 +131,8 @@ offline catalog cache, schema validator, or upstream-version pin at present.
 No build data is sent to an application backend. Build configuration stays in
 the user's browser, while normal HTTP request metadata is visible to GitHub when
 the browser loads EXBO JSON and icons. The code contains no runtime secrets.
-The bundled auction snapshot is historical EU market data, so estimates can be
-stale and are not active-lot quotes or guarantees.
+Bundled auction snapshots are historical regional data, not active-lot quotes or
+guarantees.
 
 ## Optimizer boundary
 

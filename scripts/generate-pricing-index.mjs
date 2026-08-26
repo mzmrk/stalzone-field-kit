@@ -1,15 +1,16 @@
-import { mkdtemp, readdir, readFile, rm, stat, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readdir, readFile, rm, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { execFile } from "node:child_process";
 import { createHash } from "node:crypto";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
+import { normalizePricingRegion } from "./pricing-regions.mjs";
 
 const execFileAsync = promisify(execFile);
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const region = process.argv[2] ?? "eu";
+const region = normalizePricingRegion(process.argv[2] ?? "eu");
 const requestedSnapshot = process.argv[3];
 const requestedOutput = process.argv[4];
 const rarityNames = ["Ordinary", "Uncommon", "Special", "Rare", "Exclusive", "Legendary"];
@@ -21,7 +22,7 @@ const pricingAlgorithmVersion = 2;
 
 const outputFile = requestedOutput
   ? path.resolve(projectRoot, requestedOutput)
-  : path.join(projectRoot, "src", "generated", "pricing-index.json");
+  : path.join(projectRoot, "data", "pricing", "generated", `pricing-index-${region}.json`);
 
 const cleanupDirectories = [];
 const globalAdjacentRatios = [];
@@ -135,6 +136,7 @@ try {
     artifacts,
   };
 
+  await mkdir(path.dirname(outputFile), { recursive: true });
   await writeFile(outputFile, `${JSON.stringify(output, null, 2)}\n`);
   console.log(
     `Generated ${path.relative(projectRoot, outputFile)} from ${recordsByArtifact.size} artifact histories.`,

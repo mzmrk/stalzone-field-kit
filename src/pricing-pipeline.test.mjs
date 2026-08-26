@@ -10,6 +10,7 @@ import {
   mergeCacheRows,
   updateAuctionHistoryCache,
 } from "../scripts/update-auction-history-cache.mjs";
+import { mergePricingIndexes } from "../scripts/merge-pricing-indexes.mjs";
 
 const execFileAsync = promisify(execFile);
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -261,6 +262,24 @@ describe("pricing index builder", () => {
   });
 });
 
+describe("regional pricing index merger", () => {
+  it("preserves an existing region when only another region refresh succeeds", async () => {
+    const tempDirectory = await temporaryDirectory();
+    const outputFile = path.join(tempDirectory, "pricing-index.json");
+    const ruInput = path.join(tempDirectory, "pricing-index-ru.json");
+    await writeFile(outputFile, JSON.stringify(regionalIndex("eu", 100)));
+    await writeFile(ruInput, JSON.stringify(regionalIndex("ru", 200)));
+
+    await mergePricingIndexes({ outputFile, inputFiles: [ruInput] });
+
+    const bundle = JSON.parse(await readFile(outputFile, "utf8"));
+    expect(bundle).toMatchObject({ schemaVersion: 1, defaultRegion: "eu" });
+    expect(Object.keys(bundle.regions)).toEqual(["eu", "ru"]);
+    expect(bundle.regions.eu.artifacts.alpha[0].median).toBe(100);
+    expect(bundle.regions.ru.artifacts.alpha[0].median).toBe(200);
+  });
+});
+
 function createFetch({ histories = {}, listing = [], onHistoryRequest = () => {} }) {
   return async (input) => {
     const url = new URL(String(input));
@@ -318,4 +337,29 @@ async function createCacheArchive(archive, recordsByArtifact) {
     JSON.stringify({ schemaVersion: 1, region: "eu", asOf: "2026-01-08T00:00:00.000Z" }),
   );
   await execFileAsync("tar", ["-czf", archive, "-C", source, "."]);
+}
+
+function regionalIndex(region, medianValue) {
+  return {
+    region,
+    snapshot: `${region}-snapshot`,
+    method: "test",
+    sourceWindow: {
+      asOf: "2026-01-10T00:00:00.000Z",
+      cutoff: "2025-01-10T00:00:00.000Z",
+      days: 365,
+    },
+    artifacts: {
+      alpha: {
+        0: {
+          median: medianValue,
+          samples: 1,
+          condition: "build-equivalent",
+          confidence: "low",
+          weighted: false,
+          windowDays: 365,
+        },
+      },
+    },
+  };
 }

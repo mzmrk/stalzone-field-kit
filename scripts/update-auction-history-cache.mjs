@@ -5,6 +5,7 @@ import { execFile } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { pathToFileURL } from "node:url";
 import { promisify } from "node:util";
+import { normalizePricingRegion } from "./pricing-regions.mjs";
 
 const execFileAsync = promisify(execFile);
 
@@ -18,7 +19,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
 }
 
 async function main() {
-  const region = process.argv[2] ?? "eu";
+  const region = normalizePricingRegion(process.argv[2] ?? "eu");
   const credentialsPath = process.argv[3];
   const capturedAt = new Date();
   const cacheArchive = path.join(

@@ -16,9 +16,13 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  refresh:
+  refresh-region:
+    strategy:
+      fail-fast: false
+      matrix:
+        region: [eu, ru, na, sea, nea]
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 360
     steps:
       - name: Check out main
         uses: actions/checkout@v6
@@ -37,31 +41,71 @@ jobs:
       - name: Restore newest retained cache
         env:
           GITHUB_TOKEN: ${{ github.token }}
-        run: node scripts/restore-pricing-cache.mjs eu
+        run: node scripts/restore-pricing-cache.mjs ${{ matrix.region }}
 
-      - name: Refresh EU auction history
+      - name: Refresh regional auction history
         env:
           STALZONE_CLIENT_ID: ${{ vars.STALZONE_CLIENT_ID }}
           STALZONE_CLIENT_SECRET: ${{ secrets.STALZONE_CLIENT_SECRET }}
-        run: npm run pricing:update-cache -- eu
+        run: npm run pricing:update-cache -- ${{ matrix.region }}
 
-      - name: Generate bundled prices
-        run: npm run pricing:build
+      - name: Upload rolling regional cache
+        uses: actions/upload-artifact@v7
+        with:
+          name: auction-history-cache-${{ matrix.region }}
+          path: data/pricing/cache/${{ matrix.region }}/auction-history-cache-${{ matrix.region }}.tar.gz
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0
+
+      - name: Generate regional prices
+        run: npm run pricing:build -- ${{ matrix.region }} data/pricing/cache/${{ matrix.region }}/auction-history-cache-${{ matrix.region }}.tar.gz data/pricing/generated/pricing-index-${{ matrix.region }}.json
+
+      - name: Upload regional price index
+        uses: actions/upload-artifact@v7
+        with:
+          name: pricing-index-${{ matrix.region }}
+          path: data/pricing/generated/pricing-index-${{ matrix.region }}.json
+          if-no-files-found: error
+          retention-days: 1
+
+  publish:
+    needs: refresh-region
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out main
+        uses: actions/checkout@v6
+        with:
+          ref: main
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Download successful regional indexes
+        continue-on-error: true
+        uses: actions/download-artifact@v7
+        with:
+          pattern: pricing-index-*
+          path: .pricing-updates
+
+      - name: Merge successful regional prices
+        run: |
+          mapfile -t indexes < <(find .pricing-updates -type f -name 'pricing-index-*.json' 2>/dev/null | sort)
+          npm run pricing:merge -- src/generated/pricing-index.json "${indexes[@]}"
 
       - name: Run unit tests
         run: npm test
 
       - name: Build static site
         run: npm run build
-
-      - name: Upload rolling cache
-        uses: actions/upload-artifact@v7
-        with:
-          name: auction-history-cache-eu
-          path: data/pricing/cache/eu/auction-history-cache-eu.tar.gz
-          if-no-files-found: error
-          retention-days: 90
-          compression-level: 0
 
       - name: Commit refreshed prices
         run: |
@@ -72,7 +116,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add src/generated/pricing-index.json
-          git commit -m "pricing: refresh weekly estimates (update generated index)"
+          git commit -m "pricing: refresh regional estimates (merge successful indexes)"
           git push origin HEAD:main
 
       - name: Configure GitHub Pages
@@ -84,7 +128,8 @@ jobs:
           path: dist
 
   deploy:
-    needs: refresh
+    needs: publish
+    if: always() && needs.publish.result == 'success'
     runs-on: ubuntu-latest
     concurrency:
       group: pages

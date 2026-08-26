@@ -2,7 +2,11 @@ import { describe, expect, it } from "vitest";
 import {
   artifactId,
   artifactPrice,
+  DEFAULT_PRICING_REGION,
   formatPrice,
+  pricingMetadata,
+  pricingRegionAvailable,
+  PRICING_REGIONS,
   priceSource,
   priceSourceDetails,
   priceSourceLabel,
@@ -19,6 +23,14 @@ describe("auction pricing", () => {
     const ordinary = artifactPrice("zyw2", 0);
     expect(ordinary?.median).toBeGreaterThan(0);
     expect(ordinary?.samples).toBeGreaterThan(0);
+  });
+
+  it("exposes every market region while preserving EU as the default", () => {
+    expect(PRICING_REGIONS).toEqual(["eu", "ru", "na", "sea", "nea"]);
+    expect(DEFAULT_PRICING_REGION).toBe("eu");
+    expect(pricingRegionAvailable("eu")).toBe(true);
+    expect(pricingMetadata("eu")).toMatchObject({ available: true, region: "EU", windowDays: 365 });
+    expect(artifactPrice("zyw2", 0, "eu")).toEqual(artifactPrice("zyw2", 0));
   });
 
   it("does not substitute another rarity when market data is unavailable", () => {
@@ -64,5 +76,6 @@ describe("auction pricing", () => {
     expect(priceSourceDetails(market)).toContain("recency-weighted median from 12 eligible completed sales");
     expect(priceSourceDetails(estimated)).toContain("Ordinary price using 1.88× multiplier");
     expect(priceSourceDetails(null)).toContain("No eligible completed-sale estimate");
+    expect(priceSourceDetails(null, "ru")).toContain("RU");
   });
 });

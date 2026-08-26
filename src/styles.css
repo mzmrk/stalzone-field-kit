@@ -79,6 +79,8 @@ body::after {
 .source-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--amber); box-shadow: 0 0 12px var(--amber); }
 .source-dot--ready { background: var(--green); box-shadow: 0 0 12px var(--green); }
 .source-dot--error { background: var(--red); box-shadow: 0 0 12px var(--red); }
+.market-region { display: flex; align-items: center; gap: 7px; color: var(--muted); font-size: 8px; letter-spacing: .12em; }
+.market-region select { min-width: 72px; height: 30px; padding: 0 23px 0 9px; border: 1px solid var(--line-strong); background: #0a1110; color: var(--text); font-size: 10px; text-transform: uppercase; cursor: pointer; }
 .reset-button, .text-button {
   border: 0; background: transparent; cursor: pointer; color: var(--muted); display: inline-flex; align-items: center; gap: 8px; font-size: 11px; text-transform: uppercase; letter-spacing: .08em;
 }
@@ -362,6 +364,8 @@ footer a:hover { color: var(--acid); }
 @media (max-width: 760px) {
   .site-header { height: 62px; padding: 0 16px; }
   .source-state { display: none; }
+  .market-region > span { display: none; }
+  .market-region select { min-width: 60px; }
   .reset-button span { display: none; }
   main { width: min(100% - 24px, 560px); }
   .hero { display: block; padding: 35px 2px 24px; }

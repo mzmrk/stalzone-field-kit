@@ -84,13 +84,14 @@ repository's built-in `GITHUB_TOKEN`, so it requires no stored deployment
 secret. The public URL is
 `https://mzmrk.github.io/stalzone-field-kit/`.
 
-[`update-prices.yml`](../.github/workflows/update-prices.yml) runs every Monday
-or on manual dispatch. It restores the newest EU cache, refreshes history,
-regenerates prices, verifies tests and the build, retains the cache for 90 days,
-and commits only a changed index. Because a `GITHUB_TOKEN` push does not trigger
-the ordinary Pages workflow, this run deploys its tested `dist/` itself. It
-requires variable `STALZONE_CLIENT_ID` and secret `STALZONE_CLIENT_SECRET`; the
-secret is scoped to the history-update step.
+[`update-prices.yml`](../.github/workflows/update-prices.yml) runs weekly or
+manually. A fail-fast-disabled matrix independently restores, refreshes, and
+retains 90-day cache artifacts for EU, RU, NA, SEA, and NEA. Each successful job
+emits one regional index. The final job preserves previously bundled data for
+failed regions, merges successful outputs with
+[`scripts/merge-pricing-indexes.mjs`](../scripts/merge-pricing-indexes.mjs),
+tests, builds, commits changes, and deploys Pages. It requires variable
+`STALZONE_CLIENT_ID` and secret `STALZONE_CLIENT_SECRET` only during acquisition.
 
 ## Market price cache
 
@@ -119,16 +120,17 @@ passed after the region argument.
 selects the newest unexpired Actions artifact. Absence triggers bootstrap;
 invalid restoration fails without replacing an existing cache.
 
-Regenerate the bundled price index from the default local cache archive with:
+Generate one regional index from its default cache archive with:
 
 ```bash
-npm run pricing:build
+npm run pricing:build -- eu
+npm run pricing:merge -- src/generated/pricing-index.json data/pricing/generated/pricing-index-eu.json
 ```
 
 [`scripts/generate-pricing-index.mjs`](../scripts/generate-pricing-index.mjs)
-normalizes `additional.qlt ?? 0`, estimates each artifact-rarity price from
-one-year build-equivalent completed sales, and writes
-[`src/generated/pricing-index.json`](../src/generated/pricing-index.json).
+normalizes `additional.qlt ?? 0` and estimates each artifact-rarity price from
+one-year build-equivalent completed sales. The workflow writes regional files,
+then merges them into [`src/generated/pricing-index.json`](../src/generated/pricing-index.json).
 Build-equivalent sales are `+0`, have no bonus properties, and have full maximum
 charge; researched and unstudied sales are both eligible, and current charge loss
 is allowed. The price is a plain one-year median until a tier has at least ten
@@ -148,7 +150,8 @@ output path:
 node scripts/generate-pricing-index.mjs eu path/to/cache.tar.gz optional/output.json
 ```
 
-Run unit tests and the static build after replacing the bundled index.
+Supported region arguments are `eu`, `ru`, `na`, `sea`, and `nea`. All use the
+Global catalog IDs consumed by the app; only the auction API region changes.
 
 ## Documentation workflow
 
