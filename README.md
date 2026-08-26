@@ -21,7 +21,10 @@ No installation or account required—open the link and start building.
   negative-effect limits.
 - Automatic brute-force or MILP optimization depending on search size, including
   accuracy labels when a bounded solve cannot prove the optimum in time.
-- Multi-rarity and price-capped searches using a bundled historical market snapshot.
+- Multi-rarity and price-capped searches using regional historical estimates
+  fetched at runtime from `stalzone-market-history`.
+- English and Russian interfaces with automatic browser-language detection and
+  a manual language selector.
 - Fully client-side operation with builds and optimizer settings saved locally in
   the browser.
 
@@ -54,7 +57,9 @@ An internet connection to GitHub is therefore required when using the calculator
 Optimizer searches use the midpoint of each selected rarity's unstudied stat
 range. Random additional artifact properties are not searched because their pools
 are not published; exact bonuses can be entered manually after loading a build.
-Bundled price estimates are historical medians, not current listings or guarantees.
+Regional EU, RU, NA, SEA, and NEA price estimates are loaded at runtime from the
+[STALZONE Market History price index](https://github.com/mzmrk/stalzone-market-history/blob/main/data/pricing-index.json).
+They are historical completed-sale medians, not current listings or guarantees.
 
 ## Development
 
