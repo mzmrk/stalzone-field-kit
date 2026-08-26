@@ -5,8 +5,8 @@ untyped `additional` object. It combines EXBO developer explanations with matche
 API-to-game offers. The formal API only documents the surrounding auction
 response: <https://eapi.stalzone.com/reference>.
 
-Request auction data with `additional=true`; otherwise `additional` is empty.
-Preserve raw responses because these beta, undocumented fields may change.
+Request `additional=true`; otherwise `additional` is empty. Preserve raw
+responses because undocumented fields may change.
 The rolling cache archive used by local tooling and future automation keeps one
 JSONL file per artifact and flattens `additional` fields with dotted keys such
 as `additional.qlt`; this is a storage shape only. Pricing code must still
@@ -25,8 +25,12 @@ normalize the fields with the rules below.
 | `md_k` | Normalized loss of maximum charge. Missing means no loss. |
 | `it_transf_count` | Auction/trade transfer count, not Freshness. Missing-value behavior is unconfirmed. |
 
-Studied state, upgrade level, and charge are independent. In particular, an
-unstudied `+0` artifact can have reduced current or maximum charge.
+`qlt = 6` appeared in neither one-year EU history, current EU/RU lots, nor recent
+RU sales checked on 26 August 2026; treat it as unsupported. Unique index `6`
+stays unpriced, so capped searches exclude it.
+
+Studied state, level, and charge are independent; an unstudied `+0` artifact can
+have reduced current or maximum charge.
 
 Studied quality is calculated within the selected rarity tier:
 
@@ -64,8 +68,6 @@ same-tier samples. A missing tier is extrapolated only from a directly measured
 adjacent tier of the same artifact. Multiplier chains are forbidden, so other
 gaps remain unknown. Active offers and upgraded sales require validation.
 
-Never transfer history across artifact IDs. On 4 March 2026, EXBO [replaced the existing Snares with
-Peg-Top](https://steamcommunity.com/games/1818450/announcements/detail/523118018927001619):
-`g34p` became Peg-Top and new Snares became `rnkl`. On 25 August 2026, production
-API checks returned zero history and zero active `rnkl` lots in both EU and RU;
-keep it unknown until that ID records sales.
+Keep IDs separate. EXBO [replaced Snares with Peg-Top](https://steamcommunity.com/games/1818450/announcements/detail/523118018927001619)
+on 4 March 2026: `g34p` became Peg-Top and new Snares became `rnkl`. EU/RU checks
+on 25 August found no `rnkl` history or lots; keep it unknown until sales appear.
