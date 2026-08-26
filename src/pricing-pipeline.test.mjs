@@ -61,7 +61,11 @@ describe("auction history cache updater", () => {
 
     expect(summary).toEqual({ artifactCount: 1, fetchedRecords: 2, retainedRecords: 1 });
     expect(fetchedOffsets).toEqual([0, 1]);
-    expect(logs.some((message) => message.startsWith("Heartbeat eu:"))).toBe(true);
+    expect(
+      logs.some((message) =>
+        message.includes("Heartbeat eu: 0/1 artifacts complete, current alpha (1 rows across 1 pages), fetched 1 new/overlap rows."),
+      ),
+    ).toBe(true);
 
     const manifest = JSON.parse(await tarOutput(archive, "./manifest.json"));
     expect(manifest.recordCount).toBe(1);

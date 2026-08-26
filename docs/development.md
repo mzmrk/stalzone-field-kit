@@ -113,7 +113,7 @@ STALZONE_CLIENT_ID=... STALZONE_CLIENT_SECRET=... npm run pricing:update-cache -
 extracts an existing cache, fetches through the cutoff or the newest cached sale
 plus one overlap page, merges/deduplicates rows, prunes the one-year window and
 stale artifact files, then validates a temporary archive before atomic replacement.
-It logs a two-minute heartbeat; `PRICING_PROGRESS_EVERY=1` logs every artifact.
+Its two-minute heartbeat includes live row/page counts; `PRICING_PROGRESS_EVERY=1` logs every artifact.
 An ignored credentials JSON may follow the region.
 [`scripts/restore-pricing-cache.mjs`](../scripts/restore-pricing-cache.mjs)
 selects the newest unexpired Actions artifact. Absence triggers bootstrap;

@@ -91,17 +91,21 @@ export async function updateAuctionHistoryCache({
 
     let completedArtifacts = 0;
     let currentArtifactId = null;
+    let currentArtifactFetched = 0;
+    let currentArtifactPages = 0;
     let totalFetched = 0;
     let totalRetained = 0;
     heartbeat = setInterval(() => {
       log(
-        `Heartbeat ${region}: ${completedArtifacts}/${artifactIds.length} artifacts complete, current ${currentArtifactId ?? "finalizing"}, fetched ${totalFetched} new/overlap rows.`,
+        `Heartbeat ${region}: ${completedArtifacts}/${artifactIds.length} artifacts complete, current ${currentArtifactId ?? "finalizing"} (${currentArtifactFetched} rows across ${currentArtifactPages} pages), fetched ${totalFetched + currentArtifactFetched} new/overlap rows.`,
       );
     }, heartbeatInterval);
     heartbeat.unref?.();
 
     for (const [artifactIndex, artifactId] of artifactIds.entries()) {
       currentArtifactId = artifactId;
+      currentArtifactFetched = 0;
+      currentArtifactPages = 0;
       const file = path.join(artifactsDirectory, `${artifactId}.jsonl`);
       const existingRows = await readCacheRows(file);
       const newestExistingSale = latestSaleTimestamp(existingRows);
@@ -113,6 +117,10 @@ export async function updateAuctionHistoryCache({
         newestExistingSale,
         pageLimit: limit,
         region,
+        onPage: ({ fetchedRecords, pagesFetched }) => {
+          currentArtifactFetched = fetchedRecords;
+          currentArtifactPages = pagesFetched;
+        },
       });
       const mergedRows = mergeCacheRows({
         capturedAt,
@@ -127,6 +135,8 @@ export async function updateAuctionHistoryCache({
       );
 
       totalFetched += fetchedRows.length;
+      currentArtifactFetched = 0;
+      currentArtifactPages = 0;
       totalRetained += mergedRows.length;
       completedArtifacts = artifactIndex + 1;
       summary.artifacts[artifactId] = {
@@ -220,9 +230,11 @@ export async function fetchNewRows({
   newestExistingSale,
   pageLimit: limit,
   region,
+  onPage = () => {},
 }) {
   const rows = [];
   let offset = 0;
+  let pagesFetched = 0;
   let exhausted = false;
   let fetchOneMoreAfterOverlap = false;
 
@@ -247,6 +259,13 @@ export async function fetchNewRows({
 
     const pageRows = parsed.prices.map(flattenRecord).filter(Boolean);
     rows.push(...pageRows);
+    pagesFetched += 1;
+    onPage({
+      artifactId,
+      fetchedRecords: rows.length,
+      pageRecords: pageRows.length,
+      pagesFetched,
+    });
 
     const timestamps = pageRows.map(parseSoldAt).filter(Number.isFinite);
     const overlapsExistingCache =
