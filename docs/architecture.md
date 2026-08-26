@@ -47,7 +47,8 @@ Pricing is fetched at runtime directly from the canonical index committed by
 the separately maintained `stalzone-market-history` repository, which owns
 auction acquisition and price estimation. This application validates the
 response and keeps it only in memory; it contains no bundled price data, cache,
-or fallback.
+or fallback. Concurrent consumers share one request, and the validated result is
+reused for the lifetime of the page.
 [`src/pricing.ts`](../src/pricing.ts) selects
 EU, RU, NA, SEA, or NEA from one generated bundle; EU is the persisted default.
 Direct completed-sale prices are lime, adjacent-rarity estimates amber, and

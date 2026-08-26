@@ -90,7 +90,9 @@ secret. The public URL is
 `mzmrk/stalzone-market-history` whenever the application starts. It rejects a
 download error, unsupported bundle schema, invalid region, malformed source
 window, or non-positive estimate. Valid data remains in memory for the page
-lifetime only. There is no bundled snapshot, browser persistence, synchronization
+lifetime only; concurrent loads share one request and later lookups reuse the
+validated object. Normal HTTP caching remains controlled by the browser and
+GitHub. There is no bundled snapshot, application-managed browser persistence, synchronization
 workflow, or fallback price source. Auction acquisition, raw history, estimator
 rules, and provenance are maintained exclusively by `stalzone-market-history`.
 

@@ -18,7 +18,7 @@ import {
 
 describe("auction pricing", () => {
   beforeEach(async () => {
-    await loadPricingIndex(undefined, async () => new Response(JSON.stringify(testPricingBundle())));
+    await loadPricingIndex(async () => new Response(JSON.stringify(testPricingBundle())));
   });
   afterEach(async () => {
     clearPricingIndex();
@@ -50,10 +50,25 @@ describe("auction pricing", () => {
 
   it("has no price fallback when the live index cannot be loaded", async () => {
     clearPricingIndex();
-    await expect(loadPricingIndex(undefined, async () => new Response("offline", { status: 503 })))
+    await expect(loadPricingIndex(async () => new Response("offline", { status: 503 })))
       .rejects.toThrow("HTTP 503");
     expect(pricingRegionAvailable("eu")).toBe(false);
     expect(artifactPrice("zyw2", 0)).toBeNull();
+  });
+
+  it("shares one download and reuses the validated index for the page session", async () => {
+    clearPricingIndex();
+    let requests = 0;
+    const fetchImpl = async () => {
+      requests += 1;
+      return new Response(JSON.stringify(testPricingBundle()));
+    };
+
+    await Promise.all([loadPricingIndex(fetchImpl), loadPricingIndex(fetchImpl)]);
+    await loadPricingIndex(fetchImpl);
+
+    expect(requests).toBe(1);
+    expect(artifactPrice("zyw2", 0)?.median).toBe(100);
   });
 
   it("formats ruble estimates and unavailable values", () => {

@@ -1302,16 +1302,18 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    const controller = new AbortController();
-    loadPricingIndex(controller.signal)
-      .then(() => setPricingStatus("ready"))
+    let active = true;
+    loadPricingIndex()
+      .then(() => {
+        if (active) setPricingStatus("ready");
+      })
       .catch((error: unknown) => {
-        if ((error as Error).name !== "AbortError") {
+        if (active) {
           setPricingError((error as Error).message);
           setPricingStatus("error");
         }
       });
-    return () => controller.abort();
+    return () => { active = false; };
   }, []);
 
   useEffect(() => {

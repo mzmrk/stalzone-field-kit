@@ -36,19 +36,28 @@ type PricingBundle = {
 };
 
 let pricingBundle: PricingBundle | null = null;
+let pricingLoadPromise: Promise<PricingBundle> | null = null;
 
 export type PriceSource = "market" | "estimated" | "unknown";
 
-export async function loadPricingIndex(signal?: AbortSignal, fetchImpl = fetch) {
-  const response = await fetchImpl(PRICING_INDEX_URL, { headers: { accept: "application/json" }, signal });
-  if (!response.ok) throw new Error(`Price-index download failed with HTTP ${response.status}.`);
-  const bundle: unknown = await response.json();
-  pricingBundle = validatePricingBundle(bundle);
-  return pricingBundle;
+export function loadPricingIndex(fetchImpl = fetch) {
+  if (pricingBundle) return Promise.resolve(pricingBundle);
+  if (pricingLoadPromise) return pricingLoadPromise;
+  pricingLoadPromise = fetchImpl(PRICING_INDEX_URL, { headers: { accept: "application/json" } })
+    .then(async (response) => {
+      if (!response.ok) throw new Error(`Price-index download failed with HTTP ${response.status}.`);
+      pricingBundle = validatePricingBundle(await response.json());
+      return pricingBundle;
+    })
+    .finally(() => {
+      pricingLoadPromise = null;
+    });
+  return pricingLoadPromise;
 }
 
 export function clearPricingIndex() {
   pricingBundle = null;
+  pricingLoadPromise = null;
 }
 
 export function validatePricingBundle(value: unknown): PricingBundle {
