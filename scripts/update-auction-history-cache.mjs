@@ -13,7 +13,7 @@ const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "
 const pageLimit = 200;
 const windowDays = 365;
 const progressEvery = Math.max(1, Number.parseInt(process.env.PRICING_PROGRESS_EVERY ?? "10", 10) || 10);
-const heartbeatMs = Math.max(1, Number.parseInt(process.env.PRICING_HEARTBEAT_MS ?? "120000", 10) || 120000);
+const heartbeatMs = Math.max(1, Number.parseInt(process.env.PRICING_HEARTBEAT_MS ?? "300000", 10) || 300000);
 const listingUrl = "https://raw.githubusercontent.com/EXBO-Studio/stalzone-database/main/global/listing.json";
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
