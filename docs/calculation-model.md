@@ -93,13 +93,13 @@ configured per-effect limits. Carrier carry weight is excluded at this stage as
 well as from manual totals. Random additional properties are not searched because
 EXBO does not publish their pools.
 
-The user enables one or more rarity bands. Every enabled rarity becomes a
-separately priced variant of every artifact and uses the midpoint quality of its
-unstudied range: `92.5`, `107.5`, `122.5`, `137.5`, `152.5`, `167.5`, or `182.5`.
-These are deterministic estimates for ranged market artifacts rather than claims
-about their eventual researched quality. Variants retain a shared artifact
-identity for canonical counting. Searches always allow multiple copies, including
-copies of the same artifact with different rarities.
+Each enabled rarity creates a separately priced artifact variant at the midpoint
+of its unstudied range: `92.5`, `107.5`, `122.5`, `137.5`, `152.5`, `167.5`, or
+`182.5`. These deterministic values do not predict final researched quality.
+Variants share artifact identity for canonical counting, and searches allow
+duplicates across rarities. `Unique (legacy)` at `182.5` remains disabled by
+default for legacy or future use. Auction evidence does not support it; it is
+unpriced and therefore ineligible under a price cap.
 
 All 31 green property keys in the current EXBO Global artifact catalog remain
 visible. Enabling a row adds it to weighted scoring and requires the selected

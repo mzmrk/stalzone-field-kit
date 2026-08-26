@@ -57,7 +57,7 @@ export const RARITY_NAMES = [
   "Rare",
   "Exclusive",
   "Legendary",
-  "Unique",
+  "Unique (legacy)",
 ];
 
 export const RARITY_MIDPOINT_QUALITIES = [92.5, 107.5, 122.5, 137.5, 152.5, 167.5, 182.5] as const;

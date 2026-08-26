@@ -1064,11 +1064,14 @@ function OptimizerPanel({
                         ? [...current, candidateRarity].sort((left, right) => left - right)
                         : current.filter((value) => value !== candidateRarity))}
                     />
-                    <span><strong>{rarityName}</strong><small>{RARITY_MIDPOINT_QUALITIES[candidateRarity]}% midpoint</small></span>
+                    <span>
+                      <strong>{rarityName}</strong>
+                      <small>{RARITY_MIDPOINT_QUALITIES[candidateRarity]}% midpoint{candidateRarity === 6 ? " · unpriced" : ""}</small>
+                    </span>
                   </label>
                 ))}
               </div>
-              <p className="field-note">Each enabled rarity uses the midpoint of its unstudied stat range. Random additional properties are excluded.</p>
+              <p className="field-note">Each enabled rarity uses the midpoint of its unstudied stat range. Unique is retained for legacy or future artifacts but has no current market estimate. Random additional properties are excluded.</p>
             </div>
 
             <div className="optimizer-block">
