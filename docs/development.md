@@ -85,10 +85,10 @@ secret. The public URL is
 `https://mzmrk.github.io/stalzone-field-kit/`.
 
 [`update-prices.yml`](../.github/workflows/update-prices.yml) runs weekly or
-manually. Its fail-fast-disabled EU, RU, NA, SEA, and NEA jobs run sequentially
-because they share one API quota. Each restores and refreshes its 90-day cache,
-then emits a regional index. The final job preserves previously bundled data for
-failed regions, merges successful outputs with
+manually. Fail-fast-disabled regional jobs run sequentially because they share
+one API quota. After uploading a verified cache, each deletes older artifacts of
+the same region while retaining the exact new upload ID. The final job preserves
+bundled data for failed regions, merges successful outputs with
 [`scripts/merge-pricing-indexes.mjs`](../scripts/merge-pricing-indexes.mjs),
 tests, builds, commits changes, and deploys Pages. It requires variable
 `STALZONE_CLIENT_ID` and secret `STALZONE_CLIENT_SECRET` only during acquisition.

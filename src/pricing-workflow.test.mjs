@@ -4,6 +4,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
 import { restoreLatestPricingCache } from "../scripts/restore-pricing-cache.mjs";
+import { pruneObsoletePricingCacheArtifacts } from "../scripts/prune-pricing-cache-artifacts.mjs";
 
 const tempDirectories = [];
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -115,11 +116,43 @@ describe("regional pricing workflow", () => {
     const workflow = await readFile(path.join(projectRoot, ".github", "workflows", "update-prices.yml"), "utf8");
     expect(workflow).toContain("fail-fast: false");
     expect(workflow).toContain("max-parallel: 1");
+    expect(workflow).toContain("actions: write");
     expect(workflow).toContain("region: [eu, ru, na, sea, nea]");
     expect(workflow).toContain("name: auction-history-cache-${{ matrix.region }}");
+    expect(workflow).toContain("steps.cache-upload.outputs.artifact-id");
     expect(workflow).toContain("name: pricing-index-${{ matrix.region }}");
     expect(workflow).toContain("needs: refresh-region\n    if: always()");
     expect(workflow).toContain("npm run pricing:merge -- src/generated/pricing-index.json");
+  });
+
+  it("deletes older same-region caches only after preserving the uploaded artifact ID", async () => {
+    const deleted = [];
+    const result = await pruneObsoletePricingCacheArtifacts({
+      artifactName: "auction-history-cache-eu",
+      keepArtifactId: 12,
+      repository: "owner/repository",
+      token: "test-token",
+      log: () => {},
+      fetchImpl: async (input, init) => {
+        const url = String(input);
+        expect(init.headers.Authorization).toBe("Bearer test-token");
+        if (init.method === "DELETE") {
+          deleted.push(Number(url.split("/").at(-1)));
+          return new Response(null, { status: 204 });
+        }
+        return jsonResponse({
+          artifacts: [
+            { id: 10, name: "auction-history-cache-eu" },
+            { id: 11, name: "unrelated" },
+            { id: 12, name: "auction-history-cache-eu" },
+            { id: 13, name: "auction-history-cache-eu" },
+          ],
+        });
+      },
+    });
+
+    expect(deleted).toEqual([10, 13]);
+    expect(result).toEqual({ deletedArtifactIds: [10, 13], keptArtifactId: 12 });
   });
 });
 

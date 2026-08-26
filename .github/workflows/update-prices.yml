@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  actions: read
+  actions: write
   contents: write
   pages: write
   id-token: write
@@ -51,6 +51,7 @@ jobs:
         run: npm run pricing:update-cache -- ${{ matrix.region }}
 
       - name: Upload rolling regional cache
+        id: cache-upload
         uses: actions/upload-artifact@v7
         with:
           name: auction-history-cache-${{ matrix.region }}
@@ -58,6 +59,11 @@ jobs:
           if-no-files-found: error
           retention-days: 90
           compression-level: 0
+
+      - name: Keep only the newest regional cache
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/prune-pricing-cache-artifacts.mjs ${{ matrix.region }} ${{ steps.cache-upload.outputs.artifact-id }}
 
       - name: Generate regional prices
         run: npm run pricing:build -- ${{ matrix.region }} data/pricing/cache/${{ matrix.region }}/auction-history-cache-${{ matrix.region }}.tar.gz data/pricing/generated/pricing-index-${{ matrix.region }}.json
