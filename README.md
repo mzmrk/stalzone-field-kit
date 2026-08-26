@@ -1,7 +1,7 @@
 # Field Kit
 
-A browser-side backpack, container, and artifact calculator for **STALZONE**.
-Configure an exact loadout or search the artifact catalog for strong combinations
+Plan **STALZONE** artifact builds entirely in your browser. Configure an exact
+backpack or container loadout, or search the artifact catalog for combinations
 that match your preferred stats, safety limits, rarities, and budget.
 
 ## Use it online
@@ -11,6 +11,8 @@ that match your preferred stats, safety limits, rarities, and budget.
 <https://mzmrk.github.io/stalzone-field-kit/>
 
 No installation or account required—open the link and start building.
+An internet connection is required to load current item data and regional
+historical price estimates.
 
 ## Features
 
