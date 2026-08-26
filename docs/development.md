@@ -106,10 +106,11 @@ Its validator is also exposed through the package script below.
 Project memory uses the validator defaults: `docs/` for core documents,
 `docs/README.md` for the index, `docs/references/` for last-resort explanatory
 detail, and `docs/evidence/` for optional raw artifacts.
-The root `README.md` is maintained for human readers and is outside the skill's
-project-memory inventory, authority, and validation. Externally visible changes
-still require checking it for contradictions; edits require primary-task
-authorization. Other Markdown outside `docs/` remains outside validator scope.
+The root `README.md` is concise onboarding for human readers and remains outside
+the skill's project-memory inventory, technical authority, validation, and core
+word budget. Public-contract changes update it during authorized change or build
+tasks; read-only work reports contradictions. Other Markdown outside `docs/`
+remains outside validator scope.
 Mandatory core documentation is capped at 6,000 words. Non-authoritative
 `docs/references/` material is allowed only as
 a last resort after consolidation cannot keep necessary detail in core; each
