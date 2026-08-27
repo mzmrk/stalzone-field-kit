@@ -137,8 +137,8 @@ test("exhaustively ranks and loads a four-slot weighted build", async ({ page })
   await expect(page.getByText(/Brute force selected automatically/)).toBeVisible();
   await expect(page.getByLabel("Optimization engine")).toHaveCount(0);
   await expect(page.getByText("Allow duplicate artifacts")).toHaveCount(0);
-  await expect(page.locator(".container-specs")).toContainText("CARRY WEIGHT");
-  await expect(page.locator(".container-specs")).toContainText("+35.00 kg");
+  await expect(page.locator("#optimizer .container-specs")).toContainText("CARRY WEIGHT");
+  await expect(page.locator("#optimizer .container-specs")).toContainText("+35.00 kg");
   const movementRow = page.locator(".positive-filter").filter({ hasText: "Movement speed" });
   const runningRow = page.locator(".positive-filter").filter({ hasText: "Running speed" });
   const staminaRow = page.locator(".positive-filter").filter({ hasText: "Stamina regeneration" });
@@ -226,6 +226,7 @@ test("exhaustively ranks and loads a four-slot weighted build", async ({ page })
   await page.getByRole("button", { name: "Load into calculator" }).first().click();
   await expect(page.getByText("4 / 4")).toBeVisible();
   await page.getByRole("button", { name: "Build optimizer", exact: true }).click();
+  await expect(page.locator(".optimizer-result")).toHaveCount(10);
   await page.getByRole("button", { name: "Reset optimizer filters" }).click();
   await expect(movementRow.getByRole("button", { name: /Important/ })).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByLabel("Optimize Running speed")).toBeChecked();

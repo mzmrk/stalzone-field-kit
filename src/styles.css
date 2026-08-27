@@ -111,6 +111,7 @@ main { width: min(1480px, calc(100% - 48px)); margin: 0 auto; }
 .data-error > span { flex: 1; }
 .data-error .icon-button { flex: 0 0 auto; width: 28px; height: 28px; }
 .mobile-steps { display: none; }
+.workspace-view[hidden] { display: none; }
 .workspace-switcher { margin-bottom: 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .workspace-switcher button { min-height: 68px; padding: 13px 16px; display: flex; align-items: center; gap: 12px; border: 1px solid var(--line); background: rgba(13,22,20,.72); color: var(--muted); cursor: pointer; text-align: left; }
 .workspace-switcher button:hover { border-color: var(--line-strong); color: var(--text); }

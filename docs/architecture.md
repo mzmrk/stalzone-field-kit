@@ -16,6 +16,9 @@ carrier selection is the first section of the left filter column; the results
 column remains visible with a selection prompt before a carrier is chosen.
 Loading an optimizer result switches to the calculator so the generated
 artifacts can be inspected and adjusted immediately.
+Both workspace components remain mounted while the inactive one is hidden, so
+ranked results and an in-progress optimizer run survive temporary calculator
+visits. Refreshing the page still clears transient results and opens the optimizer.
 
 Ranked optimizer builds use one full-width card per row. Within each card, enabled
 search objectives remain in configured order with normalization evidence in the

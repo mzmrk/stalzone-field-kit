@@ -1582,8 +1582,7 @@ export default function App() {
           </button>
         </nav>
 
-        {workspaceMode === "calculator" ? (
-          <>
+        <div className="workspace-view" hidden={workspaceMode !== "calculator"}>
             <nav className="mobile-steps" aria-label={t("Calculator sections")}>
               <a href="#loadout">{t("01 Loadout")}</a><a href="#artifact">{t("02 Tune")}</a><a href="#results">{t("03 Results")}</a>
             </nav>
@@ -1611,8 +1610,8 @@ export default function App() {
               />
               <ResultPanel container={container} totals={totals} warnings={warnings} />
             </div>
-          </>
-        ) : (
+        </div>
+        <div className="workspace-view" hidden={workspaceMode !== "optimizer"}>
           <OptimizerPanel
             catalog={catalog}
             container={container}
@@ -1625,7 +1624,7 @@ export default function App() {
               setWorkspaceMode("calculator");
             }}
           />
-        )}
+        </div>
       </main>
 
       <footer>
