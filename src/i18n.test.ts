@@ -38,7 +38,8 @@ describe("language selection", () => {
     expect(i18n.t("Mobility & utility")).toBe("Подвижность и полезность");
     expect(i18n.t("Neutral")).toBe("Нейтральная");
     expect(i18n.t("Accepted consequences")).toBe("Допустимые отрицательные эффекты");
-    expect(i18n.t("Best result confirmed")).toBe("Лучший результат подтверждён");
+    expect(i18n.t("Best build found within {{time}} time limit · another build may score up to {{error}}% higher", { time: "10 с", error: "12,1" }))
+      .toBe("Лучшая сборка, найденная за 10 с · другая сборка может получить оценку до 12,1% выше");
     expect(i18n.t("Build optimizer")).toBe("Оптимизатор сборок");
     expect(i18n.t("Build calculator")).toBe("Калькулятор сборки");
   });

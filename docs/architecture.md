@@ -31,7 +31,8 @@ column under the same Mobility, Survivability, Protection, Exposure, and Other
 effects categories as the manual calculator. The columns stack on narrow screens.
 Objective rows visualize the current-to-best normalized value with a capsule bar;
 the current value remains primary, the comparison value stays neutral, and the
-range proof or bounded error plus solve duration remains explicit below the bar.
+bounded error plus solve duration appears below the bar only when the maximum
+could not be proven in time.
 Each search scrolls to its first ranked card once that result becomes available;
 later streamed ranks do not move the viewport again, and reduced-motion browser
 preferences disable smooth scrolling.

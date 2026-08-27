@@ -116,6 +116,40 @@ const CATEGORY_ORDER = [
   "Exposure",
   "Other effects",
 ];
+const OPTIMIZER_FILTER_CATEGORIES = [
+  "Mobility",
+  "Survivability",
+  "Healing",
+  "Protection",
+  "Countering",
+] as const;
+type OptimizerFilterCategory = typeof OPTIMIZER_FILTER_CATEGORIES[number];
+const MOBILITY_FILTER_KEYS = new Set([
+  "stalker.artefact_properties.factor.speed_modifier",
+  "stalker.artefact_properties.factor.sprint_speed_modifier",
+  "stalker.artefact_properties.factor.stamina_regeneration_bonus",
+  "stalker.artefact_properties.factor.max_weight_bonus",
+  "stalker.artefact_properties.factor.stamina_bonus",
+]);
+const HEALING_FILTER_KEYS = new Set([
+  "stalker.artefact_properties.factor.artefakt_heal",
+  "stalker.artefact_properties.factor.heal_efficiency",
+  "stalker.artefact_properties.factor.regeneration_bonus",
+]);
+const SURVIVABILITY_FILTER_KEYS = new Set([
+  "stalker.artefact_properties.factor.bullet_dmg_factor",
+  "stalker.artefact_properties.factor.health_bonus",
+  "stalker.artefact_properties.factor.bleeding_protection",
+  "stalker.artefact_properties.factor.stopping_protection",
+]);
+
+function optimizerFilterCategory(key: string): OptimizerFilterCategory {
+  if (OPTIMIZER_STAT_OPTIONS.find(([optionKey]) => optionKey === key)?.[3] === -1) return "Countering";
+  if (MOBILITY_FILTER_KEYS.has(key)) return "Mobility";
+  if (HEALING_FILTER_KEYS.has(key)) return "Healing";
+  if (SURVIVABILITY_FILTER_KEYS.has(key)) return "Survivability";
+  return "Protection";
+}
 const DEFAULT_OBJECTIVE_WEIGHTS = new Map<string, number>([
   ["stalker.artefact_properties.factor.speed_modifier", IMPORTANT_OBJECTIVE_WEIGHT],
   ["stalker.artefact_properties.factor.sprint_speed_modifier", NEUTRAL_OBJECTIVE_WEIGHT],
@@ -280,6 +314,11 @@ function formatAccuracy(value: number) {
 function formatSolveSeconds(value: number) {
   const digits = value < 1 ? 2 : 1;
   return `${new Intl.NumberFormat(appLocale(), { minimumFractionDigits: digits, maximumFractionDigits: digits }).format(value)}s`;
+}
+
+function formatTimeLimitSeconds(value: number) {
+  const suffix = appLanguage() === "ru" ? " с" : "s";
+  return `${new Intl.NumberFormat(appLocale(), { maximumFractionDigits: 1 }).format(value)}${suffix}`;
 }
 
 function formatInteger(value: number | bigint) {
@@ -1207,29 +1246,34 @@ function OptimizerPanel({
               <div className="section-label"><span>{t("Stats you want")}</span><span>{t("{{count}} selected", { count: activeObjectives.length })}</span></div>
               <p className="field-note">{t("Check every stat the build must include. Importance affects ranking; Minimum requires a specific value from artifacts. Backpack and container bonuses do not count.")}</p>
               <div className="positive-filter-list">
-                {positiveFilters.map((filter) => {
-                  const option = OPTIMIZER_STAT_OPTIONS.find(([key]) => key === filter.key)!;
-                  return (
-                    <div className={`positive-filter ${filter.enabled ? "positive-filter--enabled" : ""} ${filter.minimum !== "" ? "positive-filter--constrained" : ""}`} key={filter.key}>
-                      <div className="positive-filter__top">
-                        <label className="positive-filter__toggle">
-                          <input type="checkbox" aria-label={t("Optimize {{name}}", { name: t(option[1]) })} checked={filter.enabled} onChange={(event) => setPositiveFilters((current) => current.map((item) => item.key === filter.key ? { ...item, enabled: event.target.checked, minimum: event.target.checked ? item.minimum : "" } : item))} />
-                          <strong>{t(option[1])}</strong>
-                        </label>
-                        {filter.enabled && <span className="objective-share">{t("{{share}}% of score", { share: formatDecimal(objectiveWeightPercentage(filter.weight, objectiveWeights), 1) })}</span>}
-                        {filter.enabled && <label className="positive-filter__minimum">
-                          <span>{option[3] === -1 ? t("Minimum countering") : t("Minimum")}</span>
-                          <input aria-label={t("Minimum {{name}} from artifacts", { name: t(option[1]) })} type="number" min="0" step="0.01" placeholder={option[3] === -1 ? t("Any amount") : t("Any > 0")} value={filter.minimum} onChange={(event) => setPositiveFilters((current) => current.map((item) => item.key === filter.key ? { ...item, minimum: event.target.value } : item))} />
-                        </label>}
-                      </div>
-                      {filter.enabled && (
-                        <div className="objective-priority" role="group" aria-label={t("{{name}} importance", { name: t(option[1]) })}>
-                          {OBJECTIVE_PRIORITIES.map((priority) => <button type="button" className={filter.weight === priority.weight ? "active" : ""} aria-pressed={filter.weight === priority.weight} title={t("{{label}}: {{factor}} scoring influence", { label: t(priority.label), factor: priority.factor })} key={priority.weight} onClick={() => setPositiveFilters((current) => current.map((item) => item.key === filter.key ? { ...item, weight: priority.weight } : item))}><span>{t(priority.label)}</span><small>{priority.factor}</small></button>)}
+                {OPTIMIZER_FILTER_CATEGORIES.map((category) => (
+                  <section className="positive-filter-category" key={category}>
+                    <h3>{t(category)}</h3>
+                    {positiveFilters.filter((filter) => optimizerFilterCategory(filter.key) === category).map((filter) => {
+                      const option = OPTIMIZER_STAT_OPTIONS.find(([key]) => key === filter.key)!;
+                      return (
+                        <div className={`positive-filter ${filter.enabled ? "positive-filter--enabled" : ""} ${filter.minimum !== "" ? "positive-filter--constrained" : ""}`} key={filter.key}>
+                          <div className="positive-filter__top">
+                            <label className="positive-filter__toggle">
+                              <input type="checkbox" aria-label={t("Optimize {{name}}", { name: t(option[1]) })} checked={filter.enabled} onChange={(event) => setPositiveFilters((current) => current.map((item) => item.key === filter.key ? { ...item, enabled: event.target.checked, minimum: event.target.checked ? item.minimum : "" } : item))} />
+                              <strong>{t(option[1])}</strong>
+                            </label>
+                            {filter.enabled && <span className="objective-share">{t("{{share}}% of score", { share: formatDecimal(objectiveWeightPercentage(filter.weight, objectiveWeights), 1) })}</span>}
+                            {filter.enabled && <label className="positive-filter__minimum">
+                              <span>{option[3] === -1 ? t("Minimum countering") : t("Minimum")}</span>
+                              <input aria-label={t("Minimum {{name}} from artifacts", { name: t(option[1]) })} type="number" min="0" step="0.01" placeholder={option[3] === -1 ? t("Any amount") : t("Any > 0")} value={filter.minimum} onChange={(event) => setPositiveFilters((current) => current.map((item) => item.key === filter.key ? { ...item, minimum: event.target.value } : item))} />
+                            </label>}
+                          </div>
+                          {filter.enabled && (
+                            <div className="objective-priority" role="group" aria-label={t("{{name}} importance", { name: t(option[1]) })}>
+                              {OBJECTIVE_PRIORITIES.map((priority) => <button type="button" className={filter.weight === priority.weight ? "active" : ""} aria-pressed={filter.weight === priority.weight} title={t("{{label}}: {{factor}} scoring influence", { label: t(priority.label), factor: priority.factor })} key={priority.weight} onClick={() => setPositiveFilters((current) => current.map((item) => item.key === filter.key ? { ...item, weight: priority.weight } : item))}><span>{t(priority.label)}</span><small>{priority.factor}</small></button>)}
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </div>
-                  );
-                })}
+                      );
+                    })}
+                  </section>
+                ))}
               </div>
             </div>
 
@@ -1268,7 +1312,7 @@ function OptimizerPanel({
                 <small>{t("Prices are based on completed {{region}} sales as of {{date}}. Estimated prices are marked. Builds with unknown prices are excluded when a budget is set.", { region: pricingMetadata(pricingRegion).region, date: pricingMetadata(pricingRegion).asOfLabel })}</small>
               </label>
               <div className="search-estimate">
-                <span>{t("POSSIBLE BUILDS")}</span><strong>{formatInteger(estimatedCombinations)}</strong><small>{t("Search method: {{engine}}", { engine: estimatedEngine === "milp" ? t("MILP (Mixed-Integer Linear Programming)") : t("Brute force") })}</small>
+                <span>{t("POSSIBLE BUILDS")}</span><strong>{formatInteger(estimatedCombinations)}</strong><small>{t("Search method: {{engine}}", { engine: displayedEngine === "milp" ? t("MILP (Mixed-Integer Linear Programming)") : t("Brute force") })}</small>
               </div>
               {selectedRarities.length === 0 && <p className="optimizer-error">{t("Select at least one artifact rarity.")}</p>}
               {activeObjectives.length === 0 && <p className="optimizer-error">{t("At least one positive effect must be enabled for optimization.")}</p>}
@@ -1329,14 +1373,15 @@ function OptimizerPanel({
                     return (
                       <article className="optimizer-result" ref={resultIndex === 0 ? firstResultRef : undefined} key={result.indices.join("-")}>
                         <div className="optimizer-result__top"><span>#{resultIndex + 1}</span><strong>{t("{{score}} match score", { score: formatAccuracy(result.score * 100) })}</strong><span className="optimizer-result__price">{formatPrice(result.totalPrice)}</span><small className={resultTotals.warnings.length ? "unsafe" : "safe"}>{resultTotals.warnings.length ? t("Exposure damage") : t("No exposure damage")}</small></div>
-                        <p className={`optimizer-result__accuracy ${result.approximate ? "approximate" : "exact"}`}>
-                          {result.approximate
+                        {result.approximate && <p className="optimizer-result__accuracy approximate">
+                          {result.solveSeconds === undefined
                             ? result.errorPercent === undefined
                               ? t("Best build found so far · difference from the true best is unknown")
                               : t("Best build found so far · another build may score up to {{error}}% higher", { error: formatAccuracy(result.errorPercent) })
-                            : t("Best result confirmed")}
-                          {result.solveSeconds === undefined ? "" : ` · ${formatSolveSeconds(result.solveSeconds)}`}
-                        </p>
+                            : result.errorPercent === undefined
+                              ? t("Best build found within {{time}} time limit · difference from the true best is unknown", { time: formatTimeLimitSeconds(result.solveSeconds) })
+                              : t("Best build found within {{time}} time limit · another build may score up to {{error}}% higher", { time: formatTimeLimitSeconds(result.solveSeconds), error: formatAccuracy(result.errorPercent) })}
+                        </p>}
                         <div className="optimizer-artifacts">{selected.map((artifact, index) => {
                           const estimate = artifactPrice(artifact.entry, artifact.rarityIndex, pricingRegion);
                           const artifactName = translated(artifact.item.name);

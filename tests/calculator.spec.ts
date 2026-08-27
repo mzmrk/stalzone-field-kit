@@ -32,6 +32,7 @@ test("opens the optimizer by default and shares carrier selection between both t
   await page.getByPlaceholder(/Search backpacks and containers/).fill("Errand Junior Backpack");
   await page.getByRole("button", { name: /Errand Junior Backpack/ }).click();
   await expect(page.locator("#optimizer .optimizer-settings .container-card")).toContainText("Errand Junior Backpack");
+  await expect(page.locator(".positive-filter-category > h3")).toHaveText(["Mobility", "Survivability", "Healing", "Protection", "Countering"]);
   await expect(page.locator(".optimizer-results-empty")).toHaveCSS("position", "sticky");
   await expect(page.locator(".optimizer-results-empty").getByRole("button", { name: "Find best builds" })).toBeVisible();
 
@@ -291,7 +292,7 @@ test("uses MILP to optimize a carrier beyond the brute-force limit", async ({ pa
   await expect.poll(() => page.locator(".optimizer-result").first().evaluate((element) => Math.round(element.getBoundingClientRect().top))).toBeLessThan(150);
   await expect(page.getByRole("button", { name: "Load into calculator" })).toHaveCount(10, { timeout: 75_000 });
   expect(await page.evaluate(() => document.body.dataset.sawStreamingMilpResult)).toBe("true");
-  await expect(page.getByText("Best result confirmed").first()).toBeVisible();
+  await expect(page.getByText("Best result confirmed")).toHaveCount(0);
   await expect(page.locator(".optimizer-objective__track").first()).toBeVisible();
   await expect(page.locator(".optimizer-objective__meta").first()).toContainText(/Best (possible|found)/);
   await expect(page.locator(".optimizer-objective__best").first()).toContainText(/Best (possible|found)/);

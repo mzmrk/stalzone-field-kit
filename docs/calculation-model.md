@@ -118,17 +118,16 @@ weight.
 The general-purpose default enables Movement speed at Important (`2×`) plus
 Running speed, Bullet resistance, and Stamina regeneration at Neutral (`1×`).
 Remaining rows start visible and disabled, and retain Neutral as the priority used
-if enabled. The visible order favors broadly used mobility and survivability
-objectives before specialized healing, utility, protection, and countering stats;
-it is a usability default rather than a claim that one build archetype is
-universally optimal.
+if enabled. Every row remains visible under Mobility, Survivability, Healing,
+Protection, or Countering headings; the grouping is navigational rather than a
+claim that one build archetype is universally optimal.
 
 All 13 properties that appear as harmful on artifacts in the current EXBO Global
-catalog remain visible. `Allow` adds no constraint. `No negative` requires a final
+catalog remain visible. `Allow` adds no constraint. `Fully countered` requires a final
 value at or below zero for positive-is-harmful properties such as radiation and
 recoil, and at or above zero for negative-is-harmful properties such as vitality,
 healing effectiveness, bullet resistance, bleeding protection, reaction to burns,
-movement speed, and running speed. A custom accepted penalty is entered as a
+movement speed, and running speed. A maximum accepted penalty is entered as a
 non-negative magnitude: for example, `5` means vitality must remain at least
 `-5%`, while radiation must remain at most `+5`. `Game-safe` caps an exposure at
 its damage threshold and is only available where
@@ -178,7 +177,8 @@ best compromise may score below `100%`. Engine selection is automatic: a
 canonical search space of at most ten million combinations uses brute force, and
 any larger space uses MILP. The final dispatch uses the exact count after artifact
 files load, so unavailable catalog entries cannot leave the search on the wrong
-side of the cutoff. Combination counts use arbitrary-precision integers and
+side of the cutoff; the displayed method switches from its pre-load estimate to
+that actual selection. Combination counts use arbitrary-precision integers and
 compact to ordinary numbers only while exactly representable; large search-space
 labels therefore remain exact. Brute force obtains those best values in its
 first complete enumeration and ranks in a second enumeration. It retains the ten
