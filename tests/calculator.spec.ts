@@ -10,11 +10,12 @@ test("opens the optimizer by default and shares carrier selection between both t
 
   await expect(page.getByRole("button", { name: "Build optimizer", exact: true })).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByRole("heading", { name: "Weighted combination search" })).toBeVisible();
+  await expect(page.locator("#optimizer .optimizer-settings > .optimizer-carrier-selector")).toBeVisible();
 
   await page.getByRole("button", { name: /Select a backpack or container/i }).click();
   await page.getByPlaceholder(/Search backpacks and containers/).fill("Errand Junior Backpack");
   await page.getByRole("button", { name: /Errand Junior Backpack/ }).click();
-  await expect(page.locator("#optimizer .container-card")).toContainText("Errand Junior Backpack");
+  await expect(page.locator("#optimizer .optimizer-settings .container-card")).toContainText("Errand Junior Backpack");
 
   await openCalculator(page);
   await expect(page.getByRole("heading", { name: "Carrier & artifacts" })).toBeVisible();

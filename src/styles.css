@@ -238,8 +238,7 @@ input[type="range"]::-webkit-slider-thumb { appearance: none; width: 14px; heigh
 .optimizer-heading-actions > svg { color: #6c7772; flex: 0 0 auto; }
 .optimizer-reset { min-height: 32px; padding: 0 10px; display: flex; align-items: center; gap: 6px; border: 1px solid var(--line); background: transparent; color: var(--muted); cursor: pointer; font-size: 7px; text-transform: uppercase; }
 .optimizer-reset:hover { border-color: var(--line-strong); color: var(--text); }
-.optimizer-carrier-selector { border-bottom: 1px solid var(--line); }
-.optimizer-carrier-selector__content { width: min(520px, 100%); }
+.optimizer-carrier-selector { padding-bottom: 0; }
 .optimizer-empty { min-height: 190px; display: flex; align-items: center; justify-content: center; gap: 12px; color: var(--muted); font-size: 10px; }
 .optimizer-body { display: grid; grid-template-columns: minmax(380px, .78fr) minmax(540px, 1.22fr); align-items: start; }
 .optimizer-settings { border-right: 1px solid var(--line); }

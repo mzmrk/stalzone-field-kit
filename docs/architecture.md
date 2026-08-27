@@ -11,9 +11,11 @@ remain outside the implemented product boundary.
 
 The primary workspace switches between Build optimizer and Build calculator,
 with the optimizer selected on every page load. Both modes expose the same
-carrier selector and edit the same in-memory carrier state. Loading an optimizer
-result switches to the calculator so the generated artifacts can be inspected
-and adjusted immediately.
+carrier selector and edit the same in-memory carrier state. In the optimizer,
+carrier selection is the first section of the left filter column; the results
+column remains visible with a selection prompt before a carrier is chosen.
+Loading an optimizer result switches to the calculator so the generated
+artifacts can be inspected and adjusted immediately.
 
 The application is a React/Vite single-page app. [`src/main.tsx`](../src/main.tsx)
 initializes i18next; [`src/App.tsx`](../src/App.tsx) owns screen flow and state.

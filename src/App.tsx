@@ -1120,18 +1120,15 @@ function OptimizerPanel({
         </div>
       </div>
 
-      <div className="optimizer-carrier-selector">
-        <div className="section-label"><span>{t("Carrier")}</span><span>{container ? t("{{count}} slots", { count: container.capacity }) : t("Required")}</span></div>
-        <div className="optimizer-carrier-selector__content">
-          <CarrierSelector container={container} onChooseContainer={onChooseContainer} />
-        </div>
-      </div>
+      <div className="optimizer-body">
+        <div className="optimizer-settings">
+          <div className="optimizer-block optimizer-carrier-selector">
+            <div className="section-label"><span>{t("Carrier")}</span><span>{container ? t("{{count}} slots", { count: container.capacity }) : t("Required")}</span></div>
+            <CarrierSelector container={container} onChooseContainer={onChooseContainer} />
+          </div>
 
-      {!container ? (
-        <div className="optimizer-empty"><Gauge size={28} /><span>{t("Select a carrier before searching combinations.")}</span></div>
-      ) : (
-        <div className="optimizer-body">
-          <div className="optimizer-settings">
+          {container && (
+            <>
             <div className="optimizer-block">
               <div className="section-label"><span>{t("Artifact assumptions")}</span><span>{t("Catalog mode")}</span></div>
               <div className="optimizer-assumptions">
@@ -1245,11 +1242,15 @@ function OptimizerPanel({
               )}
               {error && <p className="optimizer-error" role="alert">{t(error)}</p>}
             </div>
-          </div>
+            </>
+          )}
+        </div>
 
-          <div className="optimizer-results">
-            <div className="section-label"><span>{t("Ranked results")}</span><span>{run ? t("{{count}} shown", { count: run.search.results.length }) : t("Waiting")}</span></div>
-            {!run ? (
+        <div className="optimizer-results">
+          <div className="section-label"><span>{t("Ranked results")}</span><span>{run ? t("{{count}} shown", { count: run.search.results.length }) : t("Waiting")}</span></div>
+          {!container ? (
+            <div className="optimizer-empty"><Gauge size={28} /><span>{t("Select a carrier before searching combinations.")}</span></div>
+          ) : !run ? (
               <div className="optimizer-results-empty"><CircleGauge size={31} /><strong>{t("Configure and run a bounded search")}</strong><span>{t("Weights compare each build against neutral zero and the best possible value found for every objective.")}</span></div>
             ) : run.search.results.length === 0 ? (
               <div className="optimizer-results-empty"><AlertTriangle size={31} /><strong>{t("No feasible combinations")}</strong><span>{t("Relax a minimum, negative-effect policy, budget, or artifact assumption.")}</span></div>
@@ -1301,10 +1302,9 @@ function OptimizerPanel({
                   })}
                 </div>
               </>
-            )}
-          </div>
+          )}
         </div>
-      )}
+      </div>
     </section>
   );
 }
