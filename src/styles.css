@@ -320,7 +320,7 @@ input[type="range"]::-webkit-slider-thumb { appearance: none; width: 14px; heigh
 .optimizer-result__top > small.safe { color: var(--green); border-color: rgba(119,213,151,.3); }
 .optimizer-result__top > small.unsafe { color: var(--red); border-color: rgba(239,121,111,.3); }
 .optimizer-result__accuracy { margin: 7px 0 0; font-size: 10px; line-height: 1.5; }
-.optimizer-result__accuracy.exact { color: var(--green); }
+.optimizer-result__accuracy.exact { color: var(--muted); }
 .optimizer-result__accuracy.approximate { color: #d7c68a; }
 .optimizer-artifacts { margin-top: 16px; padding-bottom: 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(92px, 1fr)); gap: 8px; border-bottom: 1px solid var(--line); }
 .optimizer-artifacts > span { min-width: 0; padding: 8px; display: flex; flex-direction: column; align-items: center; gap: 5px; border: 1px solid var(--line); background: rgba(13,24,21,.62); }
