@@ -1407,7 +1407,7 @@ function OptimizerPanel({
           ) : !run ? (
               <div className="optimizer-results-empty"><CircleGauge size={31} /><strong>{t("Find your best artifact build")}</strong><span>{t("Choose the stats, safety limits, rarities, and budget you care about. Field Kit will compare matching artifact combinations and rank the best builds.")}</span><button className="optimizer-search optimizer-results-empty__search" disabled={searchDisabled} onClick={startSearch}>{searchButtonLabel}</button></div>
             ) : run.search.results.length === 0 ? (
-              <div className="optimizer-results-empty"><AlertTriangle size={31} /><strong>{t("No builds match your filters")}</strong><span>{t("Try lowering a minimum, allowing more negative effects, raising the budget, or selecting more rarities.")}</span></div>
+              <div className="optimizer-results-empty"><AlertTriangle size={31} /><strong>{t(run.failedItems > 0 ? "Search incomplete" : "No builds match your filters")}</strong><span>{t(run.failedItems > 0 ? "Some artifact files could not be loaded, so this search is incomplete. Retry the search to try loading them again ({{count}} unavailable)." : "Try lowering a minimum, allowing more negative effects, raising the budget, or selecting more rarities.", { count: run.failedItems })}</span></div>
             ) : (
               <>
                 <div className="optimizer-summary">
@@ -1521,6 +1521,7 @@ export default function App() {
   });
   const [picker, setPicker] = useState<PickerState>(null);
   const [selecting, setSelecting] = useState<string | null>(null);
+  const selectionRequestRef = useRef(0);
   const [pricingRegion, setPricingRegion] = useState<PricingRegion>(savedPricingRegion);
   const [pricingStatus, setPricingStatus] = useState<"loading" | "ready" | "error">("loading");
   const [pricingError, setPricingError] = useState<PricingErrorCode | null>(null);
@@ -1580,19 +1581,38 @@ export default function App() {
     [container, artifacts],
   );
 
+  const invalidateSelection = () => {
+    selectionRequestRef.current += 1;
+    setSelecting(null);
+  };
+
+  const openPicker = (nextPicker: PickerState) => {
+    invalidateSelection();
+    setSelectionError(null);
+    setPicker(nextPicker);
+  };
+
+  const closePicker = () => {
+    invalidateSelection();
+    setPicker(null);
+  };
+
   const chooseItem = async (entry: ListingEntry) => {
     if (!picker) return;
+    const request = ++selectionRequestRef.current;
+    const requestedPicker = picker;
     setSelectionError(null);
     setSelecting(entry.data);
     try {
       const item = await loadItem(entry);
-      if (picker.kind === "container") {
+      if (request !== selectionRequestRef.current) return;
+      if (requestedPicker.kind === "container") {
         const next = parseContainer(entry, item);
         setContainer(next);
         setArtifacts((current) => Array.from({ length: next.capacity }, (_, index) => current[index] ?? null));
         setActiveIndex((current) => current !== null && current < next.capacity ? current : null);
       } else {
-        const index = picker.index;
+        const index = requestedPicker.index;
         const data = parseArtifact(entry, item);
         const artifact: ArtifactConfig = {
           ...data,
@@ -1607,10 +1627,11 @@ export default function App() {
       }
       setPicker(null);
     } catch (error) {
+      if (request !== selectionRequestRef.current) return;
       setSelectionError({ name: translated(entry.name), message: (error as Error).message });
       setPicker(null);
     } finally {
-      setSelecting(null);
+      if (request === selectionRequestRef.current) setSelecting(null);
     }
   };
 
@@ -1738,8 +1759,8 @@ export default function App() {
                 container={container}
                 artifacts={artifacts}
                 activeIndex={activeIndex}
-                onChooseContainer={() => catalog && setPicker({ kind: "container" })}
-                onChooseArtifact={(index) => catalog && setPicker({ kind: "artifact", index })}
+                onChooseContainer={() => catalog && openPicker({ kind: "container" })}
+                onChooseArtifact={(index) => catalog && openPicker({ kind: "artifact", index })}
                 onActivate={setActiveIndex}
                 onRemove={(index) => {
                   setArtifacts((current) => current.map((value, slot) => slot === index ? null : value));
@@ -1752,7 +1773,7 @@ export default function App() {
                 artifact={activeIndex === null ? null : artifacts[activeIndex] ?? null}
                 index={activeIndex}
                 onChange={updateArtifact}
-                onReplace={() => activeIndex !== null && setPicker({ kind: "artifact", index: activeIndex })}
+                onReplace={() => activeIndex !== null && openPicker({ kind: "artifact", index: activeIndex })}
                 pricingRegion={pricingRegion}
               />
               <ResultPanel container={container} totals={totals} warnings={warnings} />
@@ -1762,7 +1783,7 @@ export default function App() {
           <OptimizerPanel
             catalog={catalog}
             container={container}
-            onChooseContainer={() => catalog && setPicker({ kind: "container" })}
+            onChooseContainer={() => catalog && openPicker({ kind: "container" })}
             pricingRegion={pricingRegion}
             pricingReady={pricingStatus === "ready"}
             onApply={(nextArtifacts) => {
@@ -1778,7 +1799,7 @@ export default function App() {
         <a href={EXBO_REPOSITORY} target="_blank" rel="noreferrer">{t("Data by EXBO Studio")} <ExternalLink size={13} /></a>
       </footer>
 
-      {picker && catalog && <Picker state={picker} catalog={catalog} onClose={() => setPicker(null)} onChoose={chooseItem} selecting={selecting} pricingRegion={pricingRegion} />}
+      {picker && catalog && <Picker state={picker} catalog={catalog} onClose={closePicker} onChoose={chooseItem} selecting={selecting} pricingRegion={pricingRegion} />}
     </div>
   );
 }

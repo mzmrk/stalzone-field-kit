@@ -185,6 +185,8 @@ export const ru: Record<string, string> = {
   "Choose the stats, safety limits, rarities, and budget you care about. Field Kit will compare matching artifact combinations and rank the best builds.": "Выберите важные для вас характеристики, ограничения безопасности, редкости и бюджет. Field Kit сравнит подходящие комбинации артефактов и составит рейтинг лучших сборок.",
   "No builds match your filters": "Нет сборок, подходящих под ваши фильтры",
   "Try lowering a minimum, allowing more negative effects, raising the budget, or selecting more rarities.": "Попробуйте снизить минимум, разрешить больше отрицательных эффектов, увеличить бюджет или выбрать больше редкостей.",
+  "Search incomplete": "Поиск выполнен не полностью",
+  "Some artifact files could not be loaded, so this search is incomplete. Retry the search to try loading them again ({{count}} unavailable).": "Не удалось загрузить некоторые файлы артефактов, поэтому поиск неполный. Повторите поиск, чтобы снова попробовать их загрузить (недоступно: {{count}}).",
   "Some best possible values are estimates because the search reached its 5-second limit. Each affected stat shows how much higher the true best could be.": "Некоторые лучшие значения являются оценочными, поскольку поиск достиг лимита в 5 секунд. Для каждого такого параметра показано, насколько выше может быть истинный максимум.",
   "Match score compares each build with the best value found for every selected stat, using your importance settings.": "Оценка соответствия сравнивает сборку с лучшим найденным значением каждого выбранного параметра с учётом заданной важности.",
   "{{score}} match score": "оценка соответствия {{score}}",

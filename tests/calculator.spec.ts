@@ -197,6 +197,87 @@ test("keeps the calculator usable at a phone viewport", async ({ page }) => {
   expect(calculatorDimensions.scrollWidth).toBeLessThanOrEqual(calculatorDimensions.clientWidth);
 });
 
+test("does not apply a dismissed delayed container selection or show its late failure", async ({ page }) => {
+  let releaseItem!: () => void;
+  const itemPending = new Promise<void>((resolve) => { releaseItem = resolve; });
+  let delayedItemUrl: string | undefined;
+  await page.route("**/global/items/**", async (route) => {
+    if (!delayedItemUrl && /\/items\/(backpacks|containers)\//.test(route.request().url())) {
+      delayedItemUrl = route.request().url();
+      await itemPending;
+    }
+    await route.continue();
+  });
+  await gotoLoadedApp(page);
+  await page.getByRole("button", { name: /Select a backpack or container/i }).click();
+  await page.getByPlaceholder(/Search backpacks and containers/).fill("Errand Junior Backpack");
+  await page.getByRole("button", { name: /Errand Junior Backpack/ }).click();
+  await expect.poll(() => delayedItemUrl).toBeTruthy();
+  await page.getByRole("button", { name: "Close" }).click();
+  const itemResponse = page.waitForResponse((response) => response.url() === delayedItemUrl);
+  releaseItem();
+  await itemResponse;
+  await expect(page.locator(".container-card")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: /Select a backpack or container/i })).toBeVisible();
+  await expect(page.getByText("Item selection failed.")).toHaveCount(0);
+});
+
+test("does not show a late picker error after dismissal when the item request fails", async ({ page }) => {
+  let abortItem!: () => void;
+  const itemPending = new Promise<void>((resolve) => { abortItem = resolve; });
+  let delayedItemUrl: string | undefined;
+  await page.route("**/global/items/**", async (route) => {
+    if (!delayedItemUrl && /\/items\/(backpacks|containers)\//.test(route.request().url())) {
+      delayedItemUrl = route.request().url();
+      await itemPending;
+      await route.abort();
+      return;
+    }
+    await route.continue();
+  });
+  await gotoLoadedApp(page);
+  await page.getByRole("button", { name: /Select a backpack or container/i }).click();
+  await page.getByPlaceholder(/Search backpacks and containers/).fill("Errand Junior Backpack");
+  await page.getByRole("button", { name: /Errand Junior Backpack/ }).click();
+  await expect.poll(() => delayedItemUrl).toBeTruthy();
+  await page.getByRole("button", { name: "Close" }).click();
+  const failedRequest = page.waitForEvent("requestfailed", (request) => request.url() === delayedItemUrl);
+  abortItem();
+  await failedRequest;
+  await expect(page.getByText("Item selection failed.")).toHaveCount(0);
+  await expect(page.locator(".container-card")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: /Select a backpack or container/i })).toBeVisible();
+});
+
+test("reports an incomplete search when unavailable artifact files leave no matching result", async ({ page }) => {
+  let failedArtifact = false;
+  await page.route("**/global/listing.json", async (route) => {
+    const response = await route.fetch();
+    const listing = await response.json() as Array<{ data: string; name?: { lines?: Record<string, string> } }>;
+    const artifacts = listing.filter((entry) => entry.data.startsWith("/items/artefact/")).slice(0, 2);
+    const containers = listing.filter((entry) => entry.name?.lines?.en === "Errand Junior Backpack");
+    await route.fulfill({ response, json: [...containers, ...artifacts] });
+  });
+  await page.route("**/global/items/**", async (route) => {
+    if (!failedArtifact && /\/items\/artefact\//.test(route.request().url())) {
+      failedArtifact = true;
+      await route.abort();
+      return;
+    }
+    await route.continue();
+  });
+  await gotoLoadedApp(page);
+  await page.getByRole("button", { name: /Select a backpack or container/i }).click();
+  await page.getByPlaceholder(/Search backpacks and containers/).fill("Errand Junior Backpack");
+  await page.getByRole("button", { name: /Errand Junior Backpack/ }).click();
+  await page.getByLabel("Minimum Movement speed from artifacts").fill("999");
+  const searchButton = page.locator(".optimizer-results-empty").getByRole("button", { name: "Find best builds" });
+  await searchButton.click();
+  await expect(page.getByText("Search incomplete")).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByText(/1 unavailable/)).toBeVisible();
+  await expect(page.getByText("No builds match your filters")).toHaveCount(0);
+});
+
 test("exhaustively ranks and loads a four-slot weighted build", async ({ page }) => {
   test.setTimeout(90_000);
   await gotoLoadedApp(page);
