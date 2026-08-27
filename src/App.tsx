@@ -937,7 +937,11 @@ function OptimizerPanel({
   const priceConstraintUnavailable = maxTotalPrice.trim() !== ""
     && (!pricingReady || !pricingRegionAvailable(pricingRegion));
 
-  useEffect(() => () => workerRef.current?.terminate(), []);
+  useEffect(() => () => {
+    runIdRef.current += 1;
+    workerRef.current?.terminate();
+    workerRef.current = null;
+  }, []);
   useEffect(() => {
     const settings: PersistedOptimizerSettings = {
       version: 1,
@@ -1131,6 +1135,7 @@ function OptimizerPanel({
       setState("done");
     };
     worker.onerror = (event) => {
+      if (runId !== runIdRef.current) return;
       worker.terminate();
       workerRef.current = null;
       setMilpNotice(null);
