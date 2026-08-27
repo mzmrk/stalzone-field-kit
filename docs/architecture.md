@@ -17,6 +17,11 @@ column remains visible with a selection prompt before a carrier is chosen.
 Loading an optimizer result switches to the calculator so the generated
 artifacts can be inspected and adjusted immediately.
 
+Ranked optimizer builds use one full-width card per row. Each card lists enabled
+search objectives first in their configured order with normalization evidence,
+then every remaining non-zero build effect under the same Mobility, Survivability,
+Protection, Exposure, and Other effects categories as the manual calculator.
+
 The application is a React/Vite single-page app. [`src/main.tsx`](../src/main.tsx)
 initializes i18next; [`src/App.tsx`](../src/App.tsx) owns screen flow and state.
 The production site is a static GitHub Pages deployment at

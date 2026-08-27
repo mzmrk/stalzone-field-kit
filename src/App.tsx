@@ -1271,6 +1271,17 @@ function OptimizerPanel({
                   {run.search.results.map((result, resultIndex) => {
                     const selected = result.indices.map((index) => run.candidates[index]);
                     const resultTotals = calculateTotals(container, selected);
+                    const objectiveKeys = new Set(run.objectives.map((objective) => objective.key));
+                    const totalsByKey = new Map(resultTotals.totals.map((stat) => [stat.key, stat]));
+                    const remainingGroups = CATEGORY_ORDER.map((category) => ({
+                      category,
+                      stats: resultTotals.totals.filter((stat) => !objectiveKeys.has(stat.key) && statCategory(stat) === category),
+                    })).filter((group) => group.stats.length);
+                    const resultStatClass = (stat: TotalStat) => {
+                      const dangerous = resultTotals.warnings.some((warning) => warning.key === stat.key);
+                      const beneficial = EXPOSURE_KEYS.has(stat.key) ? stat.value <= 0 : !stat.harmful || stat.value > 0;
+                      return dangerous || !beneficial ? "negative" : "positive";
+                    };
                     return (
                       <article className="optimizer-result" key={result.indices.join("-")}>
                         <div className="optimizer-result__top"><span>#{resultIndex + 1}</span><strong>{t("{{score}} score", { score: formatAccuracy(result.score * 100) })}</strong><span className="optimizer-result__price">{formatPrice(result.totalPrice)}</span><small className={resultTotals.warnings.length ? "unsafe" : "safe"}>{resultTotals.warnings.length ? t("Unsafe") : t("Safe")}</small></div>
@@ -1287,14 +1298,26 @@ function OptimizerPanel({
                           const artifactName = translated(artifact.item.name);
                           return <span key={`${artifact.entry.data}-${artifact.rarityIndex}-${index}`} title={`${artifactName} · ${t(RARITY_NAMES[artifact.rarityIndex])} · ${priceSourceDetails(estimate, pricingRegion)}`}><ItemImage entry={artifact.entry} /><small>{artifactName} · {t(RARITY_NAMES[artifact.rarityIndex])}</small><PriceDisplay estimate={estimate} region={pricingRegion} className="optimizer-artifact__price" /></span>;
                         })}</div>
-                        <div className="optimizer-metrics">
-                          {run.objectives.map((objective, objectiveIndex) => {
-                            const option = OPTIMIZER_STAT_OPTIONS.find(([key]) => key === objective.key)!;
-                            const range = run.search.ranges[objectiveIndex];
-                            const normalized = normalizedObjectiveValue(result.values[objectiveIndex], range.min, range.max, objective.direction);
-                            const best = objective.direction === -1 ? range.min : range.max;
-                            return <div key={objective.key}><span>{t(option[1])}</span><strong>{formatNumber(result.values[objectiveIndex], option[2])}</strong><small>{t("{{percent}}% of best possible · best {{best}}", { percent: Math.round(normalized * 100), best: formatNumber(best, option[2]) })}{range.approximate ? range.errorPercent === undefined ? t(" · approximate best (5s limit, error unavailable)") : t(" · approximate best (5s limit, ≤ {{error}}% error)", { error: formatAccuracy(range.errorPercent) }) : t(" · proven best")}{range.solveSeconds === undefined ? "" : ` · ${formatSolveSeconds(range.solveSeconds)}`}</small></div>;
-                          })}
+                        <div className="optimizer-effect-groups">
+                          <div className="optimizer-effect-group optimizer-effect-group--searched">
+                            <div className="section-label"><span>{t("Searched effects")}</span><span>{run.objectives.length}</span></div>
+                            <ul>
+                              {run.objectives.map((objective, objectiveIndex) => {
+                                const option = OPTIMIZER_STAT_OPTIONS.find(([key]) => key === objective.key)!;
+                                const range = run.search.ranges[objectiveIndex];
+                                const normalized = normalizedObjectiveValue(result.values[objectiveIndex], range.min, range.max, objective.direction);
+                                const best = objective.direction === -1 ? range.min : range.max;
+                                const stat = totalsByKey.get(objective.key) ?? { key: objective.key, name: option[1], value: result.values[objectiveIndex], percentage: option[2], harmful: false };
+                                return <li className={resultStatClass(stat)} key={objective.key}><div><span>{t(option[1])}</span><small>{t("{{percent}}% of best possible · best {{best}}", { percent: Math.round(normalized * 100), best: formatNumber(best, option[2]) })}{range.approximate ? range.errorPercent === undefined ? t(" · approximate best (5s limit, error unavailable)") : t(" · approximate best (5s limit, ≤ {{error}}% error)", { error: formatAccuracy(range.errorPercent) }) : t(" · proven best")}{range.solveSeconds === undefined ? "" : ` · ${formatSolveSeconds(range.solveSeconds)}`}</small></div><strong>{formatNumber(stat.value, stat.percentage)}</strong></li>;
+                              })}
+                            </ul>
+                          </div>
+                          {remainingGroups.map(({ category, stats }) => (
+                            <div className="optimizer-effect-group" key={category}>
+                              <div className="section-label"><span>{t(category)}</span><span>{stats.length}</span></div>
+                              <ul>{stats.map((stat) => <li className={resultStatClass(stat)} key={stat.key}><span>{t(stat.name)}</span><strong>{formatNumber(stat.value, stat.percentage)}</strong></li>)}</ul>
+                            </div>
+                          ))}
                         </div>
                         <button className="optimizer-apply" onClick={() => applyResult(resultIndex)}>{t("Load into calculator")}</button>
                       </article>

@@ -101,6 +101,7 @@ export const ru: Record<string, string> = {
   "Protection": "Защита",
   "Exposure": "Воздействия",
   "Other effects": "Прочие эффекты",
+  "Searched effects": "Параметры поиска",
   "04 / OPTIMIZE": "04 / ОПТИМИЗАЦИЯ",
   "Weighted combination search": "Поиск взвешенной комбинации",
   "Evaluate every canonical loadout against neutral zero, derive each best possible stat value, then rank the tradeoffs.": "Проверяются все уникальные сборки относительно нейтрального нуля, определяется лучшее значение каждого параметра, затем оцениваются компромиссы.",
