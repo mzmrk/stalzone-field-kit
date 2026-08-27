@@ -21,6 +21,8 @@ async function reloadLoadedApp(page: Page) {
 test("opens the optimizer by default and shares carrier selection between both tools", async ({ page }) => {
   await gotoLoadedApp(page);
 
+  await expect.poll(() => page.evaluate(() => getComputedStyle(document.documentElement).scrollbarGutter)).toContain("stable");
+  const optimizerMainLeft = await page.locator("main").evaluate((element) => element.getBoundingClientRect().left);
   await expect(page.getByRole("button", { name: "Build optimizer", exact: true })).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByRole("heading", { name: "Artifact build optimizer" })).toBeVisible();
   await expect(page.locator("#optimizer .optimizer-settings > .optimizer-carrier-selector")).toBeVisible();
@@ -37,6 +39,8 @@ test("opens the optimizer by default and shares carrier selection between both t
   await expect(page.locator(".optimizer-results-empty").getByRole("button", { name: "Find best builds" })).toBeVisible();
 
   await openCalculator(page);
+  const calculatorMainLeft = await page.locator("main").evaluate((element) => element.getBoundingClientRect().left);
+  expect(calculatorMainLeft).toBeCloseTo(optimizerMainLeft, 1);
   await expect(page.getByRole("heading", { name: "Backpack / container & artifacts" })).toBeVisible();
   await expect(page.locator("#loadout .container-card")).toContainText("Errand Junior Backpack");
   await expect(page.getByRole("button", { name: "Reset build" })).toBeVisible();
