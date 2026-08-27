@@ -1118,6 +1118,23 @@ function OptimizerPanel({
       : (searchProgress.completed / searchProgress.total) * 100
     : 0;
   const displayedEngine = activeEngine ?? estimatedEngine;
+  const searchDisabled = !catalog
+    || !container
+    || selectedRarities.length === 0
+    || activeObjectives.length === 0
+    || invalidPositiveMinimum
+    || invalidCustomLimit
+    || invalidMaxTotalPrice
+    || priceConstraintUnavailable
+    || state === "loading"
+    || state === "searching";
+  const searchButtonLabel = state === "loading"
+    ? t("Loading artifacts {{completed}}/{{total}}", loadProgress)
+    : state === "searching"
+      ? t(displayedEngine === "milp" ? "Solving bounded search {{percent}}%" : "Searching {{percent}}%", { percent: Math.round(progressPercent) })
+      : estimatedEngine === "milp"
+        ? t("Find optimal build with MILP")
+        : t("Search {{count}} combinations", { count: formatInteger(estimatedCombinations) });
   useEffect(() => {
     if (state !== "searching" || displayedEngine !== "milp") return;
     const timer = window.setInterval(() => {
@@ -1260,14 +1277,8 @@ function OptimizerPanel({
               {invalidCustomLimit && <p className="optimizer-error">{t("Every accepted penalty must be zero or greater.")}</p>}
               {invalidMaxTotalPrice && <p className="optimizer-error">{t("Maximum total price must be greater than zero.")}</p>}
               {priceConstraintUnavailable && <p className="optimizer-error">{t("Live price data is required to use a maximum total price.")}</p>}
-              <button className="optimizer-search" disabled={!catalog || selectedRarities.length === 0 || activeObjectives.length === 0 || invalidPositiveMinimum || invalidCustomLimit || invalidMaxTotalPrice || priceConstraintUnavailable || state === "loading" || state === "searching"} onClick={startSearch}>
-                {state === "loading"
-                  ? t("Loading artifacts {{completed}}/{{total}}", loadProgress)
-                  : state === "searching"
-                    ? t(displayedEngine === "milp" ? "Solving bounded search {{percent}}%" : "Searching {{percent}}%", { percent: Math.round(progressPercent) })
-                    : estimatedEngine === "milp"
-                      ? t("Find optimal build with MILP")
-                      : t("Search {{count}} combinations", { count: formatInteger(estimatedCombinations) })}
+              <button className="optimizer-search" disabled={searchDisabled} onClick={startSearch}>
+                {searchButtonLabel}
               </button>
               {(state === "loading" || state === "searching") && <div className="optimizer-progress"><span style={{ width: `${state === "loading" ? (loadProgress.completed / Math.max(1, loadProgress.total)) * 100 : progressPercent}%` }} /></div>}
               {state === "searching" && displayedEngine === "milp" && milpNotice === "slow" && (
@@ -1284,7 +1295,7 @@ function OptimizerPanel({
           {!container ? (
             <div className="optimizer-empty"><Gauge size={28} /><span>{t("Select a carrier before searching combinations.")}</span></div>
           ) : !run ? (
-              <div className="optimizer-results-empty"><CircleGauge size={31} /><strong>{t("Configure and run a bounded search")}</strong><span>{t("Weights compare each build against neutral zero and the best possible value found for every objective.")}</span></div>
+              <div className="optimizer-results-empty"><CircleGauge size={31} /><strong>{t("Configure and run a bounded search")}</strong><span>{t("Weights compare each build against neutral zero and the best possible value found for every objective.")}</span><button className="optimizer-search optimizer-results-empty__search" disabled={searchDisabled} onClick={startSearch}>{searchButtonLabel}</button></div>
             ) : run.search.results.length === 0 ? (
               <div className="optimizer-results-empty"><AlertTriangle size={31} /><strong>{t("No feasible combinations")}</strong><span>{t("Relax a minimum, negative-effect policy, budget, or artifact assumption.")}</span></div>
             ) : (

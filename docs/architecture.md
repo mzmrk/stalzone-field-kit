@@ -14,6 +14,10 @@ with the optimizer selected on every page load. Both modes expose the same
 carrier selector and edit the same in-memory carrier state. In the optimizer,
 carrier selection is the first section of the left filter column; the results
 column remains visible with a selection prompt before a carrier is chosen.
+Once a carrier is selected, the empty results prompt repeats the primary search
+action so a configured search can start without scrolling to the bottom of the
+filter column. On the two-column layout it remains centered and sticky while the
+filters scroll; both buttons share the same validation, progress label, and run.
 Loading an optimizer result switches to the calculator so the generated
 artifacts can be inspected and adjusted immediately.
 Both workspace components remain mounted while the inactive one is hidden, so
