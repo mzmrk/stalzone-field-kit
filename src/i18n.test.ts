@@ -28,4 +28,15 @@ describe("language selection", () => {
     await i18n.changeLanguage("en");
     expect(translated(name)).toBe("Bracelet");
   });
+
+  it("uses in-game Russian carrier terms and clear optimizer wording", async () => {
+    await i18n.changeLanguage("ru");
+
+    expect(i18n.t("SLOTS")).toBe("ВМЕСТИМОСТЬ");
+    expect(i18n.t("PROTECTION")).toBe("ВНУТРЕННЯЯ ЗАЩИТА");
+    expect(i18n.t("Mobility & utility")).toBe("Подвижность и полезность");
+    expect(i18n.t("Neutral")).toBe("Нейтральная");
+    expect(i18n.t("Accepted consequences")).toBe("Допустимые отрицательные эффекты");
+    expect(i18n.t("Proven optimal for this rank")).toBe("Оптимальность этой позиции доказана");
+  });
 });
