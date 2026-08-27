@@ -1355,14 +1355,12 @@ function OptimizerPanel({
                                   <div className="optimizer-objective__heading"><span>{t(option[1])}</span><strong>{formatNumber(stat.value, stat.percentage)}</strong></div>
                                   <div className="optimizer-objective__track" aria-label={t("{{name}} compared with best", { name: t(option[1]) })}><i style={{ width: `${fillPercentage}%` }} /><b style={{ left: `${fillPercentage}%` }} /></div>
                                   <div className="optimizer-objective__meta">
-                                    <span className={range.approximate ? "approximate" : "exact"}>
-                                      {range.approximate
-                                        ? range.errorPercent === undefined
-                                          ? t("Best found · true maximum unknown")
-                                          : t("Best found · true maximum may be up to {{error}}% higher", { error: formatAccuracy(range.errorPercent) })
-                                        : t("Best possible confirmed")}
+                                    {range.approximate && <span className="approximate">
+                                      {range.errorPercent === undefined
+                                        ? t("Best found · true maximum unknown")
+                                        : t("Best found · true maximum may be up to {{error}}% higher", { error: formatAccuracy(range.errorPercent) })}
                                       {range.solveSeconds === undefined ? "" : ` · ${formatSolveSeconds(range.solveSeconds)}`}
-                                    </span>
+                                    </span>}
                                     <span className="optimizer-objective__best"><small>{t(range.approximate ? "Best found" : "Best possible")}</small><b>{formatNumber(best, option[2])}</b></span>
                                   </div>
                                 </li>;

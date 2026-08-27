@@ -100,7 +100,6 @@ export const ru: Record<string, string> = {
   "Other effects": "Прочие эффекты",
   "Your priorities": "Ваши приоритеты",
   "{{name}} compared with best": "{{name}} относительно лучшего значения",
-  "Best possible confirmed": "Лучшее возможное подтверждено",
   "Best found · true maximum unknown": "Лучшее найденное · истинный максимум неизвестен",
   "Best found · true maximum may be up to {{error}}% higher": "Лучшее найденное · истинный максимум может быть до {{error}}% выше",
   "Best possible": "Лучшее возможное",
