@@ -432,6 +432,10 @@ test("uses MILP to optimize a carrier beyond the brute-force limit", async ({ pa
   await expect(page.locator(".optimizer-objective__meta").first()).toContainText(/Best (possible|found)/);
   await expect(page.locator(".optimizer-objective__best").first()).toContainText(/Best (possible|found)/);
   await expect(page.locator(".optimizer-artifacts small").first()).toContainText("Uncommon");
+  const uncommonResultArtifact = page.locator('.optimizer-artifacts > [data-rarity="1"]').first();
+  await expect(uncommonResultArtifact).toBeVisible();
+  await expect(uncommonResultArtifact.locator(".optimizer-artifact__rarity")).toHaveCSS("color", "rgb(70, 181, 108)");
   await page.getByRole("button", { name: "Load into calculator" }).first().click();
   await expect(page.getByText(/107.5% · Uncommon/).first()).toBeVisible();
+  await expect(page.locator('.artifact-slot[data-rarity="1"]').first()).toBeVisible();
 });

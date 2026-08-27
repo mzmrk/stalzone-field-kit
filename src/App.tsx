@@ -391,9 +391,9 @@ function formatDecimal(value: number, maximumFractionDigits = 2) {
   return new Intl.NumberFormat(appLocale(), { maximumFractionDigits }).format(value);
 }
 
-function ItemImage({ entry, size = "normal" }: { entry: ListingEntry; size?: "normal" | "large" }) {
+function ItemImage({ entry, size = "normal", rarityIndex }: { entry: ListingEntry; size?: "normal" | "large"; rarityIndex?: number }) {
   return (
-    <span className={`item-image item-image--${size}`} data-rank={entry.color}>
+    <span className={`item-image item-image--${size}`} data-rank={entry.color} data-rarity={rarityIndex}>
       <img src={assetUrl(entry.icon)} alt="" loading="lazy" />
     </span>
   );
@@ -609,6 +609,7 @@ function ContainerPanel({
             {artifacts.map((artifact, index) => (
               <div
                 className={`artifact-slot ${activeIndex === index ? "artifact-slot--active" : ""}`}
+                data-rarity={artifact?.rarityIndex}
                 key={index}
               >
                 <button
@@ -618,10 +619,10 @@ function ContainerPanel({
                   <span className="slot-number">{String(index + 1).padStart(2, "0")}</span>
                   {artifact ? (
                     <>
-                      <ItemImage entry={artifact.entry} />
+                      <ItemImage entry={artifact.entry} rarityIndex={artifact.rarityIndex} />
                       <span className="artifact-slot__name">
                         <strong>{translated(artifact.item.name)}</strong>
-                        <small>+{artifact.level} · {formatDecimal(artifact.quality)}% · {t(RARITY_NAMES[artifact.rarityIndex])}</small>
+                        <small>+{artifact.level} · {formatDecimal(artifact.quality)}% · <span className="artifact-rarity">{t(RARITY_NAMES[artifact.rarityIndex])}</span></small>
                       </span>
                       <PriceDisplay estimate={artifactPrice(artifact.entry, artifact.rarityIndex, pricingRegion)} region={pricingRegion} className="artifact-slot__price" />
                     </>
@@ -722,8 +723,8 @@ function ArtifactEditor({
         <div><p className="eyebrow">{t("02 / TUNE · SLOT {{slot}}", { slot: index + 1 })}</p><h2>{t("Artifact settings")}</h2></div>
         <FlaskConical size={22} />
       </div>
-      <div className="selected-artifact">
-        <ItemImage entry={artifact.entry} size="large" />
+      <div className="selected-artifact" data-rarity={artifact.rarityIndex}>
+        <ItemImage entry={artifact.entry} size="large" rarityIndex={artifact.rarityIndex} />
         <div>
           <h3>{translated(artifact.item.name)}</h3>
           <p>{t(artifact.entry.data.split("/").at(-2)?.replaceAll("_", " ") ?? "")} <PriceDisplay estimate={artifactPrice(artifact.entry, artifact.rarityIndex, pricingRegion)} region={pricingRegion} /></p>
@@ -1452,7 +1453,7 @@ function OptimizerPanel({
                         <div className="optimizer-artifacts">{selected.map((artifact, index) => {
                           const estimate = artifactPrice(artifact.entry, artifact.rarityIndex, pricingRegion);
                           const artifactName = translated(artifact.item.name);
-                          return <span key={`${artifact.entry.data}-${artifact.rarityIndex}-${index}`} title={`${artifactName} · ${t(RARITY_NAMES[artifact.rarityIndex])} · ${priceSourceDetails(estimate, pricingRegion)}`}><ItemImage entry={artifact.entry} /><small><span>{artifactName}</span><span className="optimizer-artifact__rarity">{t(RARITY_NAMES[artifact.rarityIndex])}</span></small><PriceDisplay estimate={estimate} region={pricingRegion} className="optimizer-artifact__price" /></span>;
+                          return <span data-rarity={artifact.rarityIndex} key={`${artifact.entry.data}-${artifact.rarityIndex}-${index}`} title={`${artifactName} · ${t(RARITY_NAMES[artifact.rarityIndex])} · ${priceSourceDetails(estimate, pricingRegion)}`}><ItemImage entry={artifact.entry} rarityIndex={artifact.rarityIndex} /><small><span>{artifactName}</span><span className="optimizer-artifact__rarity">{t(RARITY_NAMES[artifact.rarityIndex])}</span></small><PriceDisplay estimate={estimate} region={pricingRegion} className="optimizer-artifact__price" /></span>;
                         })}</div>
                         <div className="optimizer-effect-groups">
                           <div className="optimizer-effect-group optimizer-effect-group--searched">
