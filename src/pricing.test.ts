@@ -14,6 +14,7 @@ import {
   priceSource,
   priceSourceDetails,
   priceSourceLabel,
+  validatePricingBundle,
   type PriceEstimate,
 } from "./pricing";
 
@@ -66,6 +67,49 @@ describe("auction pricing", () => {
     clearPricingIndex();
     const invalidSchema = await loadPricingIndex(async () => new Response(JSON.stringify({ schemaVersion: 2 }))).catch((reason) => reason);
     expect(pricingErrorCode(invalidSchema)).toBe("pricing_invalid_data");
+  });
+
+  it("rejects incomplete regional metadata and malformed estimates", () => {
+    const cases: Array<[string, (bundle: any) => void]> = [
+      ["empty snapshot", (bundle) => { bundle.regions.eu.snapshot = "  "; }],
+      ["empty method", (bundle) => { bundle.regions.eu.method = ""; }],
+      ["invalid as-of", (bundle) => { bundle.regions.eu.sourceWindow.asOf = "not a date"; }],
+      ["missing cutoff", (bundle) => { delete bundle.regions.eu.sourceWindow.cutoff; }],
+      ["invalid cutoff", (bundle) => { bundle.regions.eu.sourceWindow.cutoff = "not a date"; }],
+      ["cutoff at as-of", (bundle) => { bundle.regions.eu.sourceWindow.cutoff = bundle.regions.eu.sourceWindow.asOf; }],
+      ["string days", (bundle) => { bundle.regions.eu.sourceWindow.days = "365"; }],
+      ["fractional days", (bundle) => { bundle.regions.eu.sourceWindow.days = 1.5; }],
+      ["non-positive days", (bundle) => { bundle.regions.eu.sourceWindow.days = 0; }],
+      ["invalid median", (bundle) => { bundle.regions.eu.artifacts.zyw2[0].median = "100"; }],
+      ["invalid samples", (bundle) => { bundle.regions.eu.artifacts.zyw2[0].samples = 1.5; }],
+      ["invalid condition", (bundle) => { bundle.regions.eu.artifacts.zyw2[0].condition = "unknown"; }],
+      ["invalid confidence", (bundle) => { bundle.regions.eu.artifacts.zyw2[0].confidence = "unknown"; }],
+      ["invalid weighted", (bundle) => { bundle.regions.eu.artifacts.zyw2[0].weighted = 0; }],
+      ["invalid estimate window", (bundle) => { bundle.regions.eu.artifacts.zyw2[0].windowDays = 0; }],
+      ["invalid recent samples", (bundle) => { bundle.regions.eu.artifacts.zyw2[0].recent90Samples = 6; }],
+      ["invalid recent samples type", (bundle) => { bundle.regions.eu.artifacts.zyw2[0].recent90Samples = "4"; }],
+      ["invalid anchor rarity", (bundle) => { bundle.regions.eu.artifacts.zyw2[1].anchorRarity = 6; }],
+      ["invalid anchor name", (bundle) => { bundle.regions.eu.artifacts.zyw2[1].anchorRarityName = " "; }],
+      ["invalid anchor price", (bundle) => { bundle.regions.eu.artifacts.zyw2[1].anchorPrice = 0; }],
+      ["invalid multiplier", (bundle) => { bundle.regions.eu.artifacts.zyw2[1].multiplier = Infinity; }],
+    ];
+    for (const [name, mutate] of cases) {
+      const bundle = testPricingBundle();
+      mutate(bundle);
+      const error = (() => {
+        try {
+          validatePricingBundle(bundle);
+          return null;
+        } catch (reason) {
+          return reason;
+        }
+      })();
+      expect(pricingErrorCode(error), name).toBe("pricing_invalid_data");
+    }
+  });
+
+  it("accepts optional estimate fields and ignores unknown forward-compatible fields", () => {
+    expect(() => validatePricingBundle(testPricingBundle())).not.toThrow();
   });
 
   it("shares one download and reuses the validated index for the page session", async () => {
@@ -153,7 +197,8 @@ function testPricingBundle() {
         sourceWindow: { asOf: "2026-08-01T00:00:00.000Z", cutoff: "2025-08-01T00:00:00.000Z", days: 365 },
         artifacts: {
           zyw2: {
-            0: { median: 100, samples: 5, condition: "build-equivalent", confidence: "medium", weighted: false, windowDays: 365 },
+            0: { median: 100, samples: 5, recent90Samples: 4, condition: "build-equivalent", confidence: "medium", weighted: false, windowDays: 365, futureField: "ignored" },
+            1: { median: 188, samples: 0, condition: "adjacent-extrapolated", confidence: "estimated", weighted: false, windowDays: 365, anchorRarity: 0, anchorRarityName: "Ordinary", anchorPrice: 100, multiplier: 1.88 },
           },
         },
       },

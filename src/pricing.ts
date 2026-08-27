@@ -82,14 +82,16 @@ export function validatePricingBundle(value: unknown): PricingBundle {
     if (!isPricingRegion(region) || !isRecord(rawIndex) || rawIndex.region !== region) {
       throw new AppError("pricing_invalid_data", `Invalid regional pricing index: ${region}.`);
     }
-    if (!isRecord(rawIndex.sourceWindow) || !Number.isFinite(Date.parse(String(rawIndex.sourceWindow.asOf)))
-      || !(Number(rawIndex.sourceWindow.days) > 0) || !isRecord(rawIndex.artifacts)) {
+    if (typeof rawIndex.snapshot !== "string" || rawIndex.snapshot.trim() === ""
+      || typeof rawIndex.method !== "string" || rawIndex.method.trim() === ""
+      || !isRecord(rawIndex.sourceWindow) || !isSourceWindow(rawIndex.sourceWindow)
+      || !isRecord(rawIndex.artifacts)) {
       throw new AppError("pricing_invalid_data", `Incomplete regional pricing index: ${region}.`);
     }
     for (const rarities of Object.values(rawIndex.artifacts)) {
       if (!isRecord(rarities)) throw new AppError("pricing_invalid_data", `Invalid artifact pricing table in ${region}.`);
       for (const estimate of Object.values(rarities)) {
-        if (!isRecord(estimate) || !(Number(estimate.median) > 0) || !Number.isFinite(estimate.median)) {
+        if (!isRecord(estimate) || !isPriceEstimate(estimate)) {
           throw new AppError("pricing_invalid_data", `Invalid artifact price estimate in ${region}.`);
         }
       }
@@ -168,4 +170,55 @@ function formatDate(value: string) {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function isSourceWindow(value: Record<string, unknown>) {
+  const asOf = value.asOf;
+  const cutoff = value.cutoff;
+  const days = value.days;
+  if (typeof asOf !== "string" || asOf.trim() === "" || !Number.isFinite(Date.parse(asOf))
+    || typeof cutoff !== "string" || cutoff.trim() === "" || !Number.isFinite(Date.parse(cutoff))
+    || typeof days !== "number" || !Number.isFinite(days) || !Number.isInteger(days) || days <= 0) {
+    return false;
+  }
+  return Date.parse(cutoff) < Date.parse(asOf);
+}
+
+function isPriceEstimate(value: Record<string, unknown>) {
+  const median = value.median;
+  const samples = value.samples;
+  const windowDays = value.windowDays;
+  if (typeof median !== "number" || !Number.isFinite(median) || median <= 0
+    || typeof samples !== "number" || !Number.isInteger(samples) || samples < 0
+    || (value.condition !== "build-equivalent" && value.condition !== "adjacent-extrapolated")
+    || (value.confidence !== "high" && value.confidence !== "medium"
+      && value.confidence !== "low" && value.confidence !== "estimated")
+    || typeof value.weighted !== "boolean"
+    || typeof windowDays !== "number" || !Number.isFinite(windowDays)
+    || !Number.isInteger(windowDays) || windowDays <= 0) {
+    return false;
+  }
+  if (value.recent90Samples !== undefined
+    && (typeof value.recent90Samples !== "number" || !Number.isInteger(value.recent90Samples)
+      || value.recent90Samples < 0 || value.recent90Samples > samples)) {
+    return false;
+  }
+  if (value.anchorRarity !== undefined
+    && (typeof value.anchorRarity !== "number" || !Number.isInteger(value.anchorRarity)
+      || value.anchorRarity < 0 || value.anchorRarity > 5)) {
+    return false;
+  }
+  if (value.anchorRarityName !== undefined
+    && (typeof value.anchorRarityName !== "string" || value.anchorRarityName.trim() === "")) {
+    return false;
+  }
+  if (value.anchorPrice !== undefined
+    && (typeof value.anchorPrice !== "number" || !Number.isFinite(value.anchorPrice) || value.anchorPrice <= 0)) {
+    return false;
+  }
+  if (value.multiplier !== undefined
+    && (typeof value.multiplier !== "number" || !Number.isFinite(value.multiplier) || value.multiplier <= 0)) {
+    return false;
+  }
+  return true;
 }
