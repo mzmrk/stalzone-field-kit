@@ -144,9 +144,12 @@ Optimizer controls are stored separately under `field-kit-optimizer-v1`: shared
 level, enabled rarities, positive objectives and minimums, harmful policies and
 limits, and the price cap. Loading merges saved rows by stat key with the current
 supported lists and falls back field-by-field when stored data is invalid, so a
-catalog/UI update does not require an all-or-nothing settings migration. Reset
-filters restores the current defaults and cancels an active optimizer run without
-changing the manual carrier or artifacts.
+catalog/UI update does not require an all-or-nothing settings migration. Default
+filters restores every current optimizer default. Clear filters disables all
+objectives, restores the Game-safe harmful-effect profile, and removes numerical
+and price limits while preserving the selected artifact level and rarities. Both
+actions cancel an active optimizer run without changing the manual carrier or
+artifacts.
 
 Language is stored under `field-kit-language-v1`. An explicit choice wins;
 otherwise any `ru` browser preference selects Russian and English is the fallback.

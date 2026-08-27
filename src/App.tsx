@@ -15,7 +15,6 @@ import {
   RotateCcw,
   Search,
   ShieldCheck,
-  SlidersHorizontal,
   Sparkles,
   Trash2,
   X,
@@ -1078,6 +1077,27 @@ function OptimizerPanel({
     setState("idle");
   };
 
+  const clearOptimizerFilters = () => {
+    runIdRef.current += 1;
+    scrollToResultRunIdRef.current = null;
+    workerRef.current?.terminate();
+    workerRef.current = null;
+    setPositiveFilters((current) => current.map((filter) => ({
+      ...filter,
+      enabled: false,
+      weight: NEUTRAL_OBJECTIVE_WEIGHT,
+      minimum: "",
+    })));
+    setNegativeFilters(DEFAULT_NEGATIVE_FILTERS.map((filter) => ({ ...filter })));
+    setMaxTotalPrice("");
+    setRun(null);
+    setError(null);
+    setSearchProgress(null);
+    setMilpNotice(null);
+    setActiveEngine(null);
+    setState("idle");
+  };
+
   const applyResult = (resultIndex: number) => {
     if (!run) return;
     const result = run.search.results[resultIndex];
@@ -1125,11 +1145,11 @@ function OptimizerPanel({
         <div>
           <p className="eyebrow">{t("OPTIMIZE")}</p>
           <h2>{t("Weighted combination search")}</h2>
-          <p>{t("Evaluate every canonical loadout against neutral zero, derive each best possible stat value, then rank the tradeoffs.")}</p>
+          <p>{t("Evaluate every loadout against neutral zero, derive each best possible stat value, then rank the tradeoffs.")}</p>
         </div>
         <div className="optimizer-heading-actions">
-          <button type="button" className="optimizer-reset" aria-label={t("Reset optimizer filters")} onClick={resetOptimizerSettings}><RotateCcw size={14} /> {t("Reset filters")}</button>
-          <SlidersHorizontal size={24} />
+          <button type="button" className="optimizer-reset" aria-label={t("Restore optimizer default filters")} onClick={resetOptimizerSettings}><RotateCcw size={14} /> {t("Default filters")}</button>
+          <button type="button" className="optimizer-reset" aria-label={t("Clear all optimizer filters")} onClick={clearOptimizerFilters}>{t("Clear filters")}</button>
         </div>
       </div>
 
@@ -1501,10 +1521,6 @@ export default function App() {
           <span className="brand-mark"><FlaskConical size={22} /></span>
           <span><strong>FIELD KIT</strong><small>{t(workspaceMode === "optimizer" ? "BUILD OPTIMIZER" : "ARTIFACT CALCULATOR")}</small></span>
         </div>
-        <div className="source-state">
-          <span className={`source-dot ${catalogError ? "source-dot--error" : catalog ? "source-dot--ready" : ""}`} />
-          <span>{catalogError ? t("DATA OFFLINE") : catalog ? t("EXBO LIVE · {{count}} ITEMS", { count: catalog.artifacts.length + catalog.containers.length }) : t("SYNCING EXBO DATA")}</span>
-        </div>
         <label className="language-select">
           <span>{t("LANGUAGE")}</span>
           <select aria-label={t("LANGUAGE")} value={language} onChange={(event) => changeLanguage(event.target.value as AppLanguage)}>
@@ -1521,9 +1537,11 @@ export default function App() {
             })}
           </select>
         </label>
-        <button className="reset-button" onClick={resetBuild} disabled={!container}>
-          <RotateCcw size={16} /> <span>{t("Reset build")}</span>
-        </button>
+        {workspaceMode === "calculator" && (
+          <button className="reset-button" onClick={resetBuild} disabled={!container}>
+            <RotateCcw size={16} /> <span>{t("Reset build")}</span>
+          </button>
+        )}
       </header>
 
       <main>
@@ -1628,7 +1646,6 @@ export default function App() {
       </main>
 
       <footer>
-        <span>{t("FIELD KIT · Browser-side artifact planning")}</span>
         <a href={EXBO_REPOSITORY} target="_blank" rel="noreferrer">{t("Data by EXBO Studio")} <ExternalLink size={13} /></a>
       </footer>
 

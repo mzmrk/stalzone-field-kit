@@ -4,13 +4,29 @@ async function openCalculator(page: Page) {
   await page.getByRole("button", { name: "Build calculator", exact: true }).click();
 }
 
+async function gotoLoadedApp(page: Page) {
+  await Promise.all([
+    page.waitForResponse((response) => response.url().endsWith("/global/listing.json") && response.ok(), { timeout: 20_000 }),
+    page.goto("/"),
+  ]);
+}
+
+async function reloadLoadedApp(page: Page) {
+  await Promise.all([
+    page.waitForResponse((response) => response.url().endsWith("/global/listing.json") && response.ok(), { timeout: 20_000 }),
+    page.reload(),
+  ]);
+}
+
 test("opens the optimizer by default and shares carrier selection between both tools", async ({ page }) => {
-  await page.goto("/");
-  await expect(page.getByText(/EXBO LIVE/)).toBeVisible({ timeout: 20_000 });
+  await gotoLoadedApp(page);
 
   await expect(page.getByRole("button", { name: "Build optimizer", exact: true })).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByRole("heading", { name: "Weighted combination search" })).toBeVisible();
   await expect(page.locator("#optimizer .optimizer-settings > .optimizer-carrier-selector")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Restore optimizer default filters" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Clear all optimizer filters" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Reset build" })).toHaveCount(0);
 
   await page.getByRole("button", { name: /Select a backpack or container/i }).click();
   await page.getByPlaceholder(/Search backpacks and containers/).fill("Errand Junior Backpack");
@@ -20,14 +36,14 @@ test("opens the optimizer by default and shares carrier selection between both t
   await openCalculator(page);
   await expect(page.getByRole("heading", { name: "Carrier & artifacts" })).toBeVisible();
   await expect(page.locator("#loadout .container-card")).toContainText("Errand Junior Backpack");
+  await expect(page.getByRole("button", { name: "Reset build" })).toBeVisible();
 
   await page.getByRole("button", { name: "Build optimizer", exact: true }).click();
   await expect(page.locator("#optimizer .container-card")).toContainText("Errand Junior Backpack");
 });
 
 test("creates and restores a live EXBO-backed artifact build", async ({ page }) => {
-  await page.goto("/");
-  await expect(page.getByText(/EXBO LIVE/)).toBeVisible({ timeout: 20_000 });
+  await gotoLoadedApp(page);
   await openCalculator(page);
 
   await page.getByRole("button", { name: /Select a backpack or container/i }).click();
@@ -56,7 +72,7 @@ test("creates and restores a live EXBO-backed artifact build", async ({ page }) 
   await page.getByRole("button", { name: "+10" }).click();
   await expect(page.getByText("+10 · 130% · Rare")).toBeVisible();
 
-  await page.reload();
+  await reloadLoadedApp(page);
   await openCalculator(page);
   await expect(page.getByText("Berloga-6 Container").first()).toBeVisible();
   await expect(page.getByText("Bracelet").first()).toBeVisible();
@@ -74,8 +90,7 @@ test("persists the selected market region independently of the build", async ({ 
 });
 
 test("switches to Russian without resetting the saved build and persists the choice", async ({ page }) => {
-  await page.goto("/");
-  await expect(page.getByText(/EXBO LIVE/)).toBeVisible({ timeout: 20_000 });
+  await gotoLoadedApp(page);
   await openCalculator(page);
 
   await page.getByRole("button", { name: /Select a backpack or container/i }).click();
@@ -87,8 +102,9 @@ test("switches to Russian without resetting the saved build and persists the cho
   await expect(page.getByText("Контейнер «Берлога-6»").first()).toBeVisible();
   await expect(page.locator("html")).toHaveAttribute("lang", "ru");
 
-  await page.reload();
+  await reloadLoadedApp(page);
   await expect(page.getByLabel("ЯЗЫК")).toHaveValue("ru");
+  await page.getByRole("button", { name: "Калькулятор сборки", exact: true }).click();
   await expect(page.getByText("Контейнер «Берлога-6»").first()).toBeVisible();
 
   await page.getByLabel("ЯЗЫК").selectOption("en");
@@ -126,8 +142,7 @@ test("keeps the calculator usable at a phone viewport", async ({ page }) => {
 
 test("exhaustively ranks and loads a four-slot weighted build", async ({ page }) => {
   test.setTimeout(90_000);
-  await page.goto("/");
-  await expect(page.getByText(/EXBO LIVE/)).toBeVisible({ timeout: 20_000 });
+  await gotoLoadedApp(page);
 
   await page.getByRole("button", { name: /Select a backpack or container/i }).click();
   await page.getByPlaceholder(/Search backpacks and containers/).fill("Errand Junior Backpack");
@@ -199,8 +214,7 @@ test("exhaustively ranks and loads a four-slot weighted build", async ({ page })
   await page.getByLabel("Maximum total price").fill("999999999999");
   await expect(searchButton).toBeEnabled();
   await expect.poll(() => page.evaluate(() => localStorage.getItem("field-kit-optimizer-v1"))).toContain("999999999999");
-  await page.reload();
-  await expect(page.getByText(/EXBO LIVE/)).toBeVisible({ timeout: 20_000 });
+  await reloadLoadedApp(page);
   await expect(movementRow.getByRole("button", { name: /Essential/ })).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByLabel("Optimize Running speed")).not.toBeChecked();
   await expect(page.getByLabel("Minimum Movement speed from artifacts")).toHaveValue("0.1");
@@ -227,7 +241,13 @@ test("exhaustively ranks and loads a four-slot weighted build", async ({ page })
   await expect(page.getByText("4 / 4")).toBeVisible();
   await page.getByRole("button", { name: "Build optimizer", exact: true }).click();
   await expect(page.locator(".optimizer-result")).toHaveCount(10);
-  await page.getByRole("button", { name: "Reset optimizer filters" }).click();
+  await page.getByRole("button", { name: "Clear all optimizer filters" }).click();
+  await expect(page.locator(".positive-filter__toggle input:checked")).toHaveCount(0);
+  await expect(page.getByLabel("Radiation policy")).toHaveValue("safe");
+  await expect(page.getByLabel("Vitality policy")).toHaveValue("strict");
+  await expect(page.getByLabel("Maximum total price")).toHaveValue("");
+  await expect(page.getByLabel("Search Ordinary rarity")).toBeChecked();
+  await page.getByRole("button", { name: "Restore optimizer default filters" }).click();
   await expect(movementRow.getByRole("button", { name: /Important/ })).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByLabel("Optimize Running speed")).toBeChecked();
   await expect(page.getByLabel("Maximum total price")).toHaveValue("");
@@ -238,8 +258,7 @@ test("exhaustively ranks and loads a four-slot weighted build", async ({ page })
 
 test("uses MILP to optimize a carrier beyond the brute-force limit", async ({ page }) => {
   test.setTimeout(60_000);
-  await page.goto("/");
-  await expect(page.getByText(/EXBO LIVE/)).toBeVisible({ timeout: 20_000 });
+  await gotoLoadedApp(page);
 
   await page.getByRole("button", { name: /Select a backpack or container/i }).click();
   await page.getByPlaceholder(/Search backpacks and containers/).fill("Berloga-6 Container");
