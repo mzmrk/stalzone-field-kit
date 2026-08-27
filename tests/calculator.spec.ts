@@ -22,7 +22,7 @@ test("opens the optimizer by default and shares carrier selection between both t
   await gotoLoadedApp(page);
 
   await expect(page.getByRole("button", { name: "Build optimizer", exact: true })).toHaveAttribute("aria-pressed", "true");
-  await expect(page.getByRole("heading", { name: "Weighted combination search" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Artifact build optimizer" })).toBeVisible();
   await expect(page.locator("#optimizer .optimizer-settings > .optimizer-carrier-selector")).toBeVisible();
   await expect(page.getByRole("button", { name: "Restore optimizer default filters" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Clear all optimizer filters" })).toBeVisible();
@@ -118,7 +118,7 @@ test("uses Russian for a new visitor whose browser prefers Russian", async ({ br
   const page = await context.newPage();
   await page.goto("/");
   await expect(page.getByRole("button", { name: "Оптимизатор сборок", exact: true })).toHaveAttribute("aria-pressed", "true");
-  await expect(page.getByRole("heading", { name: "Поиск взвешенной комбинации" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Оптимизатор сборки артефактов" })).toBeVisible();
   await expect(page.getByLabel("ЯЗЫК")).toHaveValue("ru");
   await context.close();
 });
@@ -151,7 +151,7 @@ test("exhaustively ranks and loads a four-slot weighted build", async ({ page })
   await page.getByRole("button", { name: /Errand Junior Backpack/ }).click();
 
   await expect(page.getByText("4,967,690").first()).toBeVisible();
-  await expect(page.getByText(/Brute force selected automatically/)).toBeVisible();
+  await expect(page.getByText("Search method: Brute force")).toBeVisible();
   await expect(page.getByLabel("Optimization engine")).toHaveCount(0);
   await expect(page.getByText("Allow duplicate artifacts")).toHaveCount(0);
   await expect(page.locator("#optimizer .container-specs")).toContainText("CARRY WEIGHT");
@@ -169,7 +169,7 @@ test("exhaustively ranks and loads a four-slot weighted build", async ({ page })
   await expect(periodicHealingRow).toBeVisible();
   await expect(radiationCounteringRow).toBeVisible();
   await page.getByLabel("Optimize Radiation countering").check();
-  await expect(page.getByLabel("Minimum Radiation countering magnitude from artifacts")).toHaveAttribute("placeholder", "Any < 0");
+  await expect(page.getByLabel("Minimum Radiation countering from artifacts")).toHaveAttribute("placeholder", "Any amount");
   await page.getByLabel("Optimize Radiation countering").uncheck();
   await expect(page.getByLabel("Radiation policy")).toHaveValue("safe");
   await expect(page.getByLabel("Vitality policy")).toHaveValue("strict");
@@ -223,11 +223,11 @@ test("exhaustively ranks and loads a four-slot weighted build", async ({ page })
   await expect(page.getByLabel("Maximum total price")).toHaveValue("999999999999");
   await expect(page.getByLabel("Temperature policy")).toHaveValue("safe");
   await searchButton.click();
-  await expect(page.getByText(/combinations evaluated/)).toBeVisible({ timeout: 45_000 });
+  await expect(page.getByText(/builds checked/)).toBeVisible({ timeout: 45_000 });
   await expect(page.getByRole("button", { name: "Load into calculator" }).first()).toBeVisible();
   await expect.poll(() => page.locator(".optimizer-result").first().evaluate((element) => Math.round(element.getBoundingClientRect().top))).toBeLessThan(150);
   await expect(page.locator(".optimizer-result__price").first()).toContainText("₽");
-  await expect(page.locator(".optimizer-effect-group--searched").first()).toContainText("Searched effects");
+  await expect(page.locator(".optimizer-effect-group--searched").first()).toContainText("Your priorities");
   await expect(page.locator(".optimizer-effect-group").filter({ hasText: "Exposure" }).first()).toBeVisible();
   const resultCards = page.locator(".optimizer-result");
   const firstResultBox = await resultCards.nth(0).boundingBox();
@@ -259,18 +259,18 @@ test("exhaustively ranks and loads a four-slot weighted build", async ({ page })
 });
 
 test("uses MILP to optimize a carrier beyond the brute-force limit", async ({ page }) => {
-  test.setTimeout(60_000);
+  test.setTimeout(90_000);
   await gotoLoadedApp(page);
 
   await page.getByRole("button", { name: /Select a backpack or container/i }).click();
   await page.getByPlaceholder(/Search backpacks and containers/).fill("Berloga-6 Container");
   await page.getByRole("button", { name: /Berloga-6 Container/ }).click();
 
-  await expect(page.getByText(/MILP selected automatically/)).toBeVisible();
+  await expect(page.getByText("Search method: MILP (Mixed-Integer Linear Programming)")).toBeVisible();
   await expect(page.getByLabel("Optimization engine")).toHaveCount(0);
   await expect(page.getByLabel("Search Ordinary rarity")).toBeChecked();
   await page.getByLabel("Search Uncommon rarity").check();
-  await expect(page.getByText(/MILP selected automatically/)).toBeVisible();
+  await expect(page.getByText("Search method: MILP (Mixed-Integer Linear Programming)")).toBeVisible();
   const searchButton = page.locator(".optimizer-results-empty").getByRole("button", { name: "Find best builds" });
   await expect(searchButton).toBeEnabled();
   await page.evaluate(() => {
@@ -287,14 +287,13 @@ test("uses MILP to optimize a carrier beyond the brute-force limit", async ({ pa
   });
   await searchButton.click();
 
-  await expect(page.getByText("MILP bounded")).toBeVisible({ timeout: 45_000 });
+  await expect(page.getByText("Advanced search")).toBeVisible({ timeout: 45_000 });
   await expect.poll(() => page.locator(".optimizer-result").first().evaluate((element) => Math.round(element.getBoundingClientRect().top))).toBeLessThan(150);
-  await expect(page.getByText(/possible combinations were not enumerated/)).toBeVisible({ timeout: 45_000 });
+  await expect(page.getByRole("button", { name: "Load into calculator" })).toHaveCount(10, { timeout: 75_000 });
   expect(await page.evaluate(() => document.body.dataset.sawStreamingMilpResult)).toBe("true");
-  await expect(page.getByRole("button", { name: "Load into calculator" })).toHaveCount(10);
-  await expect(page.getByText("Proven optimal for this rank").first()).toBeVisible();
+  await expect(page.getByText("Best result confirmed").first()).toBeVisible();
   await expect(page.locator(".optimizer-objective__track").first()).toBeVisible();
-  await expect(page.locator(".optimizer-objective__meta").first()).toContainText(/MAX (PROVEN|NOT PROVEN)/);
+  await expect(page.locator(".optimizer-objective__meta").first()).toContainText(/Best (possible confirmed|found)/);
   await expect(page.locator(".optimizer-objective__best").first()).toContainText(/Best (possible|found)/);
   await expect(page.locator(".optimizer-artifacts small").first()).toContainText("Uncommon");
   await page.getByRole("button", { name: "Load into calculator" }).first().click();

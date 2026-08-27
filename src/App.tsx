@@ -1159,8 +1159,8 @@ function OptimizerPanel({
       <div className="optimizer-heading">
         <div>
           <p className="eyebrow">{t("OPTIMIZE")}</p>
-          <h2>{t("Weighted combination search")}</h2>
-          <p>{t("Evaluate every loadout against neutral zero, derive each best possible stat value, then rank the tradeoffs.")}</p>
+          <h2>{t("Artifact build optimizer")}</h2>
+          <p>{t("Choose what matters to you. Field Kit compares artifact builds and ranks the strongest matches.")}</p>
         </div>
         <div className="optimizer-heading-actions">
           <button type="button" className="optimizer-reset" aria-label={t("Restore optimizer default filters")} onClick={resetOptimizerSettings}><RotateCcw size={14} /> {t("Default filters")}</button>
@@ -1178,9 +1178,10 @@ function OptimizerPanel({
           {container && (
             <>
             <div className="optimizer-block">
-              <div className="section-label"><span>{t("Artifact assumptions")}</span><span>{t("Catalog mode")}</span></div>
+              <div className="section-label"><span>{t("Artifact quality")}</span><span>{t("Applied to every artifact")}</span></div>
+              <p className="field-note">{t("Search uses average unstudied stats for each selected rarity. Random bonus properties are not included.")}</p>
               <div className="optimizer-assumptions">
-                <label><span>{t("Level")}</span><input aria-label={t("Optimizer level")} type="number" min="0" max="15" step="1" value={level} onChange={(event) => setLevel(clamp(Math.round(Number(event.target.value)), 0, 15))} /></label>
+                <label><span>{t("Artifact level")}</span><input aria-label={t("Optimizer level")} type="number" min="0" max="15" step="1" value={level} onChange={(event) => setLevel(clamp(Math.round(Number(event.target.value)), 0, 15))} /></label>
               </div>
               <div className="optimizer-rarity-list" role="group" aria-label={t("Rarities to search")}>
                 {RARITY_NAMES.map((rarityName, candidateRarity) => (
@@ -1195,16 +1196,16 @@ function OptimizerPanel({
                     />
                     <span>
                       <strong>{t(rarityName)}</strong>
-                      <small>{t("{{quality}}% midpoint", { quality: formatDecimal(RARITY_MIDPOINT_QUALITIES[candidateRarity]) })}{candidateRarity === 6 ? ` · ${t("unpriced")}` : ""}</small>
+                      <small>{t("Average unstudied quality: {{quality}}%", { quality: formatDecimal(RARITY_MIDPOINT_QUALITIES[candidateRarity]) })}{candidateRarity === 6 ? ` · ${t("unpriced")}` : ""}</small>
                     </span>
                   </label>
                 ))}
               </div>
-              <p className="field-note">{t("Each enabled rarity uses the midpoint of its unstudied stat range. Unique is retained for legacy or future artifacts but has no current market estimate. Random additional properties are excluded.")}</p>
             </div>
 
             <div className="optimizer-block">
               <div className="section-label"><span>{t("Desired benefits")}</span><span>{t("{{count}} optimized", { count: activeObjectives.length })}</span></div>
+              <p className="field-note">{t("Every selected stat must come from the artifacts. Enter a minimum only when you require a specific amount. Backpack and container bonuses do not count.")}</p>
               <div className="positive-filter-list">
                 {positiveFilters.map((filter) => {
                   const option = OPTIMIZER_STAT_OPTIONS.find(([key]) => key === filter.key)!;
@@ -1217,8 +1218,8 @@ function OptimizerPanel({
                         </label>
                         {filter.enabled && <span className="objective-share">{formatDecimal(objectiveWeightPercentage(filter.weight, objectiveWeights), 1)}%</span>}
                         {filter.enabled && <label className="positive-filter__minimum">
-                          <span>{option[3] === -1 ? t("Min magnitude") : t("Minimum")}</span>
-                          <input aria-label={t(option[3] === -1 ? "Minimum {{name}} magnitude from artifacts" : "Minimum {{name}} from artifacts", { name: t(option[1]) })} type="number" min="0" step="0.01" placeholder={option[3] === -1 ? t("Any < 0") : t("Any > 0")} value={filter.minimum} onChange={(event) => setPositiveFilters((current) => current.map((item) => item.key === filter.key ? { ...item, minimum: event.target.value } : item))} />
+                          <span>{option[3] === -1 ? t("Minimum countering") : t("Minimum")}</span>
+                          <input aria-label={t("Minimum {{name}} from artifacts", { name: t(option[1]) })} type="number" min="0" step="0.01" placeholder={option[3] === -1 ? t("Any amount") : t("Any > 0")} value={filter.minimum} onChange={(event) => setPositiveFilters((current) => current.map((item) => item.key === filter.key ? { ...item, minimum: event.target.value } : item))} />
                         </label>}
                       </div>
                       {filter.enabled && (
@@ -1230,7 +1231,6 @@ function OptimizerPanel({
                   );
                 })}
               </div>
-              <p className="field-note">{t("Every enabled benefit must be present in the artifact contribution. Countering and reduction goals prefer stronger negative values. Enter a minimum magnitude to require more; built-in carrier bonuses do not count.")}</p>
             </div>
 
             <div className="optimizer-block">
@@ -1260,14 +1260,14 @@ function OptimizerPanel({
             </div>
 
             <div className="optimizer-block">
-              <div className="section-label"><span>{t("Search rules")}</span><span>{t("Exact")}</span></div>
+              <div className="section-label"><span>{t("Budget")}</span><span>{t("Optional")}</span></div>
               <label className="optimizer-budget">
                 <span>{t("Maximum total price")}</span>
                 <input aria-label={t("Maximum total price")} type="number" min="1" step="1000" placeholder={t("No limit")} value={maxTotalPrice} onChange={(event) => setMaxTotalPrice(event.target.value)} />
-                <small>{t("Live {{region}} completed-sale estimates ({{date}}). Market uses direct eligible sales; Estimated uses same-artifact rarity extrapolation. Unknown prices are excluded when enabled.", { region: pricingMetadata(pricingRegion).region, date: pricingMetadata(pricingRegion).asOfLabel })}</small>
+                <small>{t("Prices are based on completed {{region}} sales as of {{date}}. Estimated prices are marked. Builds with unknown prices are excluded when a budget is set.", { region: pricingMetadata(pricingRegion).region, date: pricingMetadata(pricingRegion).asOfLabel })}</small>
               </label>
               <div className="search-estimate">
-                <span>{t("SEARCH SPACE")}</span><strong>{formatInteger(estimatedCombinations)}</strong><small>{t("canonical combinations · {{engine}} selected automatically", { engine: estimatedEngine === "milp" ? "MILP" : t("Brute force") })}</small>
+                <span>{t("POSSIBLE BUILDS")}</span><strong>{formatInteger(estimatedCombinations)}</strong><small>{t("Search method: {{engine}}", { engine: estimatedEngine === "milp" ? t("MILP (Mixed-Integer Linear Programming)") : t("Brute force") })}</small>
               </div>
               {selectedRarities.length === 0 && <p className="optimizer-error">{t("Select at least one artifact rarity.")}</p>}
               {activeObjectives.length === 0 && <p className="optimizer-error">{t("At least one positive effect must be enabled for optimization.")}</p>}
@@ -1295,19 +1295,19 @@ function OptimizerPanel({
           ) : !run ? (
               <div className="optimizer-results-empty"><CircleGauge size={31} /><strong>{t("Find your best artifact build")}</strong><span>{t("Choose the stats, safety limits, rarities, and budget you care about. Field Kit will compare matching artifact combinations and rank the best builds.")}</span><button className="optimizer-search optimizer-results-empty__search" disabled={searchDisabled} onClick={startSearch}>{searchButtonLabel}</button></div>
             ) : run.search.results.length === 0 ? (
-              <div className="optimizer-results-empty"><AlertTriangle size={31} /><strong>{t("No feasible combinations")}</strong><span>{t("Relax a minimum, negative-effect policy, budget, or artifact assumption.")}</span></div>
+              <div className="optimizer-results-empty"><AlertTriangle size={31} /><strong>{t("No builds match your filters")}</strong><span>{t("Try lowering a minimum, allowing more negative effects, raising the budget, or selecting more rarities.")}</span></div>
             ) : (
               <>
                 <div className="optimizer-summary">
                   {run.engine === "milp"
                     ? state === "searching"
-                      ? <><strong>{t("MILP bounded")}</strong> · {t("{{count}} of 10 ranked builds found · solving next", { count: run.search.results.length })}</>
-                      : <><strong>{t("MILP bounded")}</strong> · {t("{{count}} ranked builds · {{combinations}} possible combinations were not enumerated", { count: run.search.results.length, combinations: formatInteger(run.search.combinations) })}</>
-                    : t("{{combinations}} combinations evaluated · {{feasible}} feasible", { combinations: formatInteger(run.search.combinations), feasible: formatInteger(run.search.feasibleCombinations ?? 0) })}
+                      ? <><strong>{t("Advanced search")}</strong> · {t("{{count}} of 10 best builds found · looking for more", { count: run.search.results.length })}</>
+                      : <><strong>{t("Advanced search")}</strong> · {t("{{count}} best builds found", { count: run.search.results.length })}</>
+                    : t("{{combinations}} builds checked · {{feasible}} matched your filters", { combinations: formatInteger(run.search.combinations), feasible: formatInteger(run.search.feasibleCombinations ?? 0) })}
                   {run.failedItems > 0 && <span> · {t("artifactFilesUnavailable", { count: run.failedItems })}</span>}
                 </div>
                 {run.search.ranges.some((range) => range.approximate) && (
-                  <p className="optimizer-accuracy-note">{t("Approximate best values: one or more objective solves did not finish within the 5-second limit. The affected stats show the maximum possible best-value error.")}</p>
+                  <p className="optimizer-accuracy-note">{t("Some best possible values are estimates because the search reached its 5-second limit. Each affected stat shows how much higher the true best could be.")}</p>
                 )}
                 <div className="optimizer-result-list">
                   {run.search.results.map((result, resultIndex) => {
@@ -1330,9 +1330,9 @@ function OptimizerPanel({
                         <p className={`optimizer-result__accuracy ${result.approximate ? "approximate" : "exact"}`}>
                           {result.approximate
                             ? result.errorPercent === undefined
-                              ? t("Best build found within 10 seconds · possible error unavailable")
-                              : t("Best build found within 10 seconds · possible error ≤ {{error}}%", { error: formatAccuracy(result.errorPercent) })
-                            : t("Proven optimal for this rank")}
+                              ? t("Best build found so far · difference from the true best is unknown")
+                              : t("Best build found so far · another build may score up to {{error}}% higher", { error: formatAccuracy(result.errorPercent) })
+                            : t("Best result confirmed")}
                           {result.solveSeconds === undefined ? "" : ` · ${formatSolveSeconds(result.solveSeconds)}`}
                         </p>
                         <div className="optimizer-artifacts">{selected.map((artifact, index) => {
@@ -1342,7 +1342,7 @@ function OptimizerPanel({
                         })}</div>
                         <div className="optimizer-effect-groups">
                           <div className="optimizer-effect-group optimizer-effect-group--searched">
-                            <div className="section-label"><span>{t("Searched effects")}</span><span>{run.objectives.length}</span></div>
+                            <div className="section-label"><span>{t("Your priorities")}</span><span>{run.objectives.length}</span></div>
                             <ul>
                               {run.objectives.map((objective, objectiveIndex) => {
                                 const option = OPTIMIZER_STAT_OPTIONS.find(([key]) => key === objective.key)!;
@@ -1358,9 +1358,9 @@ function OptimizerPanel({
                                     <span className={range.approximate ? "approximate" : "exact"}>
                                       {range.approximate
                                         ? range.errorPercent === undefined
-                                          ? t("MAX NOT PROVEN · ERROR UNAVAILABLE")
-                                          : t("MAX NOT PROVEN · ≤ {{error}}% ERROR", { error: formatAccuracy(range.errorPercent) })
-                                        : t("MAX PROVEN")}
+                                          ? t("Best found · true maximum unknown")
+                                          : t("Best found · true maximum may be up to {{error}}% higher", { error: formatAccuracy(range.errorPercent) })
+                                        : t("Best possible confirmed")}
                                       {range.solveSeconds === undefined ? "" : ` · ${formatSolveSeconds(range.solveSeconds)}`}
                                     </span>
                                     <span className="optimizer-objective__best"><small>{t(range.approximate ? "Best found" : "Best possible")}</small><b>{formatNumber(best, option[2])}</b></span>

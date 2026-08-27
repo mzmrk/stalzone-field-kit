@@ -38,7 +38,7 @@ describe("language selection", () => {
     expect(i18n.t("Mobility & utility")).toBe("Подвижность и полезность");
     expect(i18n.t("Neutral")).toBe("Нейтральная");
     expect(i18n.t("Accepted consequences")).toBe("Допустимые отрицательные эффекты");
-    expect(i18n.t("Proven optimal for this rank")).toBe("Оптимальность этой позиции доказана");
+    expect(i18n.t("Best result confirmed")).toBe("Лучший результат подтверждён");
     expect(i18n.t("Build optimizer")).toBe("Оптимизатор сборок");
     expect(i18n.t("Build calculator")).toBe("Калькулятор сборки");
   });
