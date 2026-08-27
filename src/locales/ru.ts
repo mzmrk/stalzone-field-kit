@@ -246,6 +246,7 @@ export const ru: Record<string, string> = {
   "Bleeding countering": "Компенсация кровотечения",
   "Burning countering": "Компенсация горения",
   "Recoil reduction": "Снижение отдачи",
+  "Sway reduction": "Снижение покачивания",
   "Psy-emissions": "Пси-излучение",
   "Data by EXBO Studio": "Данные EXBO Studio",
 };

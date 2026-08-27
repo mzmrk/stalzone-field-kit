@@ -25,6 +25,7 @@ describe("language selection", () => {
     expect(appLocale()).toBe("ru-RU");
     expect(translated(name)).toBe("Браслет");
     expect(i18n.t("Movement speed")).toBe("Скорость передвижения");
+    expect(i18n.t("Sway reduction")).toBe("Снижение покачивания");
 
     await i18n.changeLanguage("en");
     expect(translated(name)).toBe("Bracelet");

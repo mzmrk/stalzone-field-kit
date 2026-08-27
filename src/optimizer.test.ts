@@ -79,9 +79,10 @@ describe("artifact optimizer", () => {
       "Bleeding countering",
       "Burning countering",
       "Recoil reduction",
+      "Sway reduction",
     ]);
-    expect(OPTIMIZER_STAT_OPTIONS).toHaveLength(31);
-    expect(new Set(OPTIMIZER_STAT_OPTIONS.map((option) => option[0])).size).toBe(31);
+    expect(OPTIMIZER_STAT_OPTIONS).toHaveLength(32);
+    expect(new Set(OPTIMIZER_STAT_OPTIONS.map((option) => option[0])).size).toBe(32);
     expect(OPTIMIZER_STAT_OPTIONS.filter((option) => option[3] === -1).map((option) => option[1])).toEqual([
       "Radiation countering",
       "Biological infection countering",
@@ -90,6 +91,14 @@ describe("artifact optimizer", () => {
       "Bleeding countering",
       "Burning countering",
       "Recoil reduction",
+      "Sway reduction",
+    ]);
+
+    expect(OPTIMIZER_STAT_OPTIONS.find((option) => option[1] === "Sway reduction")).toEqual([
+      "stalker.artefact_properties.factor.wiggle_bonus",
+      "Sway reduction",
+      true,
+      -1,
     ]);
   });
 

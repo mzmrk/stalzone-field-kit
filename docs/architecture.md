@@ -189,7 +189,7 @@ uses the midpoint of that rarity's unstudied stat range; random additional
 properties are excluded. It fills every carrier slot, allows repeated artifact
 types, exposes every supported positive stat and harmful property without
 add/remove controls, and applies independent numerical requirements before
-ranking. The positive list covers all 31 green property keys in the current EXBO
+ranking. The positive list covers all 32 green property keys in the current EXBO
 Global artifact catalog. Every enabled row participates in scoring and requires
 beneficial net artifact contribution. The resulting final build must also remain
 on the objective's beneficial or neutral side after protection and carrier

@@ -38,6 +38,7 @@ export const OPTIMIZER_STAT_OPTIONS = [
   ["stalker.artefact_properties.factor.bleeding_accumulation", "Bleeding countering", false, -1],
   ["stalker.artefact_properties.factor.combustion_accumulation", "Burning countering", false, -1],
   ["stalker.artefact_properties.factor.recoil_bonus", "Recoil reduction", true, -1],
+  ["stalker.artefact_properties.factor.wiggle_bonus", "Sway reduction", true, -1],
 ] as const;
 
 export type ObjectiveDirection = 1 | -1;

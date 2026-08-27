@@ -101,12 +101,12 @@ duplicates across rarities. `Unique (legacy)` at `182.5` remains disabled by
 default for legacy or future use. Auction evidence does not support it; it is
 unpriced and therefore ineligible under a price cap.
 
-All 31 green property keys in the current EXBO Global artifact catalog remain
+All 32 green property keys in the current EXBO Global artifact catalog remain
 visible. Enabling a row adds it to weighted scoring and requires the selected
 artifacts to contribute that benefit. Higher-is-better objectives require a net
 positive artifact value and a non-negative finished-build value after protection
 and carrier properties. Radiation, biological infection, psy-emission,
-temperature, bleeding, and burning countering plus recoil reduction are
+temperature, bleeding, and burning countering plus recoil and sway reduction are
 lower-is-better; they require a net negative artifact value and a non-positive
 finished-build value, and rank a stronger negative value higher. Their
 optional input is a positive magnitude, so `2` requires a value at or below
@@ -244,7 +244,7 @@ rejection, weight-sensitive ranking,
 zero-baseline normalization, independent final best values,
 enabled-effect presence, and artifact-only positive minimums. It also covers both
 harmful directions, the zero boundary for fully countered harmful properties, the
-catalog's complete 31-property beneficial list and harmful-property filter list,
+catalog's complete 32-property beneficial list and harmful-property filter list,
 lower-is-better ranking equivalence between both engines, and exclusion of carrier
 carry weight from objectives and artifact minimums. Priority-control coverage
 checks exact normalized shares, neutral defaults, enabled-row highlighting, and

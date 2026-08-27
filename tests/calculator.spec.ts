@@ -137,14 +137,14 @@ test("keeps the calculator usable at a phone viewport", async ({ page }) => {
     scrollWidth: document.documentElement.scrollWidth,
     clientWidth: document.documentElement.clientWidth,
   }));
-  expect(optimizerDimensions.scrollWidth).toBe(optimizerDimensions.clientWidth);
+  expect(optimizerDimensions.scrollWidth).toBeLessThanOrEqual(optimizerDimensions.clientWidth);
   await openCalculator(page);
   await expect(page.getByRole("navigation", { name: "Calculator sections" })).toBeVisible();
   const calculatorDimensions = await page.evaluate(() => ({
     scrollWidth: document.documentElement.scrollWidth,
     clientWidth: document.documentElement.clientWidth,
   }));
-  expect(calculatorDimensions.scrollWidth).toBe(calculatorDimensions.clientWidth);
+  expect(calculatorDimensions.scrollWidth).toBeLessThanOrEqual(calculatorDimensions.clientWidth);
 });
 
 test("exhaustively ranks and loads a four-slot weighted build", async ({ page }) => {
