@@ -36,7 +36,7 @@ test("opens the optimizer by default and shares carrier selection between both t
   await expect(page.locator(".optimizer-results-empty").getByRole("button", { name: "Find best builds" })).toBeVisible();
 
   await openCalculator(page);
-  await expect(page.getByRole("heading", { name: "Carrier & artifacts" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Backpack / container & artifacts" })).toBeVisible();
   await expect(page.locator("#loadout .container-card")).toContainText("Errand Junior Backpack");
   await expect(page.getByRole("button", { name: "Reset build" })).toBeVisible();
 
@@ -100,7 +100,7 @@ test("switches to Russian without resetting the saved build and persists the cho
   await page.getByRole("button", { name: /Berloga-6 Container/ }).click();
 
   await page.getByLabel("LANGUAGE").selectOption("ru");
-  await expect(page.getByRole("heading", { name: "Рюкзак и артефакты" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Рюкзак или контейнер и артефакты" })).toBeVisible();
   await expect(page.getByText("Контейнер «Берлога-6»").first()).toBeVisible();
   await expect(page.locator("html")).toHaveAttribute("lang", "ru");
 
@@ -175,23 +175,23 @@ test("exhaustively ranks and loads a four-slot weighted build", async ({ page })
   await expect(page.getByLabel("Vitality policy")).toHaveValue("strict");
   await expect(movementRow.getByRole("button", { name: /Important/ })).toHaveAttribute("aria-pressed", "true");
   await expect(runningRow.getByRole("button", { name: /Neutral/ })).toHaveAttribute("aria-pressed", "true");
-  await expect(movementRow.locator(".objective-share")).toHaveText("40%");
-  await expect(runningRow.locator(".objective-share")).toHaveText("20%");
-  await expect(staminaRow.locator(".objective-share")).toHaveText("20%");
-  await expect(bulletRow.locator(".objective-share")).toHaveText("20%");
+  await expect(movementRow.locator(".objective-share")).toHaveText("40% of score");
+  await expect(runningRow.locator(".objective-share")).toHaveText("20% of score");
+  await expect(staminaRow.locator(".objective-share")).toHaveText("20% of score");
+  await expect(bulletRow.locator(".objective-share")).toHaveText("20% of score");
   await expect(page.getByLabel("Minimum Running speed from artifacts")).toBeVisible();
   await page.getByLabel("Minimum Running speed from artifacts").fill("0.2");
   await movementRow.getByRole("button", { name: /Essential/ }).click();
-  await expect(movementRow.locator(".objective-share")).toHaveText("57.1%");
-  await expect(runningRow.locator(".objective-share")).toHaveText("14.3%");
+  await expect(movementRow.locator(".objective-share")).toHaveText("57.1% of score");
+  await expect(runningRow.locator(".objective-share")).toHaveText("14.3% of score");
   await page.getByLabel("Optimize Running speed").uncheck();
   await expect(page.getByLabel("Minimum Running speed from artifacts")).toHaveCount(0);
   await page.getByLabel("Optimize Running speed").check();
   await expect(page.getByLabel("Minimum Running speed from artifacts")).toHaveValue("");
   await page.getByLabel("Optimize Running speed").uncheck();
-  await expect(movementRow.locator(".objective-share")).toHaveText("66.7%");
-  await expect(staminaRow.locator(".objective-share")).toHaveText("16.7%");
-  await expect(bulletRow.locator(".objective-share")).toHaveText("16.7%");
+  await expect(movementRow.locator(".objective-share")).toHaveText("66.7% of score");
+  await expect(staminaRow.locator(".objective-share")).toHaveText("16.7% of score");
+  await expect(bulletRow.locator(".objective-share")).toHaveText("16.7% of score");
   const searchButton = page.locator(".optimizer-results-empty").getByRole("button", { name: "Find best builds" });
   await page.getByLabel("Minimum Movement speed from artifacts").fill("0");
   await expect(searchButton).toBeDisabled();
@@ -200,7 +200,7 @@ test("exhaustively ranks and loads a four-slot weighted build", async ({ page })
   await page.getByLabel("Temperature policy").selectOption("custom");
   await expect(searchButton).toBeDisabled();
   await page.getByLabel("Temperature accepted penalty").fill("0.5");
-  await page.getByRole("button", { name: "Counter all" }).click();
+  await page.getByRole("button", { name: "Fully counter all" }).click();
   await expect(page.getByLabel("Radiation policy")).toHaveValue("strict");
   await expect(page.getByLabel("Temperature policy")).toHaveValue("strict");
   await expect(page.getByLabel("Vitality policy")).toHaveValue("strict");
@@ -277,7 +277,7 @@ test("uses MILP to optimize a carrier beyond the brute-force limit", async ({ pa
     document.body.dataset.sawStreamingMilpResult = "false";
     const observer = new MutationObserver(() => {
       const hasResult = document.querySelectorAll(".optimizer-result").length > 0;
-      const stillSolving = document.querySelector(".optimizer-search")?.textContent?.includes("Solving bounded search");
+      const stillSolving = document.querySelector(".optimizer-search")?.textContent?.includes("Searching a large number of builds");
       if (hasResult && stillSolving) {
         document.body.dataset.sawStreamingMilpResult = "true";
         observer.disconnect();
@@ -287,13 +287,13 @@ test("uses MILP to optimize a carrier beyond the brute-force limit", async ({ pa
   });
   await searchButton.click();
 
-  await expect(page.getByText("Advanced search")).toBeVisible({ timeout: 45_000 });
+  await expect(page.getByText("MILP search")).toBeVisible({ timeout: 45_000 });
   await expect.poll(() => page.locator(".optimizer-result").first().evaluate((element) => Math.round(element.getBoundingClientRect().top))).toBeLessThan(150);
   await expect(page.getByRole("button", { name: "Load into calculator" })).toHaveCount(10, { timeout: 75_000 });
   expect(await page.evaluate(() => document.body.dataset.sawStreamingMilpResult)).toBe("true");
   await expect(page.getByText("Best result confirmed").first()).toBeVisible();
   await expect(page.locator(".optimizer-objective__track").first()).toBeVisible();
-  await expect(page.locator(".optimizer-objective__meta").first()).toContainText(/Best (possible confirmed|found)/);
+  await expect(page.locator(".optimizer-objective__meta").first()).toContainText(/Best (possible|found)/);
   await expect(page.locator(".optimizer-objective__best").first()).toContainText(/Best (possible|found)/);
   await expect(page.locator(".optimizer-artifacts small").first()).toContainText("Uncommon");
   await page.getByRole("button", { name: "Load into calculator" }).first().click();

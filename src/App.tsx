@@ -359,13 +359,13 @@ function Picker({
         className="picker-dialog"
         role="dialog"
         aria-modal="true"
-        aria-label={state.kind === "container" ? t("Choose your carrier") : t("Choose an artifact")}
+        aria-label={state.kind === "container" ? t("Choose a backpack or container") : t("Choose an artifact")}
         onMouseDown={(event) => event.stopPropagation()}
       >
         <div className="picker-header">
           <div>
             <p className="eyebrow">{t("EXBO DATABASE")}</p>
-            <h2>{state.kind === "container" ? t("Choose your carrier") : t("Choose an artifact")}</h2>
+            <h2>{state.kind === "container" ? t("Choose a backpack or container") : t("Choose an artifact")}</h2>
           </div>
           <button className="icon-button" onClick={onClose} aria-label={t("Close")}>
             <X size={20} />
@@ -491,7 +491,7 @@ function ContainerPanel({
       <div className="panel-heading">
         <div>
           <p className="eyebrow">{t("01 / LOADOUT")}</p>
-          <h2>{t("Carrier & artifacts")}</h2>
+          <h2>{t("Backpack / container & artifacts")}</h2>
         </div>
         <Backpack size={22} />
       </div>
@@ -751,7 +751,7 @@ function ResultPanel({
           ))}
           {grouped.length ? grouped.map(({ category, stats }) => (
             <div className="result-group" key={category}>
-              <div className="section-label"><span>{t(category)}</span><span>{stats.length}</span></div>
+              <div className="section-label"><span>{t(category)}</span></div>
               <ul>
                 {stats.map((stat) => {
                   const dangerous = warnings.some((warning) => warning.key === stat.key);
@@ -1131,7 +1131,7 @@ function OptimizerPanel({
   const searchButtonLabel = state === "loading"
     ? t("Loading artifacts {{completed}}/{{total}}", loadProgress)
     : state === "searching"
-      ? t(displayedEngine === "milp" ? "Solving bounded search {{percent}}%" : "Searching {{percent}}%", { percent: Math.round(progressPercent) })
+      ? t(displayedEngine === "milp" ? "Searching a large number of builds {{percent}}%" : "Searching {{percent}}%", { percent: Math.round(progressPercent) })
       : t("Find best builds");
   useEffect(() => {
     if (state !== "searching" || displayedEngine !== "milp") return;
@@ -1171,15 +1171,15 @@ function OptimizerPanel({
       <div className="optimizer-body">
         <div className="optimizer-settings">
           <div className="optimizer-block optimizer-carrier-selector">
-            <div className="section-label"><span>{t("Carrier")}</span><span>{container ? t("{{count}} slots", { count: container.capacity }) : t("Required")}</span></div>
+            <div className="section-label"><span>{t("Backpack or container")}</span><span>{container ? t("{{count}} slots", { count: container.capacity }) : t("Required")}</span></div>
             <CarrierSelector container={container} onChooseContainer={onChooseContainer} />
           </div>
 
           {container && (
             <>
             <div className="optimizer-block">
-              <div className="section-label"><span>{t("Artifact quality")}</span><span>{t("Applied to every artifact")}</span></div>
-              <p className="field-note">{t("Search uses average unstudied stats for each selected rarity. Random bonus properties are not included.")}</p>
+              <div className="section-label"><span>{t("Artifacts to search")}</span><span>{t("Applied to every artifact")}</span></div>
+              <p className="field-note">{t("Each rarity uses the middle of its Not studied quality range. Random bonus properties are not included.")}</p>
               <div className="optimizer-assumptions">
                 <label><span>{t("Artifact level")}</span><input aria-label={t("Optimizer level")} type="number" min="0" max="15" step="1" value={level} onChange={(event) => setLevel(clamp(Math.round(Number(event.target.value)), 0, 15))} /></label>
               </div>
@@ -1196,7 +1196,7 @@ function OptimizerPanel({
                     />
                     <span>
                       <strong>{t(rarityName)}</strong>
-                      <small>{t("Average unstudied quality: {{quality}}%", { quality: formatDecimal(RARITY_MIDPOINT_QUALITIES[candidateRarity]) })}{candidateRarity === 6 ? ` · ${t("unpriced")}` : ""}</small>
+                      <small>{t("Assumed quality: {{quality}}% · middle of Not studied range", { quality: formatDecimal(RARITY_MIDPOINT_QUALITIES[candidateRarity]) })}{candidateRarity === 6 ? ` · ${t("unpriced")}` : ""}</small>
                     </span>
                   </label>
                 ))}
@@ -1204,8 +1204,8 @@ function OptimizerPanel({
             </div>
 
             <div className="optimizer-block">
-              <div className="section-label"><span>{t("Desired benefits")}</span><span>{t("{{count}} optimized", { count: activeObjectives.length })}</span></div>
-              <p className="field-note">{t("Every selected stat must come from the artifacts. Enter a minimum only when you require a specific amount. Backpack and container bonuses do not count.")}</p>
+              <div className="section-label"><span>{t("Stats you want")}</span><span>{t("{{count}} selected", { count: activeObjectives.length })}</span></div>
+              <p className="field-note">{t("Check every stat the build must include. Importance affects ranking; Minimum requires a specific value from artifacts. Backpack and container bonuses do not count.")}</p>
               <div className="positive-filter-list">
                 {positiveFilters.map((filter) => {
                   const option = OPTIMIZER_STAT_OPTIONS.find(([key]) => key === filter.key)!;
@@ -1216,7 +1216,7 @@ function OptimizerPanel({
                           <input type="checkbox" aria-label={t("Optimize {{name}}", { name: t(option[1]) })} checked={filter.enabled} onChange={(event) => setPositiveFilters((current) => current.map((item) => item.key === filter.key ? { ...item, enabled: event.target.checked, minimum: event.target.checked ? item.minimum : "" } : item))} />
                           <strong>{t(option[1])}</strong>
                         </label>
-                        {filter.enabled && <span className="objective-share">{formatDecimal(objectiveWeightPercentage(filter.weight, objectiveWeights), 1)}%</span>}
+                        {filter.enabled && <span className="objective-share">{t("{{share}}% of score", { share: formatDecimal(objectiveWeightPercentage(filter.weight, objectiveWeights), 1) })}</span>}
                         {filter.enabled && <label className="positive-filter__minimum">
                           <span>{option[3] === -1 ? t("Minimum countering") : t("Minimum")}</span>
                           <input aria-label={t("Minimum {{name}} from artifacts", { name: t(option[1]) })} type="number" min="0" step="0.01" placeholder={option[3] === -1 ? t("Any amount") : t("Any > 0")} value={filter.minimum} onChange={(event) => setPositiveFilters((current) => current.map((item) => item.key === filter.key ? { ...item, minimum: event.target.value } : item))} />
@@ -1235,10 +1235,11 @@ function OptimizerPanel({
 
             <div className="optimizer-block">
               <div className="section-label"><span>{t("Accepted consequences")}</span><span>{t("Final build values")}</span></div>
+              <p className="field-note">{t("Game-safe keeps environmental exposure below damage thresholds and fully counters every other listed penalty.")}</p>
               <div className="negative-presets" role="group" aria-label={t("Negative effect presets")}>
                 <button type="button" onClick={() => setNegativeFilters((current) => current.map((filter) => ({ ...filter, policy: "allow" })))}>{t("Allow all")}</button>
                 <button type="button" onClick={() => setNegativeFilters((current) => current.map((filter) => ({ ...filter, policy: OPTIMIZER_HARMFUL_OPTIONS.find((option) => option.key === filter.key)!.safeLimit === null ? "strict" : "safe" })))}>{t("Game-safe")}</button>
-                <button type="button" onClick={() => setNegativeFilters((current) => current.map((filter) => ({ ...filter, policy: "strict" })))}>{t("Counter all")}</button>
+                <button type="button" onClick={() => setNegativeFilters((current) => current.map((filter) => ({ ...filter, policy: "strict" })))}>{t("Fully counter all")}</button>
               </div>
               <div className="negative-filter-list">
                 {negativeFilters.map((filter) => {
@@ -1248,9 +1249,9 @@ function OptimizerPanel({
                       <strong>{t(option.name)}</strong>
                       <select aria-label={t("{{name}} policy", { name: t(option.name) })} value={filter.policy} onChange={(event) => setNegativeFilters((current) => current.map((item) => item.key === filter.key ? { ...item, policy: event.target.value as NegativeEffectPolicy } : item))}>
                         <option value="allow">{t("Allow")}</option>
-                        {option.safeLimit !== null && <option value="safe">{t("Game-safe · ≤ {{limit}}", { limit: option.safeLimit })}</option>}
-                        <option value="strict">{t(option.harmfulDirection === 1 ? "No negative · ≤ 0" : "No negative · ≥ 0")}</option>
-                        <option value="custom">{t("Custom accepted penalty")}</option>
+                        {option.safeLimit !== null && <option value="safe">{t("No exposure damage · max {{limit}}", { limit: option.safeLimit })}</option>}
+                        <option value="strict">{t("Fully countered · 0 or better")}</option>
+                        <option value="custom">{t("Set maximum penalty")}</option>
                       </select>
                       {filter.policy === "custom" && <input aria-label={t("{{name}} accepted penalty", { name: t(option.name) })} type="number" min="0" step="0.01" placeholder={t("Penalty")} value={filter.limit} onChange={(event) => setNegativeFilters((current) => current.map((item) => item.key === filter.key ? { ...item, limit: event.target.value } : item))} />}
                     </div>
@@ -1291,7 +1292,7 @@ function OptimizerPanel({
         <div className="optimizer-results">
           <div className="section-label"><span>{t("Ranked results")}</span><span>{run ? t("{{count}} shown", { count: run.search.results.length }) : t("Waiting")}</span></div>
           {!container ? (
-            <div className="optimizer-empty"><Gauge size={28} /><span>{t("Select a carrier before searching combinations.")}</span></div>
+            <div className="optimizer-empty"><Gauge size={28} /><span>{t("Select a backpack or container before searching.")}</span></div>
           ) : !run ? (
               <div className="optimizer-results-empty"><CircleGauge size={31} /><strong>{t("Find your best artifact build")}</strong><span>{t("Choose the stats, safety limits, rarities, and budget you care about. Field Kit will compare matching artifact combinations and rank the best builds.")}</span><button className="optimizer-search optimizer-results-empty__search" disabled={searchDisabled} onClick={startSearch}>{searchButtonLabel}</button></div>
             ) : run.search.results.length === 0 ? (
@@ -1301,11 +1302,12 @@ function OptimizerPanel({
                 <div className="optimizer-summary">
                   {run.engine === "milp"
                     ? state === "searching"
-                      ? <><strong>{t("Advanced search")}</strong> · {t("{{count}} of 10 best builds found · looking for more", { count: run.search.results.length })}</>
-                      : <><strong>{t("Advanced search")}</strong> · {t("{{count}} best builds found", { count: run.search.results.length })}</>
+                      ? <><strong>{t("MILP search")}</strong> · {t("{{count}} of 10 best builds found · looking for more", { count: run.search.results.length })}</>
+                      : <><strong>{t("MILP search")}</strong> · {t("{{count}} best builds found", { count: run.search.results.length })}</>
                     : t("{{combinations}} builds checked · {{feasible}} matched your filters", { combinations: formatInteger(run.search.combinations), feasible: formatInteger(run.search.feasibleCombinations ?? 0) })}
                   {run.failedItems > 0 && <span> · {t("artifactFilesUnavailable", { count: run.failedItems })}</span>}
                 </div>
+                <p className="optimizer-score-note">{t("Match score compares each build with the best value found for every selected stat, using your importance settings.")}</p>
                 {run.search.ranges.some((range) => range.approximate) && (
                   <p className="optimizer-accuracy-note">{t("Some best possible values are estimates because the search reached its 5-second limit. Each affected stat shows how much higher the true best could be.")}</p>
                 )}
@@ -1326,7 +1328,7 @@ function OptimizerPanel({
                     };
                     return (
                       <article className="optimizer-result" ref={resultIndex === 0 ? firstResultRef : undefined} key={result.indices.join("-")}>
-                        <div className="optimizer-result__top"><span>#{resultIndex + 1}</span><strong>{t("{{score}} score", { score: formatAccuracy(result.score * 100) })}</strong><span className="optimizer-result__price">{formatPrice(result.totalPrice)}</span><small className={resultTotals.warnings.length ? "unsafe" : "safe"}>{resultTotals.warnings.length ? t("Unsafe") : t("Safe")}</small></div>
+                        <div className="optimizer-result__top"><span>#{resultIndex + 1}</span><strong>{t("{{score}} match score", { score: formatAccuracy(result.score * 100) })}</strong><span className="optimizer-result__price">{formatPrice(result.totalPrice)}</span><small className={resultTotals.warnings.length ? "unsafe" : "safe"}>{resultTotals.warnings.length ? t("Exposure damage") : t("No exposure damage")}</small></div>
                         <p className={`optimizer-result__accuracy ${result.approximate ? "approximate" : "exact"}`}>
                           {result.approximate
                             ? result.errorPercent === undefined
@@ -1342,7 +1344,7 @@ function OptimizerPanel({
                         })}</div>
                         <div className="optimizer-effect-groups">
                           <div className="optimizer-effect-group optimizer-effect-group--searched">
-                            <div className="section-label"><span>{t("Your priorities")}</span><span>{run.objectives.length}</span></div>
+                            <div className="section-label"><span>{t("Your priorities")}</span></div>
                             <ul>
                               {run.objectives.map((objective, objectiveIndex) => {
                                 const option = OPTIMIZER_STAT_OPTIONS.find(([key]) => key === objective.key)!;
@@ -1370,7 +1372,7 @@ function OptimizerPanel({
                           <div className="optimizer-effect-groups__other">
                             {remainingGroups.map(({ category, stats }) => (
                               <div className="optimizer-effect-group" key={category}>
-                                <div className="section-label"><span>{t(category)}</span><span>{stats.length}</span></div>
+                                <div className="section-label"><span>{t(category)}</span></div>
                                 <ul>{stats.map((stat) => <li className={resultStatClass(stat)} key={stat.key}><span>{t(stat.name)}</span><strong>{formatNumber(stat.value, stat.percentage)}</strong></li>)}</ul>
                               </div>
                             ))}
@@ -1544,11 +1546,6 @@ export default function App() {
             })}
           </select>
         </label>
-        {workspaceMode === "calculator" && (
-          <button className="reset-button" onClick={resetBuild} disabled={!container}>
-            <RotateCcw size={16} /> <span>{t("Reset build")}</span>
-          </button>
-        )}
       </header>
 
       <main>
@@ -1597,14 +1594,23 @@ export default function App() {
         )}
 
         <nav className="workspace-switcher" aria-label={t("Build tools")}>
-          <button type="button" className={workspaceMode === "optimizer" ? "active" : ""} aria-label={t("Build optimizer")} aria-pressed={workspaceMode === "optimizer"} onClick={() => setWorkspaceMode("optimizer")}>
-            <Gauge size={22} />
-            <span><strong>{t("Build optimizer")}</strong><small>{t("Find the best catalog combination for your priorities.")}</small></span>
-          </button>
-          <button type="button" className={workspaceMode === "calculator" ? "active" : ""} aria-label={t("Build calculator")} aria-pressed={workspaceMode === "calculator"} onClick={() => setWorkspaceMode("calculator")}>
-            <FlaskConical size={22} />
-            <span><strong>{t("Build calculator")}</strong><small>{t("Configure artifacts you own and calculate exact totals.")}</small></span>
-          </button>
+          <div className={`workspace-switcher__tab ${workspaceMode === "optimizer" ? "active" : ""}`}>
+            <button type="button" className="workspace-switcher__mode" aria-label={t("Build optimizer")} aria-pressed={workspaceMode === "optimizer"} onClick={() => setWorkspaceMode("optimizer")}>
+              <Gauge size={22} />
+              <span><strong>{t("Build optimizer")}</strong><small>{t("Find the best catalog combination for your priorities.")}</small></span>
+            </button>
+          </div>
+          <div className={`workspace-switcher__tab ${workspaceMode === "calculator" ? "active" : ""}`}>
+            <button type="button" className="workspace-switcher__mode" aria-label={t("Build calculator")} aria-pressed={workspaceMode === "calculator"} onClick={() => setWorkspaceMode("calculator")}>
+              <FlaskConical size={22} />
+              <span><strong>{t("Build calculator")}</strong><small>{t("Configure artifacts you own and calculate exact totals.")}</small></span>
+            </button>
+            {workspaceMode === "calculator" && (
+              <button type="button" className="workspace-switcher__reset" onClick={resetBuild} disabled={!container}>
+                <RotateCcw size={15} /> <span>{t("Reset build")}</span>
+              </button>
+            )}
+          </div>
         </nav>
 
         <div className="workspace-view" hidden={workspaceMode !== "calculator"}>

@@ -134,10 +134,10 @@ non-negative magnitude: for example, `5` means vitality must remain at least
 its damage threshold and is only available where
 [`WARNING_LIMITS`](../src/calculations.ts) defines one. Harmful limits evaluate
 final values after artifact counter-effects, inner protection, and carrier
-properties. The Allow all, Game-safe, and Counter all buttons are bulk policy
+properties. The Allow all, Game-safe, and Fully counter all buttons are bulk policy
 setters, not additional constraints. `Game-safe` is also the initial profile:
 threshold-bearing exposures use their published safe cap, while every harmful
-property without a game threshold uses `No negative`. All numerical constraints
+property without a game threshold uses `Fully countered`. All numerical constraints
 are applied before objective best values are discovered, so normalization uses
 only qualifying builds.
 
