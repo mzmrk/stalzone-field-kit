@@ -339,6 +339,19 @@ input[type="range"]::-webkit-slider-thumb { appearance: none; width: 14px; heigh
 .optimizer-effect-group li > div { min-width: 0; display: flex; flex-direction: column; gap: 4px; }
 .optimizer-effect-group li small { color: #73807a; font-size: 9px; line-height: 1.45; }
 .optimizer-effect-group li strong { font-size: 12px; font-weight: 500; }
+.optimizer-effect-group li.optimizer-objective { display: block; }
+.optimizer-objective__heading { display: flex !important; flex-direction: row !important; align-items: center; justify-content: space-between; gap: 18px !important; }
+.optimizer-objective__heading > span { color: var(--text); }
+.optimizer-objective__heading > strong { color: var(--green); font-size: 12px; }
+.optimizer-objective__track { height: 12px; margin-top: 9px; position: relative; overflow: hidden; border-radius: 999px; background: rgba(255,255,255,.07); box-shadow: inset 0 0 0 1px rgba(255,255,255,.05); }
+.optimizer-objective__track i { display: block; position: absolute; inset: 0 auto 0 0; border-radius: 999px; background: linear-gradient(90deg,#4b7558,var(--green)); }
+.optimizer-objective__track b { width: 8px; position: absolute; inset: 2px auto 2px auto; border-radius: 50%; background: #efffc8; transform: translateX(-8px); }
+.optimizer-objective__meta { margin-top: 7px; display: flex !important; flex-direction: row !important; align-items: baseline; justify-content: space-between; gap: 14px !important; }
+.optimizer-objective__meta > span:first-child { color: #7f9b88; font-size: 8px; text-transform: uppercase; }
+.optimizer-objective__meta > span:first-child.approximate { padding: 3px 6px; border: 1px solid rgba(230,194,111,.34); color: #e6c26f; }
+.optimizer-objective__best { display: flex; align-items: baseline; gap: 6px; color: #707a75; font-size: 10px; white-space: nowrap; }
+.optimizer-objective__best small { color: #616c67 !important; font-size: 8px !important; text-transform: uppercase; }
+.optimizer-objective__best b { color: inherit; font-weight: 400; }
 .optimizer-apply { width: 100%; min-height: 40px; margin-top: 16px; }
 
 .dialog-backdrop { position: fixed; inset: 0; z-index: 50; padding: 24px; display: grid; place-items: center; background: rgba(2,7,6,.78); backdrop-filter: blur(8px); }

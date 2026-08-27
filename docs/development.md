@@ -15,6 +15,9 @@ npm run dev
 Vite normally serves the application at `http://localhost:5173`. The browser must
 be able to reach `raw.githubusercontent.com` because catalog JSON, selected-item
 JSON, and icons are loaded directly at runtime.
+The development watcher ignores the repository-local `.tmp/` and `prototypes/`
+trees so large market-history extracts and static mockups cannot exhaust the
+host's file-watcher limit.
 
 For a development server inside Docker, bind Vite to every container interface:
 

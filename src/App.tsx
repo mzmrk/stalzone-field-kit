@@ -1308,7 +1308,22 @@ function OptimizerPanel({
                                 const normalized = normalizedObjectiveValue(result.values[objectiveIndex], range.min, range.max, objective.direction);
                                 const best = objective.direction === -1 ? range.min : range.max;
                                 const stat = totalsByKey.get(objective.key) ?? { key: objective.key, name: option[1], value: result.values[objectiveIndex], percentage: option[2], harmful: false };
-                                return <li className={resultStatClass(stat)} key={objective.key}><div><span>{t(option[1])}</span><small>{t("{{percent}}% of best possible · best {{best}}", { percent: Math.round(normalized * 100), best: formatNumber(best, option[2]) })}{range.approximate ? range.errorPercent === undefined ? t(" · approximate best (5s limit, error unavailable)") : t(" · approximate best (5s limit, ≤ {{error}}% error)", { error: formatAccuracy(range.errorPercent) }) : t(" · proven best")}{range.solveSeconds === undefined ? "" : ` · ${formatSolveSeconds(range.solveSeconds)}`}</small></div><strong>{formatNumber(stat.value, stat.percentage)}</strong></li>;
+                                const fillPercentage = Math.max(0, Math.min(100, normalized * 100));
+                                return <li className={`${resultStatClass(stat)} optimizer-objective`} key={objective.key}>
+                                  <div className="optimizer-objective__heading"><span>{t(option[1])}</span><strong>{formatNumber(stat.value, stat.percentage)}</strong></div>
+                                  <div className="optimizer-objective__track" aria-label={t("{{name}} compared with best", { name: t(option[1]) })}><i style={{ width: `${fillPercentage}%` }} /><b style={{ left: `${fillPercentage}%` }} /></div>
+                                  <div className="optimizer-objective__meta">
+                                    <span className={range.approximate ? "approximate" : "exact"}>
+                                      {range.approximate
+                                        ? range.errorPercent === undefined
+                                          ? t("MAX NOT PROVEN · ERROR UNAVAILABLE")
+                                          : t("MAX NOT PROVEN · ≤ {{error}}% ERROR", { error: formatAccuracy(range.errorPercent) })
+                                        : t("MAX PROVEN")}
+                                      {range.solveSeconds === undefined ? "" : ` · ${formatSolveSeconds(range.solveSeconds)}`}
+                                    </span>
+                                    <span className="optimizer-objective__best"><small>{t(range.approximate ? "Best found" : "Best possible")}</small><b>{formatNumber(best, option[2])}</b></span>
+                                  </div>
+                                </li>;
                               })}
                             </ul>
                           </div>
