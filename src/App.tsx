@@ -1123,7 +1123,7 @@ function OptimizerPanel({
     <section className="optimizer-panel" id="optimizer">
       <div className="optimizer-heading">
         <div>
-          <p className="eyebrow">{t("04 / OPTIMIZE")}</p>
+          <p className="eyebrow">{t("OPTIMIZE")}</p>
           <h2>{t("Weighted combination search")}</h2>
           <p>{t("Evaluate every canonical loadout against neutral zero, derive each best possible stat value, then rank the tradeoffs.")}</p>
         </div>

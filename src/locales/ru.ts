@@ -108,7 +108,7 @@ export const ru: Record<string, string> = {
   "MAX NOT PROVEN · ≤ {{error}}% ERROR": "МАКСИМУМ НЕ ДОКАЗАН · ПОГРЕШНОСТЬ ≤ {{error}}%",
   "Best possible": "Лучшее возможное",
   "Best found": "Лучшее найденное",
-  "04 / OPTIMIZE": "04 / ОПТИМИЗАЦИЯ",
+  "OPTIMIZE": "ОПТИМИЗАЦИЯ",
   "Weighted combination search": "Поиск взвешенной комбинации",
   "Evaluate every canonical loadout against neutral zero, derive each best possible stat value, then rank the tradeoffs.": "Проверяются все уникальные сборки относительно нейтрального нуля, определяется лучшее значение каждого параметра, затем оцениваются компромиссы.",
   "Reset filters": "Сбросить фильтры",
