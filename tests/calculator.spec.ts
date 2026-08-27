@@ -87,6 +87,56 @@ test("creates and restores a live EXBO-backed artifact build", async ({ page }) 
   await page.screenshot({ path: "test-results/calculator.png", fullPage: true });
 });
 
+test("ignores malformed version-one builds without crashing startup", async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem("field-kit-build-v1", JSON.stringify({
+      version: 1,
+      container: {
+        entry: { data: 42, icon: "/icon.png", name: {}, color: "blue" },
+        item: { id: "container", category: "containers", color: "blue", name: {}, infoBlocks: [] },
+        name: "Broken container",
+        capacity: 6,
+        protection: 0,
+        effectiveness: 100,
+        weight: 1,
+        stats: [{ key: "broken", name: "Broken", min: NaN, max: 1, positive: true, percentage: false }],
+      },
+      artifacts: [],
+    }));
+  });
+  await gotoLoadedApp(page);
+  await openCalculator(page);
+  await expect(page.getByRole("heading", { name: "Backpack / container & artifacts" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Select a backpack or container" })).toBeVisible();
+  await expect(page.locator(".container-card")).toHaveCount(0);
+});
+
+test("ignores malformed top-level version-one build data", async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem("field-kit-build-v1", JSON.stringify({ version: 1, container: null, artifacts: null }));
+  });
+  await gotoLoadedApp(page);
+  await openCalculator(page);
+  await expect(page.getByRole("button", { name: "Select a backpack or container" })).toBeVisible();
+  await expect(page.locator(".container-card")).toHaveCount(0);
+});
+
+test("reset removes only the empty build storage and preserves other settings", async ({ page }) => {
+  await gotoLoadedApp(page);
+  const optimizerBefore = await page.evaluate(() => localStorage.getItem("field-kit-optimizer-v1"));
+  await openCalculator(page);
+  await page.getByLabel("Market region").selectOption("ru");
+  await page.getByRole("button", { name: /Select a backpack or container/i }).click();
+  await page.getByPlaceholder(/Search backpacks and containers/i).fill("Berloga-6 Container");
+  await page.getByRole("button", { name: /Berloga-6 Container/i }).click();
+  await page.getByLabel("LANGUAGE").selectOption("ru");
+  await page.getByRole("button", { name: "Сбросить сборку" }).click();
+  await expect.poll(() => page.evaluate(() => localStorage.getItem("field-kit-build-v1"))).toBeNull();
+  await expect.poll(() => page.evaluate(() => localStorage.getItem("field-kit-optimizer-v1"))).toBe(optimizerBefore);
+  await expect(page.evaluate(() => localStorage.getItem("field-kit-language-v1"))).resolves.toBe("ru");
+  await expect(page.evaluate(() => localStorage.getItem("field-kit-pricing-region-v1"))).resolves.toBe("ru");
+});
+
 test("persists the selected market region independently of the build", async ({ page }) => {
   await page.goto("/");
   const marketRegion = page.getByLabel("Market region");

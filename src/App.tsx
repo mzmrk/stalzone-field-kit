@@ -270,6 +270,63 @@ function loadSavedPricingRegion(): PricingRegion {
   }
 }
 
+function isFiniteNumber(value: unknown): value is number {
+  return typeof value === "number" && Number.isFinite(value);
+}
+
+function isPlainRecord(value: unknown): value is Record<string, unknown> {
+  return isRecord(value) && !Array.isArray(value);
+}
+
+function isTranslatedText(value: unknown): boolean {
+  if (!isPlainRecord(value)) return false;
+  if (value.type !== undefined && typeof value.type !== "string") return false;
+  if (value.key !== undefined && typeof value.key !== "string") return false;
+  if (value.text !== undefined && typeof value.text !== "string") return false;
+  if (value.lines !== undefined) {
+    if (!isPlainRecord(value.lines) || Object.values(value.lines).some((line) => typeof line !== "string")) return false;
+  }
+  return true;
+}
+
+function isListingEntry(value: unknown): value is ListingEntry {
+  if (!isPlainRecord(value) || typeof value.data !== "string" || typeof value.icon !== "string" || typeof value.color !== "string") return false;
+  if (!isTranslatedText(value.name)) return false;
+  return value.status === undefined || (isPlainRecord(value.status) && (value.status.state === undefined || typeof value.status.state === "string"));
+}
+
+function isRawItem(value: unknown): boolean {
+  return isPlainRecord(value) && typeof value.id === "string" && typeof value.category === "string" &&
+    typeof value.color === "string" && isTranslatedText(value.name) && Array.isArray(value.infoBlocks);
+}
+
+function isParsedStat(value: unknown): boolean {
+  return isPlainRecord(value) && typeof value.key === "string" && typeof value.name === "string" &&
+    isFiniteNumber(value.min) && isFiniteNumber(value.max) && typeof value.positive === "boolean" &&
+    typeof value.percentage === "boolean";
+}
+
+function isContainerData(value: unknown): value is ContainerData {
+  return isPlainRecord(value) && isListingEntry(value.entry) && isRawItem(value.item) && typeof value.name === "string" &&
+    typeof value.capacity === "number" && Number.isInteger(value.capacity) && value.capacity > 0 && isFiniteNumber(value.protection) &&
+    isFiniteNumber(value.effectiveness) && isFiniteNumber(value.weight) && Array.isArray(value.stats) &&
+    value.stats.every(isParsedStat);
+}
+
+function isBonusProperty(value: unknown): value is BonusProperty {
+  return isPlainRecord(value) && typeof value.id === "string" && typeof value.key === "string" &&
+    typeof value.name === "string" && isFiniteNumber(value.value) && typeof value.percentage === "boolean";
+}
+
+function isArtifactConfig(value: unknown): value is ArtifactConfig {
+  return isPlainRecord(value) && isListingEntry(value.entry) && isRawItem(value.item) && typeof value.name === "string" &&
+    isFiniteNumber(value.weight) && Array.isArray(value.stats) && value.stats.every(isParsedStat) &&
+    typeof value.uid === "string" && typeof value.level === "number" && Number.isInteger(value.level) && value.level >= 0 && value.level <= 15 &&
+    isFiniteNumber(value.quality) && value.quality >= 0 && value.quality <= 190 &&
+    typeof value.rarityIndex === "number" && Number.isInteger(value.rarityIndex) && value.rarityIndex >= 0 && value.rarityIndex < RARITY_NAMES.length &&
+    Array.isArray(value.bonuses) && value.bonuses.every(isBonusProperty);
+}
+
 type PickerState =
   | { kind: "container" }
   | { kind: "artifact"; index: number }
@@ -286,8 +343,13 @@ function loadSavedBuild(): PersistedBuild | null {
   try {
     const value = localStorage.getItem(STORAGE_KEY);
     if (!value) return null;
-    const parsed = JSON.parse(value) as PersistedBuild;
-    return parsed.version === 1 ? parsed : null;
+    const parsed: unknown = JSON.parse(value);
+    if (!isRecord(parsed) || parsed.version !== 1 || !Array.isArray(parsed.artifacts)) return null;
+    if (parsed.container !== null && !isContainerData(parsed.container)) return null;
+    if (parsed.container === null && parsed.artifacts.length !== 0) return null;
+    if (parsed.container && parsed.artifacts.length > parsed.container.capacity) return null;
+    if (!parsed.artifacts.every((artifact) => artifact === null || isArtifactConfig(artifact))) return null;
+    return parsed as PersistedBuild;
   } catch {
     return null;
   }
@@ -1487,6 +1549,10 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    if (!container && artifacts.length === 0) {
+      localStorage.removeItem(STORAGE_KEY);
+      return;
+    }
     const build: PersistedBuild = { version: 1, container, artifacts };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(build));
   }, [container, artifacts]);
