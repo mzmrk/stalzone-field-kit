@@ -1385,7 +1385,7 @@ function OptimizerPanel({
                         <div className="optimizer-artifacts">{selected.map((artifact, index) => {
                           const estimate = artifactPrice(artifact.entry, artifact.rarityIndex, pricingRegion);
                           const artifactName = translated(artifact.item.name);
-                          return <span key={`${artifact.entry.data}-${artifact.rarityIndex}-${index}`} title={`${artifactName} · ${t(RARITY_NAMES[artifact.rarityIndex])} · ${priceSourceDetails(estimate, pricingRegion)}`}><ItemImage entry={artifact.entry} /><small>{artifactName} · {t(RARITY_NAMES[artifact.rarityIndex])}</small><PriceDisplay estimate={estimate} region={pricingRegion} className="optimizer-artifact__price" /></span>;
+                          return <span key={`${artifact.entry.data}-${artifact.rarityIndex}-${index}`} title={`${artifactName} · ${t(RARITY_NAMES[artifact.rarityIndex])} · ${priceSourceDetails(estimate, pricingRegion)}`}><ItemImage entry={artifact.entry} /><small><span>{artifactName}</span><span className="optimizer-artifact__rarity">{t(RARITY_NAMES[artifact.rarityIndex])}</span></small><PriceDisplay estimate={estimate} region={pricingRegion} className="optimizer-artifact__price" /></span>;
                         })}</div>
                         <div className="optimizer-effect-groups">
                           <div className="optimizer-effect-group optimizer-effect-group--searched">
