@@ -205,7 +205,10 @@ describe("MILP artifact optimizer", () => {
       [candidate("A", [stat(MOVEMENT, 1)]), candidate("B", [stat(MOVEMENT, 2)])],
       [{ key: MOVEMENT, weight: 1 }],
       { ...settings, constraints: [], resultLimit: 1 },
-    )).rejects.toThrow(/non-integral artifact selection/);
+    )).rejects.toMatchObject({
+      code: "optimizer_invalid_result",
+      message: expect.stringMatching(/non-integral artifact selection/),
+    });
   });
 
   it("rejects a solver selection that violates the original price cap", async () => {

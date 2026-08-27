@@ -1,5 +1,6 @@
 import loadHighs from "highs";
 import highsWasmUrl from "highs/runtime?url";
+import { optimizerWorkerError } from "./app-errors";
 import {
   optimizeArtifactCombinationsMilp,
   type MilpProgress,
@@ -41,9 +42,6 @@ self.onmessage = async (event: MessageEvent<SearchRequest>) => {
     );
     self.postMessage({ type: "result", result });
   } catch (error) {
-    self.postMessage({
-      type: "error",
-      error: error instanceof Error ? error.message : "MILP optimizer failed.",
-    });
+    self.postMessage(optimizerWorkerError(error));
   }
 };

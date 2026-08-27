@@ -1,4 +1,5 @@
 import { optimizeArtifactCombinations } from "./optimizer";
+import { optimizerWorkerError } from "./app-errors";
 import type {
   OptimizerCandidate,
   OptimizerContainer,
@@ -24,9 +25,6 @@ self.onmessage = (event: MessageEvent<SearchRequest>) => {
     );
     self.postMessage({ type: "result", result });
   } catch (error) {
-    self.postMessage({
-      type: "error",
-      error: error instanceof Error ? error.message : "Optimizer search failed.",
-    });
+    self.postMessage(optimizerWorkerError(error));
   }
 };

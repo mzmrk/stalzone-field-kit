@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest";
+import { appErrorMessageKey } from "./app-errors";
 import i18n, { appLanguage, appLocale, preferredLanguage } from "./i18n";
 import { translated } from "./data";
 
@@ -38,5 +39,14 @@ describe("language selection", () => {
     expect(i18n.t("Neutral")).toBe("Нейтральная");
     expect(i18n.t("Accepted consequences")).toBe("Допустимые отрицательные эффекты");
     expect(i18n.t("Proven optimal for this rank")).toBe("Оптимальность этой позиции доказана");
+  });
+
+  it("localizes stable optimizer and pricing failures", async () => {
+    await i18n.changeLanguage("ru");
+
+    expect(i18n.t(appErrorMessageKey("optimizer_invalid_result"))).toContain("противоречивый результат");
+    expect(i18n.t(appErrorMessageKey("optimizer_search_failed"))).toContain("не смог завершить поиск");
+    expect(i18n.t(appErrorMessageKey("pricing_download_failed"))).toContain("индекс рыночных цен");
+    expect(i18n.t(appErrorMessageKey("pricing_invalid_data"))).toContain("некорректные данные");
   });
 });

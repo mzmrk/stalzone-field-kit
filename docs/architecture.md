@@ -80,6 +80,9 @@ tiers are excluded by an active price cap. Raw caches are not shipped.
 - [`src/pricing.ts`](../src/pricing.ts) maps EXBO artifact IDs and rarity indices
   to the validated in-memory market estimates and owns ruble display formatting.
   Its algorithm and source history are owned by `stalzone-market-history`.
+- [`src/app-errors.ts`](../src/app-errors.ts) owns stable optimizer and pricing
+  failure codes and their player-facing message keys. Worker diagnostics remain
+  technical data rather than UI copy.
 - [`src/i18n.ts`](../src/i18n.ts) owns EN/RU selection and locale helpers;
   [`src/locales/`](../src/locales/) owns UI translations.
 - [`src/App.tsx`](../src/App.tsx) owns item selection, slot management, artifact
@@ -135,6 +138,10 @@ failure names the item and surfaces the underlying exception. There is no retry,
 offline catalog cache or upstream-version pin at present. A failed or invalid
 price-index request leaves prices unavailable and disables a configured
 price-capped search; no previous or bundled price data is substituted.
+Pricing distinguishes download failures from invalid index data. Optimizer
+workers return stable failure codes plus technical diagnostics; the UI localizes
+the code and writes the diagnostic to the browser console instead of displaying
+raw solver text. Unexpected worker errors use a localized fallback.
 
 No build data is sent to an application backend. Build configuration stays in
 the user's browser, while normal HTTP request metadata is visible to GitHub when

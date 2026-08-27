@@ -28,6 +28,12 @@ import {
   useState,
 } from "react";
 import { useTranslation } from "react-i18next";
+import {
+  appErrorMessageKey,
+  pricingErrorCode,
+  type OptimizerWorkerErrorMessage,
+  type PricingErrorCode,
+} from "./app-errors";
 import { appLanguage, appLocale, LANGUAGE_STORAGE_KEY, type AppLanguage } from "./i18n";
 import {
   CARRY_WEIGHT_KEY,
@@ -762,7 +768,7 @@ type OptimizerWorkerMessage =
   | { type: "progress"; progress: OptimizerProgress | MilpProgress }
   | { type: "partial-result"; result: OptimizerSearchResult }
   | { type: "result"; result: OptimizerSearchResult }
-  | { type: "error"; error: string };
+  | OptimizerWorkerErrorMessage;
 
 function OptimizerPanel({
   catalog,
@@ -977,7 +983,8 @@ function OptimizerPanel({
       workerRef.current = null;
       setMilpNotice(null);
       if (event.data.type === "error") {
-        setError(event.data.error);
+        console.error(`Optimizer error [${event.data.code}]: ${event.data.technicalMessage}`);
+        setError(appErrorMessageKey(event.data.code));
         setState("error");
         return;
       }
@@ -990,11 +997,12 @@ function OptimizerPanel({
       });
       setState("done");
     };
-    worker.onerror = () => {
+    worker.onerror = (event) => {
       worker.terminate();
       workerRef.current = null;
       setMilpNotice(null);
-      setError("The optimizer worker stopped unexpectedly.");
+      console.error("Optimizer worker error:", event.message);
+      setError(appErrorMessageKey("optimizer_worker_failed"));
       setState("error");
     };
     worker.postMessage({
@@ -1289,7 +1297,7 @@ export default function App() {
   const [selecting, setSelecting] = useState<string | null>(null);
   const [pricingRegion, setPricingRegion] = useState<PricingRegion>(savedPricingRegion);
   const [pricingStatus, setPricingStatus] = useState<"loading" | "ready" | "error">("loading");
-  const [pricingError, setPricingError] = useState<string | null>(null);
+  const [pricingError, setPricingError] = useState<PricingErrorCode | null>(null);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -1309,7 +1317,9 @@ export default function App() {
       })
       .catch((error: unknown) => {
         if (active) {
-          setPricingError((error as Error).message);
+          const code = pricingErrorCode(error);
+          console.error(`Market pricing error [${code}]:`, error);
+          setPricingError(code);
           setPricingStatus("error");
         }
       });
@@ -1454,7 +1464,7 @@ export default function App() {
         {pricingStatus === "error" && (
           <div className="data-error" role="alert">
             <AlertTriangle size={19} />
-            <span><strong>{t("Couldn’t load live market prices.")}</strong> {t("Price displays and price-capped searches are unavailable: {{message}}", { message: pricingError })}</span>
+            <span><strong>{t("Couldn’t load live market prices.")}</strong> {t("Price displays and price-capped searches are unavailable: {{message}}", { message: t(appErrorMessageKey(pricingError ?? "pricing_download_failed")) })}</span>
           </div>
         )}
 

@@ -1,4 +1,5 @@
 import i18n, { appLocale } from "./i18n";
+import { AppError, technicalErrorMessage } from "./app-errors";
 import type { ListingEntry } from "./types";
 
 export const PRICING_INDEX_URL =
@@ -45,9 +46,21 @@ export function loadPricingIndex(fetchImpl = fetch) {
   if (pricingLoadPromise) return pricingLoadPromise;
   pricingLoadPromise = fetchImpl(PRICING_INDEX_URL, { headers: { accept: "application/json" } })
     .then(async (response) => {
-      if (!response.ok) throw new Error(`Price-index download failed with HTTP ${response.status}.`);
-      pricingBundle = validatePricingBundle(await response.json());
+      if (!response.ok) {
+        throw new AppError("pricing_download_failed", `Price-index download failed with HTTP ${response.status}.`);
+      }
+      let value: unknown;
+      try {
+        value = await response.json();
+      } catch (error) {
+        throw new AppError("pricing_invalid_data", `Price-index response was not valid JSON: ${technicalErrorMessage(error)}`);
+      }
+      pricingBundle = validatePricingBundle(value);
       return pricingBundle;
+    })
+    .catch((error: unknown) => {
+      if (error instanceof AppError) throw error;
+      throw new AppError("pricing_download_failed", technicalErrorMessage(error));
     })
     .finally(() => {
       pricingLoadPromise = null;
@@ -62,22 +75,22 @@ export function clearPricingIndex() {
 
 export function validatePricingBundle(value: unknown): PricingBundle {
   if (!isRecord(value) || value.schemaVersion !== 1 || value.defaultRegion !== "eu" || !isRecord(value.regions)) {
-    throw new Error("Unsupported pricing bundle schema.");
+    throw new AppError("pricing_invalid_data", "Unsupported pricing bundle schema.");
   }
   const regions: PricingBundle["regions"] = {};
   for (const [region, rawIndex] of Object.entries(value.regions)) {
     if (!isPricingRegion(region) || !isRecord(rawIndex) || rawIndex.region !== region) {
-      throw new Error(`Invalid regional pricing index: ${region}.`);
+      throw new AppError("pricing_invalid_data", `Invalid regional pricing index: ${region}.`);
     }
     if (!isRecord(rawIndex.sourceWindow) || !Number.isFinite(Date.parse(String(rawIndex.sourceWindow.asOf)))
       || !(Number(rawIndex.sourceWindow.days) > 0) || !isRecord(rawIndex.artifacts)) {
-      throw new Error(`Incomplete regional pricing index: ${region}.`);
+      throw new AppError("pricing_invalid_data", `Incomplete regional pricing index: ${region}.`);
     }
     for (const rarities of Object.values(rawIndex.artifacts)) {
-      if (!isRecord(rarities)) throw new Error(`Invalid artifact pricing table in ${region}.`);
+      if (!isRecord(rarities)) throw new AppError("pricing_invalid_data", `Invalid artifact pricing table in ${region}.`);
       for (const estimate of Object.values(rarities)) {
         if (!isRecord(estimate) || !(Number(estimate.median) > 0) || !Number.isFinite(estimate.median)) {
-          throw new Error(`Invalid artifact price estimate in ${region}.`);
+          throw new AppError("pricing_invalid_data", `Invalid artifact price estimate in ${region}.`);
         }
       }
     }

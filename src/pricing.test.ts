@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { pricingErrorCode } from "./app-errors";
 import i18n from "./i18n";
 import {
   artifactId,
@@ -50,10 +51,21 @@ describe("auction pricing", () => {
 
   it("has no price fallback when the live index cannot be loaded", async () => {
     clearPricingIndex();
-    await expect(loadPricingIndex(async () => new Response("offline", { status: 503 })))
-      .rejects.toThrow("HTTP 503");
+    const error = await loadPricingIndex(async () => new Response("offline", { status: 503 })).catch((reason) => reason);
+    expect(pricingErrorCode(error)).toBe("pricing_download_failed");
+    expect(error).toHaveProperty("message", expect.stringContaining("HTTP 503"));
     expect(pricingRegionAvailable("eu")).toBe(false);
     expect(artifactPrice("zyw2", 0)).toBeNull();
+  });
+
+  it("classifies malformed market data without exposing it as a download failure", async () => {
+    clearPricingIndex();
+    const invalidJson = await loadPricingIndex(async () => new Response("not json")).catch((reason) => reason);
+    expect(pricingErrorCode(invalidJson)).toBe("pricing_invalid_data");
+
+    clearPricingIndex();
+    const invalidSchema = await loadPricingIndex(async () => new Response(JSON.stringify({ schemaVersion: 2 }))).catch((reason) => reason);
+    expect(pricingErrorCode(invalidSchema)).toBe("pricing_invalid_data");
   });
 
   it("shares one download and reuses the validated index for the page session", async () => {

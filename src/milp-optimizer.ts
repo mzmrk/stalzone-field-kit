@@ -13,6 +13,7 @@ import {
   type OptimizerSearchResult,
   type OptimizerSettings,
 } from "./optimizer";
+import { AppError } from "./app-errors";
 
 const EPSILON = 1e-10;
 const SOLUTION_TOLERANCE = 1e-7;
@@ -425,12 +426,12 @@ function selectedIndices(solution: MilpSolution, upperBounds: number[], capacity
       || Math.abs(primal - count) > SOLUTION_TOLERANCE
       || count < 0
       || count > upperBounds[index]) {
-      throw new Error("MILP solver returned a non-integral artifact selection.");
+      throw new AppError("optimizer_invalid_result", "MILP solver returned a non-integral artifact selection.");
     }
     for (let copy = 0; copy < count; copy += 1) indices.push(index);
   }
   if (indices.length !== capacity) {
-    throw new Error("MILP solver returned a non-integral artifact selection.");
+    throw new AppError("optimizer_invalid_result", "MILP solver returned a non-integral artifact selection.");
   }
   return indices;
 }
@@ -459,7 +460,7 @@ function validateSelection(
   if (!settings.allowDuplicates) {
     const identities = selected.map((index) => candidates[index].identity ?? `candidate-${index}`);
     if (new Set(identities).size !== identities.length) {
-      throw new Error("MILP solver returned duplicate variants of one artifact.");
+      throw new AppError("optimizer_invalid_result", "MILP solver returned duplicate variants of one artifact.");
     }
   }
 
@@ -473,10 +474,10 @@ function validateSelection(
       ? sums[keyIndex]
       : finalStatValue(sums[keyIndex], constraint.key, keyIndex, prepared);
     if (constraint.minimum !== null && value < constraint.minimum - validationSlack(constraint.minimum)) {
-      throw new Error(`MILP solver returned a build below the ${constraint.key} minimum.`);
+      throw new AppError("optimizer_invalid_result", `MILP solver returned a build below the ${constraint.key} minimum.`);
     }
     if (constraint.maximum !== null && value > constraint.maximum + validationSlack(constraint.maximum)) {
-      throw new Error(`MILP solver returned a build above the ${constraint.key} maximum.`);
+      throw new AppError("optimizer_invalid_result", `MILP solver returned a build above the ${constraint.key} maximum.`);
     }
   });
   objectives.forEach((objective) => {
@@ -485,7 +486,7 @@ function validateSelection(
     if (objective.direction === -1
       ? value > SOLUTION_TOLERANCE
       : value < -SOLUTION_TOLERANCE) {
-      throw new Error(`MILP solver returned a build with a harmful ${objective.key} objective.`);
+      throw new AppError("optimizer_invalid_result", `MILP solver returned a build with a harmful ${objective.key} objective.`);
     }
   });
 
@@ -493,11 +494,11 @@ function validateSelection(
     let total = 0;
     for (const candidateIndex of selected) {
       const price = candidates[candidateIndex].price;
-      if (price === null) throw new Error("MILP solver returned an unpriced build under a price cap.");
+      if (price === null) throw new AppError("optimizer_invalid_result", "MILP solver returned an unpriced build under a price cap.");
       total += price;
     }
     if (total > settings.maxTotalPrice + validationSlack(settings.maxTotalPrice)) {
-      throw new Error("MILP solver returned a build above the price cap.");
+      throw new AppError("optimizer_invalid_result", "MILP solver returned a build above the price cap.");
     }
   }
 
@@ -506,7 +507,7 @@ function validateSelection(
     selectedCounts,
     selectionCounts(excluded, candidates.length),
   ))) {
-    throw new Error("MILP solver returned a previously excluded build.");
+    throw new AppError("optimizer_invalid_result", "MILP solver returned a previously excluded build.");
   }
 }
 
@@ -514,7 +515,7 @@ function validateLinearObjective(solution: MilpSolution, selected: number[], coe
   if (!Number.isFinite(solution.ObjectiveValue)) return;
   const actual = selectedLinearValue(selected, coefficients);
   if (Math.abs(actual - solution.ObjectiveValue!) > validationSlack(solution.ObjectiveValue!)) {
-    throw new Error("MILP solver returned an objective value inconsistent with its artifact selection.");
+    throw new AppError("optimizer_invalid_result", "MILP solver returned an objective value inconsistent with its artifact selection.");
   }
 }
 
