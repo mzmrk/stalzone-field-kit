@@ -33,7 +33,7 @@ test("opens the optimizer by default and shares carrier selection between both t
   await page.getByRole("button", { name: /Errand Junior Backpack/ }).click();
   await expect(page.locator("#optimizer .optimizer-settings .container-card")).toContainText("Errand Junior Backpack");
   await expect(page.locator(".optimizer-results-empty")).toHaveCSS("position", "sticky");
-  await expect(page.locator(".optimizer-results-empty").getByRole("button", { name: /Search .* combinations/ })).toBeVisible();
+  await expect(page.locator(".optimizer-results-empty").getByRole("button", { name: "Find best builds" })).toBeVisible();
 
   await openCalculator(page);
   await expect(page.getByRole("heading", { name: "Carrier & artifacts" })).toBeVisible();
@@ -192,7 +192,7 @@ test("exhaustively ranks and loads a four-slot weighted build", async ({ page })
   await expect(movementRow.locator(".objective-share")).toHaveText("66.7%");
   await expect(staminaRow.locator(".objective-share")).toHaveText("16.7%");
   await expect(bulletRow.locator(".objective-share")).toHaveText("16.7%");
-  const searchButton = page.locator(".optimizer-results-empty").getByRole("button", { name: /Search 4,967,690 combinations/ });
+  const searchButton = page.locator(".optimizer-results-empty").getByRole("button", { name: "Find best builds" });
   await page.getByLabel("Minimum Movement speed from artifacts").fill("0");
   await expect(searchButton).toBeDisabled();
   await expect(page.getByText("Positive minimums must be greater than zero.")).toBeVisible();
@@ -271,7 +271,7 @@ test("uses MILP to optimize a carrier beyond the brute-force limit", async ({ pa
   await expect(page.getByLabel("Search Ordinary rarity")).toBeChecked();
   await page.getByLabel("Search Uncommon rarity").check();
   await expect(page.getByText(/MILP selected automatically/)).toBeVisible();
-  const searchButton = page.locator(".optimizer-results-empty").getByRole("button", { name: "Find optimal build with MILP" });
+  const searchButton = page.locator(".optimizer-results-empty").getByRole("button", { name: "Find best builds" });
   await expect(searchButton).toBeEnabled();
   await page.evaluate(() => {
     document.body.dataset.sawStreamingMilpResult = "false";

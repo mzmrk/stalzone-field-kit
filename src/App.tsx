@@ -1132,9 +1132,7 @@ function OptimizerPanel({
     ? t("Loading artifacts {{completed}}/{{total}}", loadProgress)
     : state === "searching"
       ? t(displayedEngine === "milp" ? "Solving bounded search {{percent}}%" : "Searching {{percent}}%", { percent: Math.round(progressPercent) })
-      : estimatedEngine === "milp"
-        ? t("Find optimal build with MILP")
-        : t("Search {{count}} combinations", { count: formatInteger(estimatedCombinations) });
+      : t("Find best builds");
   useEffect(() => {
     if (state !== "searching" || displayedEngine !== "milp") return;
     const timer = window.setInterval(() => {
@@ -1295,7 +1293,7 @@ function OptimizerPanel({
           {!container ? (
             <div className="optimizer-empty"><Gauge size={28} /><span>{t("Select a carrier before searching combinations.")}</span></div>
           ) : !run ? (
-              <div className="optimizer-results-empty"><CircleGauge size={31} /><strong>{t("Configure and run a bounded search")}</strong><span>{t("Weights compare each build against neutral zero and the best possible value found for every objective.")}</span><button className="optimizer-search optimizer-results-empty__search" disabled={searchDisabled} onClick={startSearch}>{searchButtonLabel}</button></div>
+              <div className="optimizer-results-empty"><CircleGauge size={31} /><strong>{t("Find your best artifact build")}</strong><span>{t("Choose the stats, safety limits, rarities, and budget you care about. Field Kit will compare matching artifact combinations and rank the best builds.")}</span><button className="optimizer-search optimizer-results-empty__search" disabled={searchDisabled} onClick={startSearch}>{searchButtonLabel}</button></div>
             ) : run.search.results.length === 0 ? (
               <div className="optimizer-results-empty"><AlertTriangle size={31} /><strong>{t("No feasible combinations")}</strong><span>{t("Relax a minimum, negative-effect policy, budget, or artifact assumption.")}</span></div>
             ) : (
