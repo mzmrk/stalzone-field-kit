@@ -1312,12 +1312,14 @@ function OptimizerPanel({
                               })}
                             </ul>
                           </div>
-                          {remainingGroups.map(({ category, stats }) => (
-                            <div className="optimizer-effect-group" key={category}>
-                              <div className="section-label"><span>{t(category)}</span><span>{stats.length}</span></div>
-                              <ul>{stats.map((stat) => <li className={resultStatClass(stat)} key={stat.key}><span>{t(stat.name)}</span><strong>{formatNumber(stat.value, stat.percentage)}</strong></li>)}</ul>
-                            </div>
-                          ))}
+                          <div className="optimizer-effect-groups__other">
+                            {remainingGroups.map(({ category, stats }) => (
+                              <div className="optimizer-effect-group" key={category}>
+                                <div className="section-label"><span>{t(category)}</span><span>{stats.length}</span></div>
+                                <ul>{stats.map((stat) => <li className={resultStatClass(stat)} key={stat.key}><span>{t(stat.name)}</span><strong>{formatNumber(stat.value, stat.percentage)}</strong></li>)}</ul>
+                              </div>
+                            ))}
+                          </div>
                         </div>
                         <button className="optimizer-apply" onClick={() => applyResult(resultIndex)}>{t("Load into calculator")}</button>
                       </article>

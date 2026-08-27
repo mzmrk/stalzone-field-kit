@@ -217,6 +217,9 @@ test("exhaustively ranks and loads a four-slot weighted build", async ({ page })
   const secondResultBox = await resultCards.nth(1).boundingBox();
   expect(firstResultBox?.x).toBe(secondResultBox?.x);
   expect(secondResultBox?.y).toBeGreaterThan(firstResultBox?.y ?? 0);
+  const searchedEffectsBox = await resultCards.first().locator(".optimizer-effect-group--searched").boundingBox();
+  const otherEffectsBox = await resultCards.first().locator(".optimizer-effect-groups__other").boundingBox();
+  expect(otherEffectsBox?.x).toBeGreaterThan(searchedEffectsBox?.x ?? 0);
   await page.screenshot({ path: "test-results/optimizer.png", fullPage: true });
 
   await page.getByRole("button", { name: "Load into calculator" }).first().click();
