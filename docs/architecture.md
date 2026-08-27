@@ -9,6 +9,12 @@ under shared artifact assumptions and weighted objectives. Armor, consumable
 buffs, accounts, remote build storage, owned-artifact inventory, and comparisons
 remain outside the implemented product boundary.
 
+The primary workspace switches between Build optimizer and Build calculator,
+with the optimizer selected on every page load. Both modes expose the same
+carrier selector and edit the same in-memory carrier state. Loading an optimizer
+result switches to the calculator so the generated artifacts can be inspected
+and adjusted immediately.
+
 The application is a React/Vite single-page app. [`src/main.tsx`](../src/main.tsx)
 initializes i18next; [`src/App.tsx`](../src/App.tsx) owns screen flow and state.
 The production site is a static GitHub Pages deployment at
@@ -129,6 +135,8 @@ Language is stored under `field-kit-language-v1`. An explicit choice wins;
 otherwise any `ru` browser preference selects Russian and English is the fallback.
 Switching language is immediate and does not recreate the build. Official EXBO
 item translations and locale-aware number, ruble, and date formatting follow it.
+The active optimizer/calculator workspace is intentionally transient rather than
+persisted; opening or refreshing the application starts on the optimizer.
 
 ## Failure and privacy boundaries
 

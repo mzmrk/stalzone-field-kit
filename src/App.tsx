@@ -422,6 +422,48 @@ function Picker({
   );
 }
 
+function CarrierSelector({
+  container,
+  onChooseContainer,
+}: {
+  container: ContainerData | null;
+  onChooseContainer: () => void;
+}) {
+  const { t } = useTranslation();
+  const carrierCarryWeight = container?.stats.find((stat) => stat.key === CARRY_WEIGHT_KEY)?.max;
+
+  return (
+    <>
+      {container ? (
+        <button className="container-card" onClick={onChooseContainer}>
+          <ItemImage entry={container.entry} size="large" />
+          <span className="container-card__main">
+            <small>{container.entry.data.includes("/backpacks/") ? t("Backpack").toUpperCase() : t("Container").toUpperCase()}</small>
+            <strong>{translated(container.item.name)}</strong>
+            <span>{t("Click to replace")}</span>
+          </span>
+          <ChevronRight size={20} />
+        </button>
+      ) : (
+        <button className="container-empty" onClick={onChooseContainer}>
+          <span className="container-empty__icon"><Plus size={24} /></span>
+          <strong>{t("Select a backpack or container")}</strong>
+          <span>{t("Your available artifact slots will appear here.")}</span>
+        </button>
+      )}
+
+      {container && (
+        <div className="container-specs">
+          <StatPill label={t("SLOTS")} value={String(container.capacity)} />
+          <StatPill label={t("PROTECTION")} value={`${formatAccuracy(container.protection)}%`} />
+          <StatPill label={t("EFFECT")} value={`${formatAccuracy(container.effectiveness)}%`} />
+          {carrierCarryWeight !== undefined && <StatPill label={t("CARRY WEIGHT")} value={`${formatNumber(carrierCarryWeight, false)} kg`} />}
+        </div>
+      )}
+    </>
+  );
+}
+
 function ContainerPanel({
   container,
   artifacts,
@@ -444,7 +486,6 @@ function ContainerPanel({
   pricingRegion: PricingRegion;
 }) {
   const { t } = useTranslation();
-  const carrierCarryWeight = container?.stats.find((stat) => stat.key === CARRY_WEIGHT_KEY)?.max;
 
   return (
     <section className="panel loadout-panel" id="loadout">
@@ -456,32 +497,10 @@ function ContainerPanel({
         <Backpack size={22} />
       </div>
 
-      {container ? (
-        <button className="container-card" onClick={onChooseContainer}>
-          <ItemImage entry={container.entry} size="large" />
-          <span className="container-card__main">
-            <small>{container.entry.data.includes("/backpacks/") ? t("Backpack").toUpperCase() : t("Container").toUpperCase()}</small>
-            <strong>{translated(container.item.name)}</strong>
-            <span>{t("Click to replace")}</span>
-          </span>
-          <ChevronRight size={20} />
-        </button>
-      ) : (
-        <button className="container-empty" onClick={onChooseContainer}>
-          <span className="container-empty__icon"><Plus size={24} /></span>
-          <strong>{t("Select a backpack or container")}</strong>
-          <span>{t("Your available artifact slots will appear here.")}</span>
-        </button>
-      )}
+      <CarrierSelector container={container} onChooseContainer={onChooseContainer} />
 
       {container && (
         <>
-          <div className="container-specs">
-            <StatPill label={t("SLOTS")} value={String(container.capacity)} />
-            <StatPill label={t("PROTECTION")} value={`${formatAccuracy(container.protection)}%`} />
-            <StatPill label={t("EFFECT")} value={`${formatAccuracy(container.effectiveness)}%`} />
-            {carrierCarryWeight !== undefined && <StatPill label={t("CARRY WEIGHT")} value={`${formatNumber(carrierCarryWeight, false)} kg`} />}
-          </div>
           <div className="slot-heading">
             <span>{t("Artifact slots")}</span>
             <span>{artifacts.filter(Boolean).length} / {container.capacity}</span>
@@ -773,12 +792,14 @@ type OptimizerWorkerMessage =
 function OptimizerPanel({
   catalog,
   container,
+  onChooseContainer,
   onApply,
   pricingRegion,
   pricingReady,
 }: {
   catalog: Catalog | null;
   container: ContainerData | null;
+  onChooseContainer: () => void;
   onApply: (artifacts: ArtifactConfig[]) => void;
   pricingRegion: PricingRegion;
   pricingReady: boolean;
@@ -1052,7 +1073,9 @@ function OptimizerPanel({
       uid: makeId(),
       bonuses: [],
     })));
-    document.querySelector("#loadout")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    window.requestAnimationFrame(() => {
+      document.querySelector("#loadout")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
   };
 
   const progressPercent = searchProgress
@@ -1094,6 +1117,13 @@ function OptimizerPanel({
         <div className="optimizer-heading-actions">
           <button type="button" className="optimizer-reset" aria-label={t("Reset optimizer filters")} onClick={resetOptimizerSettings}><RotateCcw size={14} /> {t("Reset filters")}</button>
           <SlidersHorizontal size={24} />
+        </div>
+      </div>
+
+      <div className="optimizer-carrier-selector">
+        <div className="section-label"><span>{t("Carrier")}</span><span>{container ? t("{{count}} slots", { count: container.capacity }) : t("Required")}</span></div>
+        <div className="optimizer-carrier-selector__content">
+          <CarrierSelector container={container} onChooseContainer={onChooseContainer} />
         </div>
       </div>
 
@@ -1279,6 +1309,8 @@ function OptimizerPanel({
   );
 }
 
+type WorkspaceMode = "optimizer" | "calculator";
+
 export default function App() {
   const { t, i18n } = useTranslation();
   const language = appLanguage(i18n.resolvedLanguage ?? i18n.language);
@@ -1298,6 +1330,7 @@ export default function App() {
   const [pricingRegion, setPricingRegion] = useState<PricingRegion>(savedPricingRegion);
   const [pricingStatus, setPricingStatus] = useState<"loading" | "ready" | "error">("loading");
   const [pricingError, setPricingError] = useState<PricingErrorCode | null>(null);
+  const [workspaceMode, setWorkspaceMode] = useState<WorkspaceMode>("optimizer");
 
   useEffect(() => {
     const controller = new AbortController();
@@ -1413,7 +1446,7 @@ export default function App() {
       <header className="site-header">
         <div className="brand">
           <span className="brand-mark"><FlaskConical size={22} /></span>
-          <span><strong>FIELD KIT</strong><small>{t("ARTIFACT CALCULATOR")}</small></span>
+          <span><strong>FIELD KIT</strong><small>{t(workspaceMode === "optimizer" ? "BUILD OPTIMIZER" : "ARTIFACT CALCULATOR")}</small></span>
         </div>
         <div className="source-state">
           <span className={`source-dot ${catalogError ? "source-dot--error" : catalog ? "source-dot--ready" : ""}`} />
@@ -1445,7 +1478,9 @@ export default function App() {
           <div>
             <p className="eyebrow"><span>{t("FIELD TOOL 01")}</span> / {t("BUILD WITH CONFIDENCE")}</p>
             <h1>{t("Balance the benefits.")}<br /><em>{t("Contain the consequences.")}</em></h1>
-            <p className="hero-copy">{t("Configure your exact artifact loadout and see every effect after container efficiency and inner protection.")}</p>
+            <p className="hero-copy">{t(workspaceMode === "optimizer"
+              ? "Search the artifact catalog for combinations that match your preferred stats, safety limits, rarities, and budget."
+              : "Configure your exact artifact loadout and see every effect after container efficiency and inner protection.")}</p>
           </div>
           <div className="hero-readout">
             <Database size={18} />
@@ -1483,44 +1518,61 @@ export default function App() {
           <div className="loading-catalog"><LoaderCircle className="spin" size={22} /><span>{t("Loading current market prices…")}</span></div>
         )}
 
-        <nav className="mobile-steps" aria-label={t("Calculator sections")}>
-          <a href="#loadout">{t("01 Loadout")}</a><a href="#artifact">{t("02 Tune")}</a><a href="#results">{t("03 Results")}</a><a href="#optimizer">{t("04 Optimize")}</a>
+        <nav className="workspace-switcher" aria-label={t("Build tools")}>
+          <button type="button" className={workspaceMode === "optimizer" ? "active" : ""} aria-label={t("Build optimizer")} aria-pressed={workspaceMode === "optimizer"} onClick={() => setWorkspaceMode("optimizer")}>
+            <Gauge size={22} />
+            <span><strong>{t("Build optimizer")}</strong><small>{t("Find the best catalog combination for your priorities.")}</small></span>
+          </button>
+          <button type="button" className={workspaceMode === "calculator" ? "active" : ""} aria-label={t("Build calculator")} aria-pressed={workspaceMode === "calculator"} onClick={() => setWorkspaceMode("calculator")}>
+            <FlaskConical size={22} />
+            <span><strong>{t("Build calculator")}</strong><small>{t("Configure artifacts you own and calculate exact totals.")}</small></span>
+          </button>
         </nav>
 
-        <div className="calculator-grid">
-          <ContainerPanel
+        {workspaceMode === "calculator" ? (
+          <>
+            <nav className="mobile-steps" aria-label={t("Calculator sections")}>
+              <a href="#loadout">{t("01 Loadout")}</a><a href="#artifact">{t("02 Tune")}</a><a href="#results">{t("03 Results")}</a>
+            </nav>
+            <div className="calculator-grid">
+              <ContainerPanel
+                container={container}
+                artifacts={artifacts}
+                activeIndex={activeIndex}
+                onChooseContainer={() => catalog && setPicker({ kind: "container" })}
+                onChooseArtifact={(index) => catalog && setPicker({ kind: "artifact", index })}
+                onActivate={setActiveIndex}
+                onRemove={(index) => {
+                  setArtifacts((current) => current.map((value, slot) => slot === index ? null : value));
+                  if (activeIndex === index) setActiveIndex(null);
+                }}
+                onCopy={copyArtifact}
+                pricingRegion={pricingRegion}
+              />
+              <ArtifactEditor
+                artifact={activeIndex === null ? null : artifacts[activeIndex] ?? null}
+                index={activeIndex}
+                onChange={updateArtifact}
+                onReplace={() => activeIndex !== null && setPicker({ kind: "artifact", index: activeIndex })}
+                pricingRegion={pricingRegion}
+              />
+              <ResultPanel container={container} totals={totals} warnings={warnings} />
+            </div>
+          </>
+        ) : (
+          <OptimizerPanel
+            catalog={catalog}
             container={container}
-            artifacts={artifacts}
-            activeIndex={activeIndex}
             onChooseContainer={() => catalog && setPicker({ kind: "container" })}
-            onChooseArtifact={(index) => catalog && setPicker({ kind: "artifact", index })}
-            onActivate={setActiveIndex}
-            onRemove={(index) => {
-              setArtifacts((current) => current.map((value, slot) => slot === index ? null : value));
-              if (activeIndex === index) setActiveIndex(null);
+            pricingRegion={pricingRegion}
+            pricingReady={pricingStatus === "ready"}
+            onApply={(nextArtifacts) => {
+              setArtifacts(Array.from({ length: container?.capacity ?? nextArtifacts.length }, (_, index) => nextArtifacts[index] ?? null));
+              setActiveIndex(nextArtifacts.length > 0 ? 0 : null);
+              setWorkspaceMode("calculator");
             }}
-            onCopy={copyArtifact}
-            pricingRegion={pricingRegion}
           />
-          <ArtifactEditor
-            artifact={activeIndex === null ? null : artifacts[activeIndex] ?? null}
-            index={activeIndex}
-            onChange={updateArtifact}
-            onReplace={() => activeIndex !== null && setPicker({ kind: "artifact", index: activeIndex })}
-            pricingRegion={pricingRegion}
-          />
-          <ResultPanel container={container} totals={totals} warnings={warnings} />
-        </div>
-        <OptimizerPanel
-          catalog={catalog}
-          container={container}
-          pricingRegion={pricingRegion}
-          pricingReady={pricingStatus === "ready"}
-          onApply={(nextArtifacts) => {
-            setArtifacts(Array.from({ length: container?.capacity ?? nextArtifacts.length }, (_, index) => nextArtifacts[index] ?? null));
-            setActiveIndex(nextArtifacts.length > 0 ? 0 : null);
-          }}
-        />
+        )}
       </main>
 
       <footer>

@@ -61,7 +61,9 @@ persistence and isolated reset behavior, runs the live
 through fixed positive and direction-aware harmful filters, including
 hidden/cleared disabled minimums, and verifies automatic MILP selection and ten
 ranked six-slot Berloga results across multiple enabled rarity variants in the
-browser.
+browser. It also verifies that the optimizer is the default workspace, carrier
+selection is shared across the optimizer and calculator, and loading a ranked
+result opens the calculator.
 
 Type-check and produce the static artifact with:
 

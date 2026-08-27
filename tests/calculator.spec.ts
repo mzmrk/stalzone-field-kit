@@ -1,8 +1,33 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
+
+async function openCalculator(page: Page) {
+  await page.getByRole("button", { name: "Build calculator", exact: true }).click();
+}
+
+test("opens the optimizer by default and shares carrier selection between both tools", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByText(/EXBO LIVE/)).toBeVisible({ timeout: 20_000 });
+
+  await expect(page.getByRole("button", { name: "Build optimizer", exact: true })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByRole("heading", { name: "Weighted combination search" })).toBeVisible();
+
+  await page.getByRole("button", { name: /Select a backpack or container/i }).click();
+  await page.getByPlaceholder(/Search backpacks and containers/).fill("Errand Junior Backpack");
+  await page.getByRole("button", { name: /Errand Junior Backpack/ }).click();
+  await expect(page.locator("#optimizer .container-card")).toContainText("Errand Junior Backpack");
+
+  await openCalculator(page);
+  await expect(page.getByRole("heading", { name: "Carrier & artifacts" })).toBeVisible();
+  await expect(page.locator("#loadout .container-card")).toContainText("Errand Junior Backpack");
+
+  await page.getByRole("button", { name: "Build optimizer", exact: true }).click();
+  await expect(page.locator("#optimizer .container-card")).toContainText("Errand Junior Backpack");
+});
 
 test("creates and restores a live EXBO-backed artifact build", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByText(/EXBO LIVE/)).toBeVisible({ timeout: 20_000 });
+  await openCalculator(page);
 
   await page.getByRole("button", { name: /Select a backpack or container/i }).click();
   await page.getByPlaceholder(/Search backpacks and containers/).fill("Berloga-6 Container");
@@ -31,6 +56,7 @@ test("creates and restores a live EXBO-backed artifact build", async ({ page }) 
   await expect(page.getByText("+10 · 130% · Rare")).toBeVisible();
 
   await page.reload();
+  await openCalculator(page);
   await expect(page.getByText("Berloga-6 Container").first()).toBeVisible();
   await expect(page.getByText("Bracelet").first()).toBeVisible();
   await expect(page.getByRole("heading", { name: "Bracelet" })).toBeVisible();
@@ -49,6 +75,7 @@ test("persists the selected market region independently of the build", async ({ 
 test("switches to Russian without resetting the saved build and persists the choice", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByText(/EXBO LIVE/)).toBeVisible({ timeout: 20_000 });
+  await openCalculator(page);
 
   await page.getByRole("button", { name: /Select a backpack or container/i }).click();
   await page.getByPlaceholder(/Search backpacks and containers/).fill("Berloga-6 Container");
@@ -71,7 +98,8 @@ test("uses Russian for a new visitor whose browser prefers Russian", async ({ br
   const context = await browser.newContext({ locale: "ru-RU" });
   const page = await context.newPage();
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "Рюкзак и артефакты" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Оптимизатор сборок", exact: true })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByRole("heading", { name: "Поиск взвешенной комбинации" })).toBeVisible();
   await expect(page.getByLabel("ЯЗЫК")).toHaveValue("ru");
   await context.close();
 });
@@ -80,12 +108,19 @@ test("keeps the calculator usable at a phone viewport", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
   await expect(page.getByText("EXBO Studio / Global")).toBeVisible({ timeout: 20_000 });
-  await expect(page.getByRole("navigation", { name: "Calculator sections" })).toBeVisible();
-  const dimensions = await page.evaluate(() => ({
+  await expect(page.getByRole("button", { name: "Build optimizer", exact: true })).toHaveAttribute("aria-pressed", "true");
+  const optimizerDimensions = await page.evaluate(() => ({
     scrollWidth: document.documentElement.scrollWidth,
     clientWidth: document.documentElement.clientWidth,
   }));
-  expect(dimensions.scrollWidth).toBe(dimensions.clientWidth);
+  expect(optimizerDimensions.scrollWidth).toBe(optimizerDimensions.clientWidth);
+  await openCalculator(page);
+  await expect(page.getByRole("navigation", { name: "Calculator sections" })).toBeVisible();
+  const calculatorDimensions = await page.evaluate(() => ({
+    scrollWidth: document.documentElement.scrollWidth,
+    clientWidth: document.documentElement.clientWidth,
+  }));
+  expect(calculatorDimensions.scrollWidth).toBe(calculatorDimensions.clientWidth);
 });
 
 test("exhaustively ranks and loads a four-slot weighted build", async ({ page }) => {
@@ -179,11 +214,13 @@ test("exhaustively ranks and loads a four-slot weighted build", async ({ page })
 
   await page.getByRole("button", { name: "Load into calculator" }).first().click();
   await expect(page.getByText("4 / 4")).toBeVisible();
+  await page.getByRole("button", { name: "Build optimizer", exact: true }).click();
   await page.getByRole("button", { name: "Reset optimizer filters" }).click();
   await expect(movementRow.getByRole("button", { name: /Important/ })).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByLabel("Optimize Running speed")).toBeChecked();
   await expect(page.getByLabel("Maximum total price")).toHaveValue("");
   await expect(page.getByLabel("Search Ordinary rarity")).toBeChecked();
+  await openCalculator(page);
   await expect(page.getByText("4 / 4")).toBeVisible();
 });
 
