@@ -209,6 +209,7 @@ test("exhaustively ranks and loads a four-slot weighted build", async ({ page })
   await searchButton.click();
   await expect(page.getByText(/combinations evaluated/)).toBeVisible({ timeout: 45_000 });
   await expect(page.getByRole("button", { name: "Load into calculator" }).first()).toBeVisible();
+  await expect.poll(() => page.locator(".optimizer-result").first().evaluate((element) => Math.round(element.getBoundingClientRect().top))).toBeLessThan(150);
   await expect(page.locator(".optimizer-result__price").first()).toContainText("₽");
   await expect(page.locator(".optimizer-effect-group--searched").first()).toContainText("Searched effects");
   await expect(page.locator(".optimizer-effect-group").filter({ hasText: "Exposure" }).first()).toBeVisible();
@@ -265,6 +266,7 @@ test("uses MILP to optimize a carrier beyond the brute-force limit", async ({ pa
   await searchButton.click();
 
   await expect(page.getByText("MILP bounded")).toBeVisible({ timeout: 45_000 });
+  await expect.poll(() => page.locator(".optimizer-result").first().evaluate((element) => Math.round(element.getBoundingClientRect().top))).toBeLessThan(150);
   await expect(page.getByText(/possible combinations were not enumerated/)).toBeVisible({ timeout: 45_000 });
   expect(await page.evaluate(() => document.body.dataset.sawStreamingMilpResult)).toBe("true");
   await expect(page.getByRole("button", { name: "Load into calculator" })).toHaveCount(10);

@@ -25,6 +25,9 @@ effects categories as the manual calculator. The columns stack on narrow screens
 Objective rows visualize the current-to-best normalized value with a capsule bar;
 the current value remains primary, the comparison value stays neutral, and the
 range proof or bounded error plus solve duration remains explicit below the bar.
+Each search scrolls to its first ranked card once that result becomes available;
+later streamed ranks do not move the viewport again, and reduced-motion browser
+preferences disable smooth scrolling.
 
 The application is a React/Vite single-page app. [`src/main.tsx`](../src/main.tsx)
 initializes i18next; [`src/App.tsx`](../src/App.tsx) owns screen flow and state.

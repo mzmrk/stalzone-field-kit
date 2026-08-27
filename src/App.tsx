@@ -820,7 +820,9 @@ function OptimizerPanel({
   const [run, setRun] = useState<OptimizerRun | null>(null);
   const cache = useRef(new Map<string, ArtifactData>());
   const workerRef = useRef<Worker | null>(null);
+  const firstResultRef = useRef<HTMLElement | null>(null);
   const runIdRef = useRef(0);
+  const scrollToResultRunIdRef = useRef<number | null>(null);
   const lastSearchProgressAtRef = useRef(0);
   const searchSignature = JSON.stringify({
     carrier: container?.entry.data ?? null,
@@ -859,7 +861,16 @@ function OptimizerPanel({
     setMilpNotice(null);
     setActiveEngine(null);
     setState("idle");
+    scrollToResultRunIdRef.current = null;
   }, [searchSignature]);
+  useEffect(() => {
+    if (!run?.search.results.length || scrollToResultRunIdRef.current !== runIdRef.current) return;
+    scrollToResultRunIdRef.current = null;
+    window.requestAnimationFrame(() => firstResultRef.current?.scrollIntoView({
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+      block: "start",
+    }));
+  }, [run?.search.results.length]);
 
   const estimatedCombinations = catalog && container
     ? groupedCombinationCount(catalog.artifacts.length, selectedRarities.length, container.capacity, true)
@@ -935,6 +946,7 @@ function OptimizerPanel({
       || invalidMaxTotalPrice || invalidPositiveMinimum || invalidCustomLimit || priceConstraintUnavailable) return;
     const runId = runIdRef.current + 1;
     runIdRef.current = runId;
+    scrollToResultRunIdRef.current = runId;
     workerRef.current?.terminate();
     workerRef.current = null;
     setError(null);
@@ -1050,6 +1062,7 @@ function OptimizerPanel({
   const resetOptimizerSettings = () => {
     const defaults = defaultOptimizerSettings();
     runIdRef.current += 1;
+    scrollToResultRunIdRef.current = null;
     workerRef.current?.terminate();
     workerRef.current = null;
     setLevel(defaults.level);
@@ -1283,7 +1296,7 @@ function OptimizerPanel({
                       return dangerous || !beneficial ? "negative" : "positive";
                     };
                     return (
-                      <article className="optimizer-result" key={result.indices.join("-")}>
+                      <article className="optimizer-result" ref={resultIndex === 0 ? firstResultRef : undefined} key={result.indices.join("-")}>
                         <div className="optimizer-result__top"><span>#{resultIndex + 1}</span><strong>{t("{{score}} score", { score: formatAccuracy(result.score * 100) })}</strong><span className="optimizer-result__price">{formatPrice(result.totalPrice)}</span><small className={resultTotals.warnings.length ? "unsafe" : "safe"}>{resultTotals.warnings.length ? t("Unsafe") : t("Safe")}</small></div>
                         <p className={`optimizer-result__accuracy ${result.approximate ? "approximate" : "exact"}`}>
                           {result.approximate

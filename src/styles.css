@@ -310,7 +310,7 @@ input[type="range"]::-webkit-slider-thumb { appearance: none; width: 14px; heigh
 .optimizer-summary strong { color: var(--text); font-weight: 500; }
 .optimizer-accuracy-note { margin: 0; padding: 10px 16px; border-bottom: 1px solid var(--line); color: #d7c68a; font-size: 10px; line-height: 1.5; }
 .optimizer-result-list { padding: 14px; display: grid; grid-template-columns: 1fr; gap: 14px; }
-.optimizer-result { min-width: 0; padding: 19px; border: 1px solid var(--line); background: rgba(7,12,11,.36); }
+.optimizer-result { min-width: 0; padding: 19px; border: 1px solid var(--line); background: rgba(7,12,11,.36); scroll-margin-top: 86px; }
 .optimizer-result:first-child { border-color: rgba(216,238,117,.46); box-shadow: inset 3px 0 var(--acid); }
 .optimizer-result__top { display: flex; align-items: center; gap: 9px; }
 .optimizer-result__top > span { color: var(--muted); font-size: 11px; }
