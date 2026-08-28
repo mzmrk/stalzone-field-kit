@@ -118,9 +118,11 @@ weight.
 The general-purpose default enables Movement speed at Important (`2×`) plus
 Running speed, Bullet resistance, and Stamina regeneration at Neutral (`1×`).
 Remaining rows start visible and disabled, and retain Neutral as the priority used
-if enabled. Every row remains visible under Mobility, Survivability, Healing,
-Protection, or Countering headings; the grouping is navigational rather than a
-claim that one build archetype is universally optimal.
+if enabled. Every row remains visible under Mobility, Weapon handling,
+Survivability, Healing, Protection, or Countering headings; the grouping is
+navigational rather than a claim that one build archetype is universally optimal.
+Weapon handling contains recoil and sway reduction only; Stability remains a
+defensive stat because it mitigates hit-induced slowdown rather than weapon motion.
 
 All 13 properties that appear as harmful on artifacts in the current EXBO Global
 catalog remain visible. `Allow` adds no constraint. `Fully countered` requires a final

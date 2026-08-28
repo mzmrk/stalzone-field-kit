@@ -93,6 +93,7 @@ export const ru: Record<string, string> = {
   "{{name}} is high enough to cause damage ({{value}}).": "{{name}} вызывает урон ({{value}}).",
   "Add an artifact to see combined properties.": "Добавьте артефакт, чтобы увидеть суммарные свойства.",
   "Mobility & utility": "Подвижность и полезность",
+  "Weapon handling": "Обращение с оружием",
   "Survivability": "Выживаемость",
   "Protection": "Защита",
   "Exposure": "Воздействия",

@@ -37,6 +37,7 @@ describe("language selection", () => {
     expect(i18n.t("SLOTS")).toBe("ВМЕСТИМОСТЬ");
     expect(i18n.t("PROTECTION")).toBe("ВНУТРЕННЯЯ ЗАЩИТА");
     expect(i18n.t("Mobility & utility")).toBe("Подвижность и полезность");
+    expect(i18n.t("Weapon handling")).toBe("Обращение с оружием");
     expect(i18n.t("Neutral")).toBe("Нейтральная");
     expect(i18n.t("Accepted consequences")).toBe("Допустимые отрицательные эффекты");
     expect(i18n.t("Best build found within {{time}} time limit · another build may score up to {{error}}% higher", { time: "10 с", error: "12,1" }))

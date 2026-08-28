@@ -111,6 +111,7 @@ const MILP_SLOW_NOTICE_MS = 15_000;
 const MILP_STALLED_TIMEOUT_MS = 60_000;
 const CATEGORY_ORDER = [
   "Mobility & utility",
+  "Weapon handling",
   "Survivability",
   "Protection",
   "Exposure",
@@ -118,6 +119,7 @@ const CATEGORY_ORDER = [
 ];
 const OPTIMIZER_FILTER_CATEGORIES = [
   "Mobility",
+  "Weapon handling",
   "Survivability",
   "Healing",
   "Protection",
@@ -130,6 +132,10 @@ const MOBILITY_FILTER_KEYS = new Set([
   "stalker.artefact_properties.factor.stamina_regeneration_bonus",
   "stalker.artefact_properties.factor.max_weight_bonus",
   "stalker.artefact_properties.factor.stamina_bonus",
+]);
+const WEAPON_HANDLING_FILTER_KEYS = new Set([
+  "stalker.artefact_properties.factor.recoil_bonus",
+  "stalker.artefact_properties.factor.wiggle_bonus",
 ]);
 const HEALING_FILTER_KEYS = new Set([
   "stalker.artefact_properties.factor.artefakt_heal",
@@ -144,6 +150,7 @@ const SURVIVABILITY_FILTER_KEYS = new Set([
 ]);
 
 function optimizerFilterCategory(key: string): OptimizerFilterCategory {
+  if (WEAPON_HANDLING_FILTER_KEYS.has(key)) return "Weapon handling";
   if (OPTIMIZER_STAT_OPTIONS.find(([optionKey]) => optionKey === key)?.[3] === -1) return "Countering";
   if (MOBILITY_FILTER_KEYS.has(key)) return "Mobility";
   if (HEALING_FILTER_KEYS.has(key)) return "Healing";

@@ -173,6 +173,8 @@ export function calculateTotals(
 export function statCategory(stat: TotalStat) {
   if (EXPOSURE_KEYS.has(stat.key)) return "Exposure";
   if (/speed|stamina|max_weight/.test(stat.key)) return "Mobility & utility";
+  if (/recoil_bonus|wiggle_bonus/.test(stat.key)) return "Weapon handling";
+  if (stat.key.endsWith(".stopping_protection")) return "Survivability";
   if (/health|heal|regeneration/.test(stat.key)) return "Survivability";
   if (/protection|dmg_factor|resistance/.test(stat.key)) return "Protection";
   return "Other effects";

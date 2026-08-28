@@ -34,7 +34,7 @@ test("opens the optimizer by default and shares carrier selection between both t
   await page.getByPlaceholder(/Search backpacks and containers/).fill("Errand Junior Backpack");
   await page.getByRole("button", { name: /Errand Junior Backpack/ }).click();
   await expect(page.locator("#optimizer .optimizer-settings .container-card")).toContainText("Errand Junior Backpack");
-  await expect(page.locator(".positive-filter-category > h3")).toHaveText(["Mobility", "Survivability", "Healing", "Protection", "Countering"]);
+  await expect(page.locator(".positive-filter-category > h3")).toHaveText(["Mobility", "Weapon handling", "Survivability", "Healing", "Protection", "Countering"]);
   await expect(page.locator(".optimizer-results-empty")).toHaveCSS("position", "sticky");
   await expect(page.locator(".optimizer-results-empty").getByRole("button", { name: "Find best builds" })).toBeVisible();
 
