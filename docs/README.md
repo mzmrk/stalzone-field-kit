@@ -20,6 +20,7 @@ documentation and code disagree.
   protection, warning thresholds, and calculation limitations.
 - [Development](development.md) owns local setup, Docker-facing development,
   verification, static builds, and documentation maintenance.
+- [TODO](todo.md) tracks unresolved product research and planned capabilities.
 
 ## Change routing
 
@@ -29,4 +30,5 @@ documentation and code disagree.
 | Stat formulas, optimizer constraints, keys, quality tiers, protection, warnings, or bonus handling | [Calculation model](calculation-model.md) |
 | Commands, dependencies, tests, build configuration, or local operation | [Development](development.md) |
 | Runtime price-index source, validation, regions, or estimate contract | [Architecture](architecture.md) and [Development](development.md) |
+| Product research or a planned capability not yet implemented | [TODO](todo.md) |
 | A new documentation topic, rename, or ownership change | This index and every affected owner |
