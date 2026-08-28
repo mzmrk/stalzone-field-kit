@@ -20,6 +20,15 @@ describe("artifact calculations", () => {
     expect(statCategory(total("stalker.artefact_properties.factor.stopping_protection", "Stability"))).toBe("Survivability");
   });
 
+  it("separates direct protection, damage reactions, and environmental protection", () => {
+    const total = (key: string, name: string) => ({ key, name, value: 1, percentage: true, harmful: false });
+
+    expect(statCategory(total("stalker.artefact_properties.factor.bullet_dmg_factor", "Bullet resistance"))).toBe("Survivability");
+    expect(statCategory(total("stalker.artefact_properties.factor.tear_dmg_factor", "Laceration protection"))).toBe("Damage protection");
+    expect(statCategory(total("stalker.artefact_properties.factor.reaction_to_burn", "Reaction to burns"))).toBe("Damage reactions");
+    expect(statCategory(total("stalker.artefact_properties.factor.radiation_protection", "Radiation protection"))).toBe("Environmental protection");
+  });
+
   it("uses the midpoint of every rarity band for unstudied optimizer estimates", () => {
     expect(RARITY_MIDPOINT_QUALITIES).toEqual([92.5, 107.5, 122.5, 137.5, 152.5, 167.5, 182.5]);
     expect(RARITY_NAMES.at(-1)).toBe("Unique (legacy)");

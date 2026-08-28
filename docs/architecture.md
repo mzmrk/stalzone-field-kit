@@ -27,9 +27,9 @@ visits. Refreshing the page still clears transient results and opens the optimiz
 Ranked optimizer builds use one full-width card per row. Within each card, enabled
 search objectives remain in configured order with normalization evidence in the
 left effects column. Every remaining non-zero build effect appears in the right
-column under the same Mobility, Weapon handling, Survivability, Protection,
-Exposure, and Other effects categories as the manual calculator. The columns
-stack on narrow screens.
+column under the same Mobility, Weapon handling, Survivability, Damage
+protection, Damage reactions, Environmental protection, Exposure, and Other
+effects categories as the manual calculator. The columns stack on narrow screens.
 Objective rows visualize the current-to-best normalized value with a capsule bar;
 the current value remains primary, the comparison value stays neutral, and the
 bounded error plus solve duration appears below the bar only when the maximum

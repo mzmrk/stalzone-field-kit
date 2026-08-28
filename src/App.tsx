@@ -113,7 +113,9 @@ const CATEGORY_ORDER = [
   "Mobility & utility",
   "Weapon handling",
   "Survivability",
-  "Protection",
+  "Damage protection",
+  "Damage reactions",
+  "Environmental protection",
   "Exposure",
   "Other effects",
 ];
@@ -122,7 +124,9 @@ const OPTIMIZER_FILTER_CATEGORIES = [
   "Weapon handling",
   "Survivability",
   "Healing",
-  "Protection",
+  "Damage protection",
+  "Damage reactions",
+  "Environmental protection",
   "Countering",
 ] as const;
 type OptimizerFilterCategory = typeof OPTIMIZER_FILTER_CATEGORIES[number];
@@ -148,6 +152,18 @@ const SURVIVABILITY_FILTER_KEYS = new Set([
   "stalker.artefact_properties.factor.bleeding_protection",
   "stalker.artefact_properties.factor.stopping_protection",
 ]);
+const DAMAGE_REACTION_FILTER_KEYS = new Set([
+  "stalker.artefact_properties.factor.reaction_to_burn",
+  "stalker.artefact_properties.factor.reaction_to_chemical_burn",
+  "stalker.artefact_properties.factor.reaction_to_electroshock",
+  "stalker.artefact_properties.factor.reaction_to_tear",
+]);
+const ENVIRONMENTAL_PROTECTION_FILTER_KEYS = new Set([
+  "stalker.artefact_properties.factor.biological_protection",
+  "stalker.artefact_properties.factor.psycho_protection",
+  "stalker.artefact_properties.factor.radiation_protection",
+  "stalker.artefact_properties.factor.thermal_protection",
+]);
 
 function optimizerFilterCategory(key: string): OptimizerFilterCategory {
   if (WEAPON_HANDLING_FILTER_KEYS.has(key)) return "Weapon handling";
@@ -155,7 +171,9 @@ function optimizerFilterCategory(key: string): OptimizerFilterCategory {
   if (MOBILITY_FILTER_KEYS.has(key)) return "Mobility";
   if (HEALING_FILTER_KEYS.has(key)) return "Healing";
   if (SURVIVABILITY_FILTER_KEYS.has(key)) return "Survivability";
-  return "Protection";
+  if (DAMAGE_REACTION_FILTER_KEYS.has(key)) return "Damage reactions";
+  if (ENVIRONMENTAL_PROTECTION_FILTER_KEYS.has(key)) return "Environmental protection";
+  return "Damage protection";
 }
 const DEFAULT_OBJECTIVE_WEIGHTS = new Map<string, number>([
   ["stalker.artefact_properties.factor.speed_modifier", IMPORTANT_OBJECTIVE_WEIGHT],

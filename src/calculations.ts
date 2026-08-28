@@ -174,8 +174,11 @@ export function statCategory(stat: TotalStat) {
   if (EXPOSURE_KEYS.has(stat.key)) return "Exposure";
   if (/speed|stamina|max_weight/.test(stat.key)) return "Mobility & utility";
   if (/recoil_bonus|wiggle_bonus/.test(stat.key)) return "Weapon handling";
+  if (stat.key.includes(".reaction_to_")) return "Damage reactions";
+  if (/biological_protection|psycho_protection|radiation_protection|thermal_protection/.test(stat.key)) return "Environmental protection";
   if (stat.key.endsWith(".stopping_protection")) return "Survivability";
+  if (/bullet_dmg_factor|bleeding_protection/.test(stat.key)) return "Survivability";
   if (/health|heal|regeneration/.test(stat.key)) return "Survivability";
-  if (/protection|dmg_factor|resistance/.test(stat.key)) return "Protection";
+  if (/protection|dmg_factor|resistance/.test(stat.key)) return "Damage protection";
   return "Other effects";
 }
