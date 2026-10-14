@@ -127,7 +127,7 @@ describe("artifact optimizer", () => {
     expect(harmfulEffectConstraint(radiation, "safe", null)).toEqual({
       key: radiation.key,
       minimum: null,
-      maximum: 0.5,
+      maximum: 10,
       scope: "final",
     });
     expect(harmfulEffectConstraint(radiation, "strict", null)?.maximum).toBe(0);

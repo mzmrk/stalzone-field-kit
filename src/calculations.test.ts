@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { calculateStat, calculateTotals, RARITY_MIDPOINT_QUALITIES, RARITY_NAMES, rarityOptions, statCategory } from "./calculations";
+import { calculateStat, calculateTotals, RARITY_MIDPOINT_QUALITIES, RARITY_NAMES, rarityOptions, statCategory, WARNING_LIMITS } from "./calculations";
 import type { ArtifactConfig, ContainerData, ParsedStat } from "./types";
 
 const beneficial: ParsedStat = {
@@ -12,6 +12,16 @@ const beneficial: ParsedStat = {
 };
 
 describe("artifact calculations", () => {
+  it("uses the post-September 2026 displayed exposure thresholds", () => {
+    expect(WARNING_LIMITS).toEqual({
+      "stalker.artefact_properties.factor.radiation_accumulation": 10,
+      "stalker.artefact_properties.factor.biological_accumulation": 10,
+      "stalker.artefact_properties.factor.psycho_accumulation": 10,
+      "stalker.artefact_properties.factor.thermal_accumulation": 10,
+      "stalker.artefact_properties.factor.frost_accumulation": 20,
+    });
+  });
+
   it("groups weapon handling separately from defensive stability", () => {
     const total = (key: string, name: string) => ({ key, name, value: 1, percentage: true, harmful: false });
 
@@ -176,8 +186,8 @@ describe("artifact calculations", () => {
     const exposure: ParsedStat = {
       key: "stalker.artefact_properties.factor.radiation_accumulation",
       name: "Radiation",
-      min: 0.425,
-      max: 0.5,
+      min: 8.5,
+      max: 10,
       positive: false,
       percentage: false,
     };
@@ -191,7 +201,7 @@ describe("artifact calculations", () => {
       weight: 0,
     } as unknown as ArtifactConfig;
     expect(calculateTotals(container, [artifact]).warnings).toHaveLength(0);
-    artifact.stats = [{ ...exposure, min: 0.4335, max: 0.51 }];
+    artifact.stats = [{ ...exposure, min: 8.67, max: 10.2 }];
     expect(calculateTotals(container, [artifact]).warnings).toHaveLength(1);
   });
 });

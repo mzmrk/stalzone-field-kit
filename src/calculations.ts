@@ -21,11 +21,11 @@ export const PROTECTED_EXPOSURE_KEYS = new Set([
 ]);
 
 export const WARNING_LIMITS: Record<string, number> = {
-  "stalker.artefact_properties.factor.radiation_accumulation": 0.5,
-  "stalker.artefact_properties.factor.biological_accumulation": 0.5,
-  "stalker.artefact_properties.factor.psycho_accumulation": 0.5,
-  "stalker.artefact_properties.factor.thermal_accumulation": 0.5,
-  "stalker.artefact_properties.factor.frost_accumulation": 1,
+  "stalker.artefact_properties.factor.radiation_accumulation": 10,
+  "stalker.artefact_properties.factor.biological_accumulation": 10,
+  "stalker.artefact_properties.factor.psycho_accumulation": 10,
+  "stalker.artefact_properties.factor.thermal_accumulation": 10,
+  "stalker.artefact_properties.factor.frost_accumulation": 20,
 };
 
 export const CARRY_WEIGHT_KEY = "stalker.artefact_properties.factor.max_weight_bonus";

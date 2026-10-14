@@ -59,13 +59,18 @@ Warnings occur only when the final value is strictly greater than its threshold:
 
 | Exposure | Threshold |
 | --- | ---: |
-| Radiation | `0.5` |
-| Biological infection | `0.5` |
-| Psy-emissions | `0.5` |
-| Temperature | `0.5` |
-| Frost | `1.0` |
+| Radiation | `10` |
+| Biological infection | `10` |
+| Psy-emissions | `10` |
+| Temperature | `10` |
+| Frost | `20` |
 
 Exact equality is considered safe by the current implementation.
+
+These are the displayed units introduced in the
+[30 September 2026 update](https://steamcommunity.com/app/1818450/announcements/).
+EXBO multiplied displayed infection values by `20` without changing the underlying
+mechanics, so live item values must not be divided back to the earlier scale.
 
 ## Additional properties and carry weight
 
