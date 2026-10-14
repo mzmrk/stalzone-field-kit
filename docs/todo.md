@@ -24,3 +24,9 @@
   variants. Define how duplicate inventory entries and quantities are represented.
 - Include artifacts with exceptional property models, such as Rubik, when
   designing and validating the owned-artifact input contract.
+
+## Pricing presentation
+
+- Add a player-facing disclaimer near displayed market estimates explaining
+  that prices represent `+0` artifacts and do not include premiums for upgrades
+  or rolled additional properties.
