@@ -390,7 +390,7 @@ input[type="range"]::-webkit-slider-thumb { appearance: none; width: 14px; heigh
 .picker-footer { margin: 0; padding: 11px 18px; border-top: 1px solid var(--line); color: #66716c; font-size: 10px; }
 .empty-search { padding: 70px 20px; display: flex; flex-direction: column; align-items: center; color: var(--muted); font-size: 10px; }
 
-footer { width: min(1480px, calc(100% - 48px)); margin: 28px auto 0; padding: 20px 0 34px; display: flex; justify-content: flex-end; border-top: 1px solid var(--line); color: #65716c; font-size: 10px; letter-spacing: .08em; }
+footer { width: min(1480px, calc(100% - 48px)); margin: 28px auto 0; padding: 20px 0 34px; display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 18px; border-top: 1px solid var(--line); color: #65716c; font-size: 10px; letter-spacing: .08em; }
 footer a { color: #89958f; display: flex; align-items: center; gap: 6px; text-decoration: none; }
 footer a:hover { color: var(--acid); }
 .spin { animation: spin .8s linear infinite; }

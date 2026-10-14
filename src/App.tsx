@@ -4,6 +4,7 @@ import {
   Check,
   ChevronRight,
   CircleGauge,
+  Code2,
   Copy,
   Database,
   ExternalLink,
@@ -107,6 +108,7 @@ import type {
 const STORAGE_KEY = "field-kit-build-v1";
 const OPTIMIZER_STORAGE_KEY = "field-kit-optimizer-v1";
 const PRICING_REGION_STORAGE_KEY = "field-kit-pricing-region-v1";
+const FIELD_KIT_REPOSITORY = "https://github.com/mzmrk/stalzone-field-kit";
 const MILP_SLOW_NOTICE_MS = 15_000;
 const MILP_STALLED_TIMEOUT_MS = 60_000;
 const CATEGORY_ORDER = [
@@ -1822,6 +1824,7 @@ export default function App() {
       </main>
 
       <footer>
+        <a href={FIELD_KIT_REPOSITORY} target="_blank" rel="noreferrer"><Code2 size={13} /> {t("Source code on GitHub")} <ExternalLink size={13} /></a>
         <a href={EXBO_REPOSITORY} target="_blank" rel="noreferrer">{t("Data by EXBO Studio")} <ExternalLink size={13} /></a>
       </footer>
 

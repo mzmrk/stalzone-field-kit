@@ -17,6 +17,7 @@ export const ru: Record<string, string> = {
   "Search the artifact catalog for combinations that match your preferred stats, safety limits, rarities, and budget.": "Ищите в каталоге артефактов комбинации под нужные характеристики, ограничения безопасности, редкости и бюджет.",
   "Configure your exact artifact loadout and see every effect after container efficiency and inner protection.": "Настройте точную сборку артефактов и посмотрите все эффекты с учётом эффективности и внутренней защиты контейнера.",
   "DATA SOURCE": "ИСТОЧНИК ДАННЫХ",
+  "Source code on GitHub": "Исходный код на GitHub",
   "LIVE": "ОНЛАЙН",
   "Couldn’t reach the EXBO database.": "Не удалось подключиться к базе EXBO.",
   "Check your connection and refresh the page. Your saved build is still available.": "Проверьте соединение и обновите страницу. Сохранённая сборка по-прежнему доступна.",
