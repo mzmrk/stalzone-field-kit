@@ -9,6 +9,8 @@
     "build": "tsc -b && vite build",
     "test": "vitest run src",
     "test:e2e": "playwright test",
+    "artifact-properties:update": "node scripts/update-artifact-additional-properties.mjs",
+    "artifact-properties:check": "node scripts/update-artifact-additional-properties.mjs --check",
     "docs:check": "node .agents/skills/maintain-project-documentation/scripts/validate-docs.mjs",
     "preview": "vite preview"
   },

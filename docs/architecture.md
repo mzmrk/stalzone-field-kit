@@ -48,6 +48,7 @@ The production site is a static GitHub Pages deployment at
 ```mermaid
 flowchart LR
     EXBO["EXBO Global repository"] -->|listing.json| Catalog["Filtered catalog"]
+    UpgradeData["Bundled additional-property manifest"] --> Build
     Market["stalzone-market-history canonical index"] -->|runtime fetch| PriceIndex["In-memory regional rarity medians"]
     Catalog --> Picker["Container and artifact pickers"]
     EXBO -->|selected item JSON and icons| Picker
@@ -70,7 +71,9 @@ first optimizer run loads every artifact JSON with up to ten concurrent requests
 and retains parsed data in memory for later searches. Images use the icon paths
 from the same listing. Both data and images are requested directly from
 `raw.githubusercontent.com`; runtime use therefore requires the browser to reach
-GitHub.
+GitHub. Artifact additional-property definitions are bundled at build time from
+a validated, checked-in STALZONE Wiki snapshot; the browser does not contact the
+Wiki.
 
 Pricing is fetched at runtime directly from the canonical index committed by
 the separately maintained `stalzone-market-history` repository, which owns
@@ -89,6 +92,10 @@ tiers are excluded by an active price cap. Raw caches are not shipped.
 - [`src/data.ts`](../src/data.ts) is the EXBO adapter. It owns repository URLs,
   catalog filtering, recursive numeric/range extraction, translation fallback,
   and conversion from raw item data to calculator stats and container fields.
+- [`scripts/update-artifact-additional-properties.mjs`](../scripts/update-artifact-additional-properties.mjs)
+  validates Wiki property pools against the EXBO listing and generates the
+  checked-in manifest. [`src/artifact-properties.ts`](../src/artifact-properties.ts)
+  owns lookup, unlock thresholds, fixed-three behavior, and the Rubik exception.
 - [`src/types.ts`](../src/types.ts) defines the boundary between raw EXBO data,
   configured artifacts, persisted builds, and calculated totals.
 - [`src/calculations.ts`](../src/calculations.ts) is the pure domain layer. UI or
@@ -139,12 +146,15 @@ and the upstream database license are recorded separately in
 
 The selected container and configured artifact array are held in React state.
 Changing to a smaller container truncates artifacts beyond its capacity. Copying
-an artifact targets the first empty slot. Decreasing artifact level removes bonus
-entries beyond the new `+5`, `+10`, and `+15` unlock count.
+an artifact targets the first empty slot. Decreasing artifact level removes
+additional-property selections beyond that artifact's new unlock count.
 
-Build changes write versioned state to `field-kit-build-v1`. Startup accepts only
-version `1`; malformed or other versions are ignored. Raw item data lets a saved
-build render when catalog loading fails. Reset clears state and storage.
+Build changes write version `2` state to `field-kit-build-v1`. Startup accepts
+version `2` and migrates version `1` manual bonus keys when they belong to the
+current artifact pool; unsupported old entries are dropped. Generated property
+definitions are refreshed from the bundled manifest rather than trusted from
+storage. Raw item data lets a saved build render when catalog loading fails.
+Reset clears state and storage.
 
 Optimizer controls are stored separately under `field-kit-optimizer-v1`: shared
 level, enabled rarities, positive objectives and minimums, harmful policies and

@@ -7,6 +7,7 @@ import type {
   RawItem,
 } from "./types";
 import i18n, { appLanguage } from "./i18n";
+import { artifactAdditionalPropertyDefinition } from "./artifact-properties";
 
 export const EXBO_REPOSITORY =
   "https://github.com/EXBO-Studio/stalzone-database";
@@ -131,11 +132,14 @@ export function parseWeight(item: RawItem) {
 }
 
 export function parseArtifact(entry: ListingEntry, item: RawItem): ArtifactData {
+  const additional = artifactAdditionalPropertyDefinition(item.id);
   return {
     entry,
     item,
     name: translated(item.name),
     weight: parseWeight(item),
     stats: parseStats(item),
+    additionalStats: additional.properties,
+    additionalPropertyMode: additional.mode,
   };
 }

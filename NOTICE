@@ -8,6 +8,10 @@ The database is provided by EXBO Studio under the Apache License 2.0.
 No EXBO database files are redistributed by this application; they are requested
 from the public repository by the user's browser.
 
-The application includes a static EU auction-history snapshot and derives
-rarity-specific median sale-price estimates from it. The snapshot is historical
-market data and is not a guarantee of current prices.
+The application includes normalized artifact additional-property definitions
+derived from the STALZONE Wiki calculator:
+https://stalzone.wiki/builds-calculator
+
+Regional rarity-specific price estimates are requested at runtime from the
+STALZONE Market History project. They are historical completed-sale estimates,
+not current listings or guarantees.

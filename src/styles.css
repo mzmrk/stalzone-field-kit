@@ -221,6 +221,10 @@ input[type="range"]::-webkit-slider-thumb { appearance: none; width: 14px; heigh
 .bonus-row { margin: 9px 20px 0; display: grid; grid-template-columns: minmax(0,1fr) 76px 13px 31px; gap: 5px; align-items: center; }
 .bonus-row select, .bonus-row input { min-width: 0; height: 34px; padding: 0 8px; border: 1px solid var(--line); background: #0b1211; color: var(--text); font-size: 10px; }
 .bonus-row > span { color: var(--muted); font-size: 9px; }
+.bonus-row--calculated { grid-template-columns: minmax(0, 1fr) auto 31px; }
+.bonus-row--automatic { grid-template-columns: minmax(0, 1fr) auto; min-height: 34px; padding: 0 9px; border: 1px solid var(--line); }
+.bonus-row--automatic > span { color: var(--text); font-size: 10px; }
+.bonus-row > strong { color: var(--green); font-size: 11px; white-space: nowrap; }
 .icon-button { width: 34px; height: 34px; display: grid; place-items: center; border: 1px solid var(--line); background: transparent; color: var(--muted); cursor: pointer; }
 .icon-button:hover { color: var(--text); border-color: var(--line-strong); }
 .add-bonus { margin: 10px 20px 0; width: calc(100% - 40px); display: flex; align-items: center; justify-content: center; gap: 7px; }

@@ -95,11 +95,14 @@ describe("artifact calculations", () => {
       stats: [],
     } as unknown as ContainerData;
     const artifact = {
+      item: { id: "test" },
       quality: 100,
       level: 0,
       rarityIndex: 0,
       stats: [exposure],
-      bonuses: [],
+      additionalStats: [],
+      additionalPropertyMode: "none",
+      selectedAdditionalPropertyKeys: [],
       weight: 0,
     } as unknown as ArtifactConfig;
     const result = calculateTotals(container, [artifact]);
@@ -132,7 +135,9 @@ describe("artifact calculations", () => {
       level: 0,
       rarityIndex: 0,
       stats,
-      bonuses: [],
+      additionalStats: [],
+      additionalPropertyMode: "none",
+      selectedAdditionalPropertyKeys: [],
       weight: 0,
     }) as unknown as ArtifactConfig;
     const result = calculateTotals(container, [makeArtifact([harmful]), makeArtifact([counter])]);
@@ -140,7 +145,7 @@ describe("artifact calculations", () => {
     expect(result.warnings).toHaveLength(0);
   });
 
-  it("excludes carrier carry weight while retaining artifact bonuses and other carrier stats", () => {
+  it("excludes carrier carry weight while retaining calculated artifact upgrade properties and other carrier stats", () => {
     const containerStat: ParsedStat = {
       key: "stalker.artefact_properties.factor.max_weight_bonus",
       name: "Carry weight",
@@ -163,23 +168,38 @@ describe("artifact calculations", () => {
       stats: [containerStat, movementStat],
     } as unknown as ContainerData;
     const artifact = {
+      item: { id: "test" },
       quality: 100,
       level: 5,
       rarityIndex: 0,
       stats: [],
-      bonuses: [{
-        id: "bonus",
-        key: containerStat.key,
-        name: containerStat.name,
-        value: 3.5,
-        percentage: false,
-      }],
+      additionalStats: [containerStat],
+      additionalPropertyMode: "fixed-three",
+      selectedAdditionalPropertyKeys: [containerStat.key],
       weight: 0.4,
     } as unknown as ArtifactConfig;
     const result = calculateTotals(container, [artifact]);
-    expect(result.totals.find((stat) => stat.key === containerStat.key)?.value).toBeCloseTo(3.5);
+    expect(result.totals.find((stat) => stat.key === containerStat.key)?.value).toBeCloseTo(22);
     expect(result.totals.find((stat) => stat.key === movementStat.key)?.value).toBeCloseTo(1);
     expect(result.mass).toBeCloseTo(0.4);
+  });
+
+  it("can exclude additional properties from optimizer result calculations", () => {
+    const container = { protection: 0, effectiveness: 100, stats: [] } as unknown as ContainerData;
+    const artifact = {
+      item: { id: "test" },
+      quality: 100,
+      level: 15,
+      rarityIndex: 0,
+      stats: [],
+      additionalStats: [beneficial, { ...beneficial, key: "second" }, { ...beneficial, key: "third" }],
+      additionalPropertyMode: "fixed-three",
+      selectedAdditionalPropertyKeys: [],
+      weight: 0,
+    } as unknown as ArtifactConfig;
+
+    expect(calculateTotals(container, [artifact]).totals).toHaveLength(3);
+    expect(calculateTotals(container, [artifact], { includeAdditionalProperties: false }).totals).toHaveLength(0);
   });
 
   it("warns only after the published exposure threshold is exceeded", () => {
@@ -197,7 +217,9 @@ describe("artifact calculations", () => {
       level: 0,
       rarityIndex: 0,
       stats: [exposure],
-      bonuses: [],
+      additionalStats: [],
+      additionalPropertyMode: "none",
+      selectedAdditionalPropertyKeys: [],
       weight: 0,
     } as unknown as ArtifactConfig;
     expect(calculateTotals(container, [artifact]).warnings).toHaveLength(0);

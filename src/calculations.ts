@@ -4,6 +4,7 @@ import type {
   ParsedStat,
   TotalStat,
 } from "./types";
+import { activeAdditionalProperties } from "./artifact-properties";
 
 export const EXPOSURE_KEYS = new Set([
   "stalker.artefact_properties.factor.radiation_accumulation",
@@ -109,6 +110,7 @@ export function calculateStat(
 export function calculateTotals(
   container: ContainerData | null,
   artifacts: Array<ArtifactConfig | null>,
+  options: { includeAdditionalProperties?: boolean } = {},
 ) {
   if (!container) return { totals: [] as TotalStat[], warnings: [] as TotalStat[], mass: 0 };
 
@@ -146,8 +148,20 @@ export function calculateTotals(
         !stat.positive,
       );
     }
-    for (const bonus of artifact.bonuses) {
-      add(bonus.key, bonus.name, bonus.value, bonus.percentage, bonus.value > 0 && EXPOSURE_KEYS.has(bonus.key));
+    if (options.includeAdditionalProperties !== false) for (const stat of activeAdditionalProperties(artifact)) {
+      add(
+        stat.key,
+        stat.name,
+        calculateStat(
+          stat,
+          artifact.quality,
+          artifact.level,
+          artifact.rarityIndex,
+          container.effectiveness,
+        ),
+        stat.percentage,
+        !stat.positive,
+      );
     }
   }
 

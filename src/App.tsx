@@ -43,9 +43,12 @@ import {
   rarityOptions,
   RARITY_MIDPOINT_QUALITIES,
   RARITY_NAMES,
-  STAT_OPTIONS,
   statCategory,
 } from "./calculations";
+import {
+  unlockedAdditionalPropertyCount,
+  usesAutomaticAdditionalProperties,
+} from "./artifact-properties";
 import {
   assetUrl,
   EXBO_REPOSITORY,
@@ -98,10 +101,10 @@ import {
 import type {
   ArtifactConfig,
   ArtifactData,
-  BonusProperty,
   ContainerData,
   ListingEntry,
   PersistedBuild,
+  RawItem,
   TotalStat,
 } from "./types";
 
@@ -322,7 +325,7 @@ function isListingEntry(value: unknown): value is ListingEntry {
   return value.status === undefined || (isPlainRecord(value.status) && (value.status.state === undefined || typeof value.status.state === "string"));
 }
 
-function isRawItem(value: unknown): boolean {
+function isRawItem(value: unknown): value is RawItem {
   return isPlainRecord(value) && typeof value.id === "string" && typeof value.category === "string" &&
     typeof value.color === "string" && isTranslatedText(value.name) && Array.isArray(value.infoBlocks);
 }
@@ -340,18 +343,32 @@ function isContainerData(value: unknown): value is ContainerData {
     value.stats.every(isParsedStat);
 }
 
-function isBonusProperty(value: unknown): value is BonusProperty {
-  return isPlainRecord(value) && typeof value.id === "string" && typeof value.key === "string" &&
-    typeof value.name === "string" && isFiniteNumber(value.value) && typeof value.percentage === "boolean";
-}
+function normalizeArtifactConfig(value: unknown): ArtifactConfig | null {
+  if (!isPlainRecord(value) || !isListingEntry(value.entry) || !isRawItem(value.item) ||
+    typeof value.uid !== "string" || typeof value.level !== "number" || !Number.isInteger(value.level) || value.level < 0 || value.level > 15 ||
+    !isFiniteNumber(value.quality) || value.quality < 0 || value.quality > 190 ||
+    typeof value.rarityIndex !== "number" || !Number.isInteger(value.rarityIndex) || value.rarityIndex < 0 || value.rarityIndex >= RARITY_NAMES.length) return null;
 
-function isArtifactConfig(value: unknown): value is ArtifactConfig {
-  return isPlainRecord(value) && isListingEntry(value.entry) && isRawItem(value.item) && typeof value.name === "string" &&
-    isFiniteNumber(value.weight) && Array.isArray(value.stats) && value.stats.every(isParsedStat) &&
-    typeof value.uid === "string" && typeof value.level === "number" && Number.isInteger(value.level) && value.level >= 0 && value.level <= 15 &&
-    isFiniteNumber(value.quality) && value.quality >= 0 && value.quality <= 190 &&
-    typeof value.rarityIndex === "number" && Number.isInteger(value.rarityIndex) && value.rarityIndex >= 0 && value.rarityIndex < RARITY_NAMES.length &&
-    Array.isArray(value.bonuses) && value.bonuses.every(isBonusProperty);
+  const data = parseArtifact(value.entry, value.item);
+  const pool = new Set(data.additionalStats.map((stat) => stat.key));
+  const savedKeys = Array.isArray(value.selectedAdditionalPropertyKeys)
+    ? value.selectedAdditionalPropertyKeys
+    : Array.isArray(value.bonuses)
+      ? value.bonuses.map((bonus) => isPlainRecord(bonus) ? bonus.key : null)
+      : [];
+  const maxSavedSelections = data.additionalPropertyMode === "selectable" ? 4 : 2;
+  const selectedAdditionalPropertyKeys = [...new Set(savedKeys.filter(
+    (key): key is string => typeof key === "string" && pool.has(key),
+  ))].slice(0, maxSavedSelections);
+
+  return {
+    ...data,
+    uid: value.uid,
+    level: value.level,
+    quality: value.quality,
+    rarityIndex: value.rarityIndex,
+    selectedAdditionalPropertyKeys,
+  };
 }
 
 type PickerState =
@@ -371,12 +388,14 @@ function loadSavedBuild(): PersistedBuild | null {
     const value = localStorage.getItem(STORAGE_KEY);
     if (!value) return null;
     const parsed: unknown = JSON.parse(value);
-    if (!isRecord(parsed) || parsed.version !== 1 || !Array.isArray(parsed.artifacts)) return null;
+    if (!isRecord(parsed) || (parsed.version !== 1 && parsed.version !== 2) || !Array.isArray(parsed.artifacts)) return null;
+    const parsedArtifacts = parsed.artifacts;
     if (parsed.container !== null && !isContainerData(parsed.container)) return null;
-    if (parsed.container === null && parsed.artifacts.length !== 0) return null;
-    if (parsed.container && parsed.artifacts.length > parsed.container.capacity) return null;
-    if (!parsed.artifacts.every((artifact) => artifact === null || isArtifactConfig(artifact))) return null;
-    return parsed as PersistedBuild;
+    if (parsed.container === null && parsedArtifacts.length !== 0) return null;
+    if (parsed.container && parsedArtifacts.length > parsed.container.capacity) return null;
+    const artifacts = parsedArtifacts.map((artifact) => artifact === null ? null : normalizeArtifactConfig(artifact));
+    if (artifacts.some((artifact, index) => parsedArtifacts[index] !== null && artifact === null)) return null;
+    return { version: 2, container: parsed.container as ContainerData | null, artifacts };
   } catch {
     return null;
   }
@@ -707,13 +726,22 @@ function ArtifactEditor({
   }
 
   const options = rarityOptions(artifact.quality);
-  const unlocked = [5, 10, 15].filter((level) => artifact.level >= level).length;
+  const unlocked = unlockedAdditionalPropertyCount(artifact);
+  const automaticProperties = usesAutomaticAdditionalProperties(artifact);
+  const selectedKeys = artifact.selectedAdditionalPropertyKeys.slice(0, unlocked);
+  const selectedProperties = selectedKeys
+    .map((key) => artifact.additionalStats.find((stat) => stat.key === key))
+    .filter((stat) => stat !== undefined);
+  const displayedProperties = automaticProperties ? artifact.additionalStats : selectedProperties;
   const update = (patch: Partial<ArtifactConfig>) => onChange({ ...artifact, ...patch });
 
   const updateLevel = (level: number) => {
     const nextLevel = clamp(Math.round(level), 0, 15);
-    const allowedBonuses = [5, 10, 15].filter((unlock) => nextLevel >= unlock).length;
-    update({ level: nextLevel, bonuses: artifact.bonuses.slice(0, allowedBonuses) });
+    const allowedSelections = unlockedAdditionalPropertyCount({ ...artifact, level: nextLevel });
+    update({
+      level: nextLevel,
+      selectedAdditionalPropertyKeys: artifact.selectedAdditionalPropertyKeys.slice(0, allowedSelections),
+    });
   };
 
   const updateQuality = (quality: number) => {
@@ -727,21 +755,17 @@ function ArtifactEditor({
     });
   };
 
-  const addBonus = () => {
-    if (artifact.bonuses.length >= unlocked) return;
-    const option = STAT_OPTIONS[0];
-    const bonus: BonusProperty = {
-      id: makeId(),
-      key: option[0],
-      name: option[1],
-      value: 0,
-      percentage: option[2],
-    };
-    update({ bonuses: [...artifact.bonuses, bonus] });
+  const addAdditionalProperty = () => {
+    if (automaticProperties || selectedKeys.length >= unlocked) return;
+    const next = artifact.additionalStats.find((stat) => !selectedKeys.includes(stat.key));
+    if (!next) return;
+    update({ selectedAdditionalPropertyKeys: [...selectedKeys, next.key] });
   };
 
-  const updateBonus = (id: string, patch: Partial<BonusProperty>) => {
-    update({ bonuses: artifact.bonuses.map((bonus) => bonus.id === id ? { ...bonus, ...patch } : bonus) });
+  const updateAdditionalProperty = (index: number, key: string) => {
+    update({
+      selectedAdditionalPropertyKeys: selectedKeys.map((current, itemIndex) => itemIndex === index ? key : current),
+    });
   };
 
   return (
@@ -810,27 +834,43 @@ function ArtifactEditor({
       </div>
 
       <div className="bonus-section">
-        <div className="section-label"><span>{t("Additional properties")}</span><span>{artifact.bonuses.length} / {unlocked}</span></div>
-        <p className="field-note">{t("EXBO does not publish the random bonus pool. Enter the exact bonus shown on your artifact.")}</p>
-        {artifact.bonuses.map((bonus) => (
-          <div className="bonus-row" key={bonus.id}>
-            <select
-              aria-label={t("Bonus property")}
-              value={bonus.key}
-              onChange={(event) => {
-                const option = STAT_OPTIONS.find(([key]) => key === event.target.value)!;
-                updateBonus(bonus.id, { key: option[0], name: option[1], percentage: option[2] });
-              }}
-            >
-              {STAT_OPTIONS.map(([key, name]) => <option value={key} key={key}>{t(name)}</option>)}
-            </select>
-            <input aria-label={t("{{name}} exact value", { name: t(bonus.name) })} type="number" step="0.01" value={bonus.value} onChange={(event) => updateBonus(bonus.id, { value: Number(event.target.value) })} />
-            <span>{bonus.percentage ? "%" : ""}</span>
-            <button className="icon-button" onClick={() => update({ bonuses: artifact.bonuses.filter((item) => item.id !== bonus.id) })} aria-label={t("Remove bonus")}><X size={16} /></button>
+        <div className="section-label"><span>{t("Additional properties")}</span><span>{displayedProperties.length} / {unlocked}</span></div>
+        <p className="field-note">{t(automaticProperties
+          ? "All three predetermined properties are active at +15."
+          : "Choose the properties unlocked on this artifact. Their values are calculated from quality and upgrade level.")}</p>
+        {displayedProperties.map((stat, propertyIndex) => (
+          <div className={`bonus-row ${automaticProperties ? "bonus-row--automatic" : "bonus-row--calculated"}`} key={stat.key}>
+            {automaticProperties ? <span>{t(stat.name)}</span> : (
+              <select
+                aria-label={t("Additional property")}
+                value={stat.key}
+                onChange={(event) => updateAdditionalProperty(propertyIndex, event.target.value)}
+              >
+                {artifact.additionalStats.map((option) => (
+                  <option
+                    value={option.key}
+                    key={option.key}
+                    disabled={option.key !== stat.key && selectedKeys.includes(option.key)}
+                  >{t(option.name)}</option>
+                ))}
+              </select>
+            )}
+            <strong>{formatNumber(calculateStat(stat, artifact.quality, artifact.level, artifact.rarityIndex, 100), stat.percentage)}</strong>
+            {!automaticProperties && (
+              <button
+                className="icon-button"
+                onClick={() => update({ selectedAdditionalPropertyKeys: selectedKeys.filter((_, selectedIndex) => selectedIndex !== propertyIndex) })}
+                aria-label={t("Remove additional property")}
+              ><X size={16} /></button>
+            )}
           </div>
         ))}
-        {artifact.bonuses.length < unlocked && <button className="add-bonus" onClick={addBonus}><Plus size={16} /> {t("Add unlocked property")}</button>}
-        {unlocked === 0 && <div className="locked-bonuses"><Sparkles size={16} /> {t("First property unlocks at +5")}</div>}
+        {!automaticProperties && selectedKeys.length < unlocked && (
+          <button className="add-bonus" onClick={addAdditionalProperty}><Plus size={16} /> {t("Add unlocked property")}</button>
+        )}
+        {unlocked === 0 && (
+          <div className="locked-bonuses"><Sparkles size={16} /> {t(artifact.additionalPropertyMode === "selectable" ? "First property unlocks at +1" : "First property unlocks at +5")}</div>
+        )}
       </div>
     </section>
   );
@@ -1103,7 +1143,7 @@ function OptimizerPanel({
         quality: RARITY_MIDPOINT_QUALITIES[candidateRarity],
         level,
         rarityIndex: candidateRarity,
-        bonuses: [],
+        selectedAdditionalPropertyKeys: [],
       })));
     const candidatePrices = candidateConfigs.map((artifact) => artifactPrice(artifact.entry, artifact.rarityIndex, pricingRegion)?.median ?? null);
     const optimizerCandidates = candidateConfigs.map((candidate, index) => ({
@@ -1238,7 +1278,7 @@ function OptimizerPanel({
     onApply(result.indices.map((index) => ({
       ...structuredClone(run.candidates[index]),
       uid: makeId(),
-      bonuses: [],
+      selectedAdditionalPropertyKeys: [],
     })));
     window.requestAnimationFrame(() => {
       document.querySelector("#loadout")?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -1313,7 +1353,7 @@ function OptimizerPanel({
             <>
             <div className="optimizer-block">
               <div className="section-label"><span>{t("Artifacts to search")}</span><span>{t("Applied to every artifact")}</span></div>
-              <p className="field-note">{t("Each rarity uses the middle of its Not studied quality range. Random bonus properties are not included.")}</p>
+              <p className="field-note">{t("Each rarity uses the middle of its Not studied quality range.")}</p>
               <div className="optimizer-assumptions">
                 <label><span>{t("Artifact level")}</span><input aria-label={t("Optimizer level")} type="number" min="0" max="15" step="1" value={level} onChange={(event) => setLevel(clamp(Math.round(Number(event.target.value)), 0, 15))} /></label>
               </div>
@@ -1453,7 +1493,7 @@ function OptimizerPanel({
                 <div className="optimizer-result-list">
                   {run.search.results.map((result, resultIndex) => {
                     const selected = result.indices.map((index) => run.candidates[index]);
-                    const resultTotals = calculateTotals(container, selected);
+                    const resultTotals = calculateTotals(container, selected, { includeAdditionalProperties: false });
                     const objectiveKeys = new Set(run.objectives.map((objective) => objective.key));
                     const totalsByKey = new Map(resultTotals.totals.map((stat) => [stat.key, stat]));
                     const remainingGroups = CATEGORY_ORDER.map((category) => ({
@@ -1587,7 +1627,7 @@ export default function App() {
       localStorage.removeItem(STORAGE_KEY);
       return;
     }
-    const build: PersistedBuild = { version: 1, container, artifacts };
+    const build: PersistedBuild = { version: 2, container, artifacts };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(build));
   }, [container, artifacts]);
 
@@ -1648,7 +1688,7 @@ export default function App() {
           level: 0,
           quality: 100,
           rarityIndex: 0,
-          bonuses: [],
+          selectedAdditionalPropertyKeys: [],
         };
         setArtifacts((current) => current.map((value, slot) => slot === index ? artifact : value));
         setActiveIndex(index);
@@ -1682,7 +1722,6 @@ export default function App() {
     const copy = {
       ...structuredClone(source),
       uid: makeId(),
-      bonuses: source.bonuses.map((bonus) => ({ ...bonus, id: makeId() })),
     };
     setArtifacts((current) => current.map((value, slot) => slot === target ? copy : value));
     setActiveIndex(target);

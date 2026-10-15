@@ -1,0 +1,3165 @@
+{
+  "schemaVersion": 1,
+  "sources": {
+    "wiki": "https://stalzone.wiki/api/builds-calculator/items/?lang=en&category=artefact",
+    "exboListing": "https://raw.githubusercontent.com/EXBO-Studio/stalzone-database/main/global/listing.json"
+  },
+  "sourceDigest": "ac1867b5f69531f64b821ff346e3b58e5bcd59118744f98dbafe8ba292ba0f19",
+  "artifacts": {
+    "04yr": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.bleeding_accumulation",
+          "name": "Bleeding",
+          "min": -6,
+          "max": -5,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.regeneration_bonus",
+          "name": "Health regeneration",
+          "min": 0.99,
+          "max": 1.2,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.stamina_bonus",
+          "name": "Stamina",
+          "min": 4.28,
+          "max": 5.2,
+          "positive": true,
+          "percentage": true
+        }
+      ]
+    },
+    "1k4q": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.heal_efficiency",
+          "name": "Healing effectiveness",
+          "min": 1.36,
+          "max": 1.6,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.regeneration_bonus",
+          "name": "Health regeneration",
+          "min": 0.425,
+          "max": 0.5,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.stamina_bonus",
+          "name": "Stamina",
+          "min": 7.98,
+          "max": 9.7,
+          "positive": true,
+          "percentage": true
+        }
+      ]
+    },
+    "1k96": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.speed_modifier",
+          "name": "Movement speed",
+          "min": 0.16,
+          "max": 0.2,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.stamina_bonus",
+          "name": "Stamina",
+          "min": 3.995,
+          "max": 4.7,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.stamina_regeneration_bonus",
+          "name": "Stamina regeneration",
+          "min": 1.87,
+          "max": 2.2,
+          "positive": true,
+          "percentage": true
+        }
+      ]
+    },
+    "1kdg": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.radiation_accumulation",
+          "name": "Radiation",
+          "min": -17.6,
+          "max": -14.96,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.speed_modifier",
+          "name": "Movement speed",
+          "min": 0.12,
+          "max": 0.15,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.stamina_bonus",
+          "name": "Stamina",
+          "min": 3.06,
+          "max": 3.6,
+          "positive": true,
+          "percentage": true
+        }
+      ]
+    },
+    "1kv2": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.bleeding_accumulation",
+          "name": "Bleeding",
+          "min": -16,
+          "max": -13.6,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.max_weight_bonus",
+          "name": "Carry weight",
+          "min": 2.635,
+          "max": 3.1,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.tear_dmg_factor",
+          "name": "Laceration protection",
+          "min": 2.635,
+          "max": 3.1,
+          "positive": true,
+          "percentage": false
+        }
+      ]
+    },
+    "1kw1": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.max_weight_bonus",
+          "name": "Carry weight",
+          "min": 3.57,
+          "max": 4.2,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.stamina_bonus",
+          "name": "Stamina",
+          "min": 3.74,
+          "max": 4.4,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.stamina_regeneration_bonus",
+          "name": "Stamina regeneration",
+          "min": 2.465,
+          "max": 2.9,
+          "positive": true,
+          "percentage": true
+        }
+      ]
+    },
+    "49zn": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.heal_efficiency",
+          "name": "Healing effectiveness",
+          "min": 2.465,
+          "max": 2.9,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.max_weight_bonus",
+          "name": "Carry weight",
+          "min": 7.395,
+          "max": 8.7,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.speed_modifier",
+          "name": "Movement speed",
+          "min": 0.2,
+          "max": 0.25,
+          "positive": true,
+          "percentage": true
+        }
+      ]
+    },
+    "4l1r": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.heal_efficiency",
+          "name": "Healing effectiveness",
+          "min": 1.15,
+          "max": 1.4,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.regeneration_bonus",
+          "name": "Health regeneration",
+          "min": 0.82,
+          "max": 1,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.stamina_regeneration_bonus",
+          "name": "Stamina regeneration",
+          "min": 0.765,
+          "max": 0.9,
+          "positive": true,
+          "percentage": true
+        }
+      ]
+    },
+    "4l7p": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.bleeding_accumulation",
+          "name": "Bleeding",
+          "min": -18,
+          "max": -15.3,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.bullet_dmg_factor",
+          "name": "Bullet resistance",
+          "min": 2.89,
+          "max": 3.4,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.explosion_dmg_factor",
+          "name": "Explosion protection",
+          "min": 2.21,
+          "max": 2.6,
+          "positive": true,
+          "percentage": false
+        }
+      ]
+    },
+    "4lkp": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.electra_dmg_factor",
+          "name": "Resistance to electricity",
+          "min": 7.99,
+          "max": 9.7,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.max_weight_bonus",
+          "name": "Carry weight",
+          "min": 1.98,
+          "max": 2.4,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.psycho_protection",
+          "name": "Psy-Emission protection",
+          "min": 16.47,
+          "max": 20,
+          "positive": true,
+          "percentage": false
+        }
+      ]
+    },
+    "4lml": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.health_bonus",
+          "name": "Vitality",
+          "min": 0.595,
+          "max": 0.7,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.speed_modifier",
+          "name": "Movement speed",
+          "min": 0.2,
+          "max": 0.25,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.stamina_bonus",
+          "name": "Stamina",
+          "min": 12.41,
+          "max": 14.6,
+          "positive": true,
+          "percentage": true
+        }
+      ]
+    },
+    "4lpo": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.bullet_dmg_factor",
+          "name": "Bullet resistance",
+          "min": 2.8,
+          "max": 3.4,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.recoil_bonus",
+          "name": "Recoil",
+          "min": -1.9,
+          "max": -1.56,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.stamina_bonus",
+          "name": "Stamina",
+          "min": 13.34,
+          "max": 16.2,
+          "positive": true,
+          "percentage": true
+        }
+      ]
+    },
+    "4lrn": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.heal_efficiency",
+          "name": "Healing effectiveness",
+          "min": 7.5,
+          "max": 9.1,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.recoil_bonus",
+          "name": "Recoil",
+          "min": -1.6,
+          "max": -1.32,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.wiggle_bonus",
+          "name": "Sway",
+          "min": -4.4,
+          "max": -3.62,
+          "positive": true,
+          "percentage": true
+        }
+      ]
+    },
+    "51l0": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.explosion_dmg_factor",
+          "name": "Explosion protection",
+          "min": 3.54,
+          "max": 4.3,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.health_bonus",
+          "name": "Vitality",
+          "min": 0.32,
+          "max": 0.4,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.regeneration_bonus",
+          "name": "Health regeneration",
+          "min": 1.15,
+          "max": 1.4,
+          "positive": true,
+          "percentage": true
+        }
+      ]
+    },
+    "5r04": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.bleeding_accumulation",
+          "name": "Bleeding",
+          "min": -16,
+          "max": -13.6,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.bleeding_protection",
+          "name": "Bleeding protection",
+          "min": 0.765,
+          "max": 0.9,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.heal_efficiency",
+          "name": "Healing effectiveness",
+          "min": 1.87,
+          "max": 2.2,
+          "positive": true,
+          "percentage": true
+        }
+      ]
+    },
+    "5r34": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.heal_efficiency",
+          "name": "Healing effectiveness",
+          "min": 5.18,
+          "max": 6.3,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.regeneration_bonus",
+          "name": "Health regeneration",
+          "min": 0.765,
+          "max": 0.9,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.stamina_regeneration_bonus",
+          "name": "Stamina regeneration",
+          "min": 0.66,
+          "max": 0.8,
+          "positive": true,
+          "percentage": true
+        }
+      ]
+    },
+    "5r5g": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.speed_modifier",
+          "name": "Movement speed",
+          "min": 0.28,
+          "max": 0.35,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.stamina_bonus",
+          "name": "Stamina",
+          "min": 11.05,
+          "max": 13,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.stamina_regeneration_bonus",
+          "name": "Stamina regeneration",
+          "min": 0.85,
+          "max": 1,
+          "positive": true,
+          "percentage": true
+        }
+      ]
+    },
+    "5rd1": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.bullet_dmg_factor",
+          "name": "Bullet resistance",
+          "min": 3.74,
+          "max": 4.4,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.stamina_bonus",
+          "name": "Stamina",
+          "min": 4.03,
+          "max": 4.9,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.tear_dmg_factor",
+          "name": "Laceration protection",
+          "min": 11.28,
+          "max": 13.7,
+          "positive": true,
+          "percentage": false
+        }
+      ]
+    },
+    "5rg1": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.bullet_dmg_factor",
+          "name": "Bullet resistance",
+          "min": 3.315,
+          "max": 3.9,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.explosion_dmg_factor",
+          "name": "Explosion protection",
+          "min": 2.55,
+          "max": 3,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.stamina_regeneration_bonus",
+          "name": "Stamina regeneration",
+          "min": 2.465,
+          "max": 2.9,
+          "positive": true,
+          "percentage": true
+        }
+      ]
+    },
+    "5rm0": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.bullet_dmg_factor",
+          "name": "Bullet resistance",
+          "min": 10.37,
+          "max": 12.2,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.recoil_bonus",
+          "name": "Recoil",
+          "min": -2.2,
+          "max": -1.81,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.wiggle_bonus",
+          "name": "Sway",
+          "min": -3.1,
+          "max": -2.55,
+          "positive": true,
+          "percentage": true
+        }
+      ]
+    },
+    "5rog": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.max_weight_bonus",
+          "name": "Carry weight",
+          "min": 1.53,
+          "max": 1.8,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.radiation_protection",
+          "name": "Radiation protection",
+          "min": 8.5,
+          "max": 10,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.reaction_to_tear",
+          "name": "Reaction to laceration",
+          "min": 1.36,
+          "max": 1.6,
+          "positive": true,
+          "percentage": true
+        }
+      ]
+    },
+    "5rpq": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.max_weight_bonus",
+          "name": "Carry weight",
+          "min": 3.23,
+          "max": 3.8,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.speed_modifier",
+          "name": "Movement speed",
+          "min": 0.49,
+          "max": 0.6,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.stamina_regeneration_bonus",
+          "name": "Stamina regeneration",
+          "min": 0.765,
+          "max": 0.9,
+          "positive": true,
+          "percentage": true
+        }
+      ]
+    },
+    "5rwq": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.heal_efficiency",
+          "name": "Healing effectiveness",
+          "min": 1.955,
+          "max": 2.3,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.health_bonus",
+          "name": "Vitality",
+          "min": 0.595,
+          "max": 0.7,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.stamina_regeneration_bonus",
+          "name": "Stamina regeneration",
+          "min": 2.72,
+          "max": 3.2,
+          "positive": true,
+          "percentage": true
+        }
+      ]
+    },
+    "5rzo": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.bullet_dmg_factor",
+          "name": "Bullet resistance",
+          "min": 2.89,
+          "max": 3.4,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.explosion_dmg_factor",
+          "name": "Explosion protection",
+          "min": 6.63,
+          "max": 7.8,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.tear_dmg_factor",
+          "name": "Laceration protection",
+          "min": 3.06,
+          "max": 3.6,
+          "positive": true,
+          "percentage": false
+        }
+      ]
+    },
+    "6goy": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.bleeding_accumulation",
+          "name": "Bleeding",
+          "min": -20,
+          "max": -16.4,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.recoil_bonus",
+          "name": "Recoil",
+          "min": -1.3,
+          "max": -1.07,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.speed_modifier",
+          "name": "Movement speed",
+          "min": 0.33,
+          "max": 0.4,
+          "positive": true,
+          "percentage": true
+        }
+      ]
+    },
+    "7z77": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.bullet_dmg_factor",
+          "name": "Bullet resistance",
+          "min": 3.21,
+          "max": 3.9,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.max_weight_bonus",
+          "name": "Carry weight",
+          "min": 2.39,
+          "max": 2.9,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.tear_dmg_factor",
+          "name": "Laceration protection",
+          "min": 10.05,
+          "max": 12.2,
+          "positive": true,
+          "percentage": false
+        }
+      ]
+    },
+    "9n1w": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.bleeding_accumulation",
+          "name": "Bleeding",
+          "min": -4,
+          "max": -3.4,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.health_bonus",
+          "name": "Vitality",
+          "min": 0.425,
+          "max": 0.5,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.regeneration_bonus",
+          "name": "Health regeneration",
+          "min": 0.91,
+          "max": 1.1,
+          "positive": true,
+          "percentage": true
+        }
+      ]
+    },
+    "9n7z": {
+      "mode": "selectable",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.biological_accumulation",
+          "name": "Biological infection",
+          "min": -25.6,
+          "max": -21.76,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.bleeding_accumulation",
+          "name": "Bleeding",
+          "min": -20,
+          "max": -17,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.bleeding_protection",
+          "name": "Bleeding protection",
+          "min": 2.8,
+          "max": 3.4,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.bullet_dmg_factor",
+          "name": "Bullet resistance",
+          "min": 6.885,
+          "max": 8.1,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.burn_dmg_factor",
+          "name": "Resistance to fire",
+          "min": 10.37,
+          "max": 12.2,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.chemical_burn_dmg_factor",
+          "name": "Resistance to chemicals",
+          "min": 10.37,
+          "max": 12.2,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.electra_dmg_factor",
+          "name": "Resistance to electricity",
+          "min": 10.37,
+          "max": 12.2,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.explosion_dmg_factor",
+          "name": "Explosion protection",
+          "min": 7.565,
+          "max": 8.9,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.heal_efficiency",
+          "name": "Healing effectiveness",
+          "min": 5.02,
+          "max": 6.1,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.health_bonus",
+          "name": "Vitality",
+          "min": 1.02,
+          "max": 1.2,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.max_weight_bonus",
+          "name": "Carry weight",
+          "min": 7.395,
+          "max": 8.7,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.psycho_accumulation",
+          "name": "Psy-emissions",
+          "min": -25.6,
+          "max": -21.76,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.radiation_accumulation",
+          "name": "Radiation",
+          "min": -25.6,
+          "max": -21.76,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.reaction_to_burn",
+          "name": "Reaction to burns",
+          "min": 1.87,
+          "max": 2.2,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.reaction_to_chemical_burn",
+          "name": "Reaction to chemical burns",
+          "min": 2.805,
+          "max": 3.3,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.reaction_to_electroshock",
+          "name": "Reaction to electricity",
+          "min": 2.805,
+          "max": 3.3,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.reaction_to_tear",
+          "name": "Reaction to laceration",
+          "min": 2.295,
+          "max": 2.7,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.recoil_bonus",
+          "name": "Recoil",
+          "min": -3.1,
+          "max": -2.55,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.regeneration_bonus",
+          "name": "Health regeneration",
+          "min": 1.15,
+          "max": 1.4,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.speed_modifier",
+          "name": "Movement speed",
+          "min": 1.19,
+          "max": 1.4,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.stamina_bonus",
+          "name": "Stamina",
+          "min": 11.05,
+          "max": 13,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.stamina_regeneration_bonus",
+          "name": "Stamina regeneration",
+          "min": 2.465,
+          "max": 2.9,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.tear_dmg_factor",
+          "name": "Laceration protection",
+          "min": 10.37,
+          "max": 12.2,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.thermal_accumulation",
+          "name": "Temperature",
+          "min": -25.6,
+          "max": -21.76,
+          "positive": true,
+          "percentage": false
+        }
+      ]
+    },
+    "9nd0": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.electra_dmg_factor",
+          "name": "Resistance to electricity",
+          "min": 6.01,
+          "max": 7.3,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.psycho_protection",
+          "name": "Psy-Emission protection",
+          "min": 8.5,
+          "max": 10,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.stamina_regeneration_bonus",
+          "name": "Stamina regeneration",
+          "min": 0.51,
+          "max": 0.6,
+          "positive": true,
+          "percentage": true
+        }
+      ]
+    },
+    "9nml": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.speed_modifier",
+          "name": "Movement speed",
+          "min": 0.12,
+          "max": 0.15,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.stamina_bonus",
+          "name": "Stamina",
+          "min": 2.635,
+          "max": 3.1,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.stamina_regeneration_bonus",
+          "name": "Stamina regeneration",
+          "min": 1.275,
+          "max": 1.5,
+          "positive": true,
+          "percentage": true
+        }
+      ]
+    },
+    "9nvy": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.explosion_dmg_factor",
+          "name": "Explosion protection",
+          "min": 2.63,
+          "max": 3.2,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.regeneration_bonus",
+          "name": "Health regeneration",
+          "min": 0.9,
+          "max": 1.1,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.tear_dmg_factor",
+          "name": "Laceration protection",
+          "min": 2.635,
+          "max": 3.1,
+          "positive": true,
+          "percentage": false
+        }
+      ]
+    },
+    "g34p": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.bullet_dmg_factor",
+          "name": "Bullet resistance",
+          "min": 5.6,
+          "max": 6.8,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.explosion_dmg_factor",
+          "name": "Explosion protection",
+          "min": 2.06,
+          "max": 2.5,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.tear_dmg_factor",
+          "name": "Laceration protection",
+          "min": 4.03,
+          "max": 4.9,
+          "positive": true,
+          "percentage": false
+        }
+      ]
+    },
+    "gy06": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.biological_accumulation",
+          "name": "Biological infection",
+          "min": -17.6,
+          "max": -14.96,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.heal_efficiency",
+          "name": "Healing effectiveness",
+          "min": 1.36,
+          "max": 1.6,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.stamina_regeneration_bonus",
+          "name": "Stamina regeneration",
+          "min": 0.9,
+          "max": 1.1,
+          "positive": true,
+          "percentage": true
+        }
+      ]
+    },
+    "gy10": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.burn_dmg_factor",
+          "name": "Resistance to fire",
+          "min": 6.01,
+          "max": 7.3,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.stamina_bonus",
+          "name": "Stamina",
+          "min": 2.21,
+          "max": 2.6,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.thermal_protection",
+          "name": "Thermal protection",
+          "min": 8.5,
+          "max": 10,
+          "positive": true,
+          "percentage": false
+        }
+      ]
+    },
+    "gy7p": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.bleeding_accumulation",
+          "name": "Bleeding",
+          "min": -20,
+          "max": -17,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.speed_modifier",
+          "name": "Movement speed",
+          "min": 0.288,
+          "max": 0.35,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.stamina_regeneration_bonus",
+          "name": "Stamina regeneration",
+          "min": 0.85,
+          "max": 1,
+          "positive": true,
+          "percentage": true
+        }
+      ]
+    },
+    "gyg5": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.bullet_dmg_factor",
+          "name": "Bullet resistance",
+          "min": 2.04,
+          "max": 2.4,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.explosion_dmg_factor",
+          "name": "Explosion protection",
+          "min": 6.63,
+          "max": 7.8,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.max_weight_bonus",
+          "name": "Carry weight",
+          "min": 3.145,
+          "max": 3.7,
+          "positive": true,
+          "percentage": false
+        }
+      ]
+    },
+    "gyjg": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.biological_protection",
+          "name": "Bioinfection protection",
+          "min": 8.5,
+          "max": 10,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.chemical_burn_dmg_factor",
+          "name": "Resistance to chemicals",
+          "min": 6.01,
+          "max": 7.3,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.regeneration_bonus",
+          "name": "Health regeneration",
+          "min": 0.24,
+          "max": 0.3,
+          "positive": true,
+          "percentage": true
+        }
+      ]
+    },
+    "gyln": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.heal_efficiency",
+          "name": "Healing effectiveness",
+          "min": 1.36,
+          "max": 1.6,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.stamina_bonus",
+          "name": "Stamina",
+          "min": 7.98,
+          "max": 9.7,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.tear_dmg_factor",
+          "name": "Laceration protection",
+          "min": 3.74,
+          "max": 4.4,
+          "positive": true,
+          "percentage": false
+        }
+      ]
+    },
+    "gyn0": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.speed_modifier",
+          "name": "Movement speed",
+          "min": 0.16,
+          "max": 0.2,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.stamina_bonus",
+          "name": "Stamina",
+          "min": 4.59,
+          "max": 5.4,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.stamina_regeneration_bonus",
+          "name": "Stamina regeneration",
+          "min": 2.125,
+          "max": 2.5,
+          "positive": true,
+          "percentage": true
+        }
+      ]
+    },
+    "gypg": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.bleeding_accumulation",
+          "name": "Bleeding",
+          "min": -6,
+          "max": -4.8,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.speed_modifier",
+          "name": "Movement speed",
+          "min": 0.28,
+          "max": 0.35,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.stamina_regeneration_bonus",
+          "name": "Stamina regeneration",
+          "min": 0.425,
+          "max": 0.5,
+          "positive": true,
+          "percentage": true
+        }
+      ]
+    },
+    "gyq5": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.heal_efficiency",
+          "name": "Healing effectiveness",
+          "min": 5.02,
+          "max": 6.1,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.max_weight_bonus",
+          "name": "Carry weight",
+          "min": 2.465,
+          "max": 2.9,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.speed_modifier",
+          "name": "Movement speed",
+          "min": 0.28,
+          "max": 0.35,
+          "positive": true,
+          "percentage": true
+        }
+      ]
+    },
+    "gyv6": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.bullet_dmg_factor",
+          "name": "Bullet resistance",
+          "min": 2.465,
+          "max": 2.9,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.explosion_dmg_factor",
+          "name": "Explosion protection",
+          "min": 1.955,
+          "max": 2.3,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.max_weight_bonus",
+          "name": "Carry weight",
+          "min": 5.525,
+          "max": 6.5,
+          "positive": true,
+          "percentage": false
+        }
+      ]
+    },
+    "j306": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.electra_dmg_factor",
+          "name": "Resistance to electricity",
+          "min": 10.37,
+          "max": 12.2,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.regeneration_bonus",
+          "name": "Health regeneration",
+          "min": 0.42,
+          "max": 0.5,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.speed_modifier",
+          "name": "Movement speed",
+          "min": 0.29,
+          "max": 0.35,
+          "positive": true,
+          "percentage": true
+        }
+      ]
+    },
+    "j3p6": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.artefakt_heal",
+          "name": "Periodic healing",
+          "min": 0.165,
+          "max": 0.2,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.health_bonus",
+          "name": "Vitality",
+          "min": 0.595,
+          "max": 0.7,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.stamina_regeneration_bonus",
+          "name": "Stamina regeneration",
+          "min": 2.96,
+          "max": 3.6,
+          "positive": true,
+          "percentage": true
+        }
+      ]
+    },
+    "jkj4": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.biological_protection",
+          "name": "Bioinfection protection",
+          "min": 17,
+          "max": 20,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.chemical_burn_dmg_factor",
+          "name": "Resistance to chemicals",
+          "min": 7.98,
+          "max": 9.7,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.regeneration_bonus",
+          "name": "Health regeneration",
+          "min": 0.425,
+          "max": 0.5,
+          "positive": true,
+          "percentage": true
+        }
+      ]
+    },
+    "jkml": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.biological_protection",
+          "name": "Bioinfection protection",
+          "min": 16.47,
+          "max": 20,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.speed_modifier",
+          "name": "Movement speed",
+          "min": 0.2,
+          "max": 0.25,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.thermal_protection",
+          "name": "Thermal protection",
+          "min": 16.47,
+          "max": 20,
+          "positive": true,
+          "percentage": false
+        }
+      ]
+    },
+    "jkq7": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.health_bonus",
+          "name": "Vitality",
+          "min": 0.576,
+          "max": 0.699,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.stamina_bonus",
+          "name": "Stamina",
+          "min": 13.34,
+          "max": 16.2,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.stopping_protection",
+          "name": "Stability",
+          "min": 1.4,
+          "max": 1.7,
+          "positive": true,
+          "percentage": true
+        }
+      ]
+    },
+    "jky6": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.speed_modifier",
+          "name": "Movement speed",
+          "min": 0.45,
+          "max": 0.55,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.stamina_bonus",
+          "name": "Stamina",
+          "min": 6.12,
+          "max": 7.2,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.stamina_regeneration_bonus",
+          "name": "Stamina regeneration",
+          "min": 4.08,
+          "max": 4.8,
+          "positive": true,
+          "percentage": true
+        }
+      ]
+    },
+    "k3rv": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.psycho_accumulation",
+          "name": "Psy-emissions",
+          "min": -25.6,
+          "max": -21.2,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.speed_modifier",
+          "name": "Movement speed",
+          "min": 0.17,
+          "max": 0.2,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.stamina_bonus",
+          "name": "Stamina",
+          "min": 3.87,
+          "max": 4.7,
+          "positive": true,
+          "percentage": true
+        }
+      ]
+    },
+    "k3yv": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.bullet_dmg_factor",
+          "name": "Bullet resistance",
+          "min": 2.55,
+          "max": 3.1,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.regeneration_bonus",
+          "name": "Health regeneration",
+          "min": 0.68,
+          "max": 0.8,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.stamina_bonus",
+          "name": "Stamina",
+          "min": 12.02,
+          "max": 14.6,
+          "positive": true,
+          "percentage": true
+        }
+      ]
+    },
+    "kq4v": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.regeneration_bonus",
+          "name": "Health regeneration",
+          "min": 0.91,
+          "max": 1.1,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.speed_modifier",
+          "name": "Movement speed",
+          "min": 0.95,
+          "max": 1.15,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.stamina_regeneration_bonus",
+          "name": "Stamina regeneration",
+          "min": 1.32,
+          "max": 1.6,
+          "positive": true,
+          "percentage": true
+        }
+      ]
+    },
+    "kqgy": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.speed_modifier",
+          "name": "Movement speed",
+          "min": 0.32,
+          "max": 0.4,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.stamina_bonus",
+          "name": "Stamina",
+          "min": 13.77,
+          "max": 16.2,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.stamina_regeneration_bonus",
+          "name": "Stamina regeneration",
+          "min": 1.02,
+          "max": 1.2,
+          "positive": true,
+          "percentage": true
+        }
+      ]
+    },
+    "kqj3": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.bleeding_protection",
+          "name": "Bleeding protection",
+          "min": 1.955,
+          "max": 2.3,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.regeneration_bonus",
+          "name": "Health regeneration",
+          "min": 0.34,
+          "max": 0.4,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.stamina_bonus",
+          "name": "Stamina",
+          "min": 3.57,
+          "max": 4.2,
+          "positive": true,
+          "percentage": true
+        }
+      ]
+    },
+    "kqoj": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.explosion_dmg_factor",
+          "name": "Explosion protection",
+          "min": 3.7,
+          "max": 4.5,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.heal_efficiency",
+          "name": "Healing effectiveness",
+          "min": 3.74,
+          "max": 4.4,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.tear_dmg_factor",
+          "name": "Laceration protection",
+          "min": 14.98,
+          "max": 18.2,
+          "positive": true,
+          "percentage": false
+        }
+      ]
+    },
+    "kqp0": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.bleeding_accumulation",
+          "name": "Bleeding",
+          "min": -20,
+          "max": -17,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.heal_efficiency",
+          "name": "Healing effectiveness",
+          "min": 2.465,
+          "max": 2.9,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.regeneration_bonus",
+          "name": "Health regeneration",
+          "min": 0.425,
+          "max": 0.5,
+          "positive": true,
+          "percentage": true
+        }
+      ]
+    },
+    "kqr0": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.regeneration_bonus",
+          "name": "Health regeneration",
+          "min": 0.51,
+          "max": 0.6,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.speed_modifier",
+          "name": "Movement speed",
+          "min": 0.32,
+          "max": 0.4,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.stamina_regeneration_bonus",
+          "name": "Stamina regeneration",
+          "min": 2.72,
+          "max": 3.2,
+          "positive": true,
+          "percentage": true
+        }
+      ]
+    },
+    "lj0j": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.bleeding_protection",
+          "name": "Bleeding protection",
+          "min": 3.54,
+          "max": 4.3,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.burn_dmg_factor",
+          "name": "Resistance to fire",
+          "min": 4.2,
+          "max": 5.1,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.speed_modifier",
+          "name": "Movement speed",
+          "min": 0.33,
+          "max": 0.4,
+          "positive": true,
+          "percentage": true
+        }
+      ]
+    },
+    "ljn2": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.combustion_accumulation",
+          "name": "Burning",
+          "min": -0.2,
+          "max": -0.17,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.explosion_dmg_factor",
+          "name": "Explosion protection",
+          "min": 12.665,
+          "max": 14.9,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.health_bonus",
+          "name": "Vitality",
+          "min": 0.765,
+          "max": 0.9,
+          "positive": true,
+          "percentage": true
+        }
+      ]
+    },
+    "ljpq": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.speed_modifier",
+          "name": "Movement speed",
+          "min": 0.618,
+          "max": 0.75,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.stamina_bonus",
+          "name": "Stamina",
+          "min": 5.76,
+          "max": 7,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.stamina_regeneration_bonus",
+          "name": "Stamina regeneration",
+          "min": 0.91,
+          "max": 1.1,
+          "positive": true,
+          "percentage": true
+        }
+      ]
+    },
+    "ljrj": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.combustion_accumulation",
+          "name": "Burning",
+          "min": -0.1,
+          "max": -0.08,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.speed_modifier",
+          "name": "Movement speed",
+          "min": 0.16,
+          "max": 0.2,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.thermal_accumulation",
+          "name": "Temperature",
+          "min": -17.6,
+          "max": -14.96,
+          "positive": true,
+          "percentage": false
+        }
+      ]
+    },
+    "q10k": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.health_bonus",
+          "name": "Vitality",
+          "min": 0.58,
+          "max": 0.7,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.max_weight_bonus",
+          "name": "Carry weight",
+          "min": 3.05,
+          "max": 3.7,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.regeneration_bonus",
+          "name": "Health regeneration",
+          "min": 1.48,
+          "max": 1.8,
+          "positive": true,
+          "percentage": true
+        }
+      ]
+    },
+    "q1lk": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.health_bonus",
+          "name": "Vitality",
+          "min": 0.425,
+          "max": 0.5,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.regeneration_bonus",
+          "name": "Health regeneration",
+          "min": 0.68,
+          "max": 0.8,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.stamina_regeneration_bonus",
+          "name": "Stamina regeneration",
+          "min": 2.72,
+          "max": 3.2,
+          "positive": true,
+          "percentage": true
+        }
+      ]
+    },
+    "qo06": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.max_weight_bonus",
+          "name": "Carry weight",
+          "min": 1.87,
+          "max": 2.2,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.psycho_accumulation",
+          "name": "Psy-emissions",
+          "min": -17.6,
+          "max": -14.96,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.stamina_bonus",
+          "name": "Stamina",
+          "min": 3.995,
+          "max": 4.7,
+          "positive": true,
+          "percentage": true
+        }
+      ]
+    },
+    "qo59": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.bleeding_accumulation",
+          "name": "Bleeding",
+          "min": -8,
+          "max": -6.4,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.radiation_accumulation",
+          "name": "Radiation",
+          "min": -17.6,
+          "max": -14.96,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.regeneration_bonus",
+          "name": "Health regeneration",
+          "min": 0.34,
+          "max": 0.4,
+          "positive": true,
+          "percentage": true
+        }
+      ]
+    },
+    "qo94": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.health_bonus",
+          "name": "Vitality",
+          "min": 0.49,
+          "max": 0.6,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.max_weight_bonus",
+          "name": "Carry weight",
+          "min": 2.465,
+          "max": 2.9,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.stamina_regeneration_bonus",
+          "name": "Stamina regeneration",
+          "min": 2.465,
+          "max": 2.9,
+          "positive": true,
+          "percentage": true
+        }
+      ]
+    },
+    "qodk": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.bullet_dmg_factor",
+          "name": "Bullet resistance",
+          "min": 5.525,
+          "max": 6.5,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.explosion_dmg_factor",
+          "name": "Explosion protection",
+          "min": 4.25,
+          "max": 5,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.tear_dmg_factor",
+          "name": "Laceration protection",
+          "min": 17.17,
+          "max": 20.2,
+          "positive": true,
+          "percentage": false
+        }
+      ]
+    },
+    "qokj": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.health_bonus",
+          "name": "Vitality",
+          "min": 0.82,
+          "max": 1,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.max_weight_bonus",
+          "name": "Carry weight",
+          "min": 2.06,
+          "max": 2.5,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.stamina_regeneration_bonus",
+          "name": "Stamina regeneration",
+          "min": 0.99,
+          "max": 1.2,
+          "positive": true,
+          "percentage": true
+        }
+      ]
+    },
+    "qoq6": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.bleeding_protection",
+          "name": "Bleeding protection",
+          "min": 3.315,
+          "max": 3.9,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.health_bonus",
+          "name": "Vitality",
+          "min": 0.595,
+          "max": 0.7,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.regeneration_bonus",
+          "name": "Health regeneration",
+          "min": 0.51,
+          "max": 0.6,
+          "positive": true,
+          "percentage": true
+        }
+      ]
+    },
+    "rn1z": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.bullet_dmg_factor",
+          "name": "Bullet resistance",
+          "min": 5.35,
+          "max": 6.5,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.stamina_bonus",
+          "name": "Stamina",
+          "min": 5.93,
+          "max": 7.2,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.stopping_protection",
+          "name": "Stability",
+          "min": 5.35,
+          "max": 6.5,
+          "positive": true,
+          "percentage": true
+        }
+      ]
+    },
+    "rnkl": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.regeneration_bonus",
+          "name": "Health regeneration",
+          "min": 1.15,
+          "max": 1.4,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.speed_modifier",
+          "name": "Movement speed",
+          "min": 0.206,
+          "max": 0.25,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.tear_dmg_factor",
+          "name": "Laceration protection",
+          "min": 4.78,
+          "max": 5.8,
+          "positive": true,
+          "percentage": false
+        }
+      ]
+    },
+    "rnvg": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.heal_efficiency",
+          "name": "Healing effectiveness",
+          "min": 1.4,
+          "max": 1.7,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.speed_modifier",
+          "name": "Movement speed",
+          "min": 0.49,
+          "max": 0.6,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.stamina_bonus",
+          "name": "Stamina",
+          "min": 4.28,
+          "max": 5.2,
+          "positive": true,
+          "percentage": true
+        }
+      ]
+    },
+    "w4jo": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.bullet_dmg_factor",
+          "name": "Bullet resistance",
+          "min": 2.8,
+          "max": 3.4,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.regeneration_bonus",
+          "name": "Health regeneration",
+          "min": 1.48,
+          "max": 1.8,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.stamina_regeneration_bonus",
+          "name": "Stamina regeneration",
+          "min": 1.4,
+          "max": 1.7,
+          "positive": true,
+          "percentage": true
+        }
+      ]
+    },
+    "w4no": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.health_bonus",
+          "name": "Vitality",
+          "min": 0.98,
+          "max": 1.2,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.max_weight_bonus",
+          "name": "Carry weight",
+          "min": 2.38,
+          "max": 2.9,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.regeneration_bonus",
+          "name": "Health regeneration",
+          "min": 0.58,
+          "max": 0.7,
+          "positive": true,
+          "percentage": true
+        }
+      ]
+    },
+    "wg3p": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.speed_modifier",
+          "name": "Movement speed",
+          "min": 0.37,
+          "max": 0.45,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.stamina_bonus",
+          "name": "Stamina",
+          "min": 3.57,
+          "max": 4.2,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.stamina_regeneration_bonus",
+          "name": "Stamina regeneration",
+          "min": 0.57,
+          "max": 0.7,
+          "positive": true,
+          "percentage": true
+        }
+      ]
+    },
+    "wg53": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.bleeding_accumulation",
+          "name": "Bleeding",
+          "min": -13.96,
+          "max": -11.5,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.health_bonus",
+          "name": "Vitality",
+          "min": 0.331,
+          "max": 0.402,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.stamina_regeneration_bonus",
+          "name": "Stamina regeneration",
+          "min": 0.989,
+          "max": 1.201,
+          "positive": true,
+          "percentage": true
+        }
+      ]
+    },
+    "wg62": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.max_weight_bonus",
+          "name": "Carry weight",
+          "min": 2.125,
+          "max": 2.5,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.psycho_accumulation",
+          "name": "Psy-emissions",
+          "min": -17.6,
+          "max": -14.96,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.stamina_bonus",
+          "name": "Stamina",
+          "min": 2.14,
+          "max": 2.6,
+          "positive": true,
+          "percentage": true
+        }
+      ]
+    },
+    "wgko": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.bullet_dmg_factor",
+          "name": "Bullet resistance",
+          "min": 3.485,
+          "max": 4.1,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.stamina_regeneration_bonus",
+          "name": "Stamina regeneration",
+          "min": 3.54,
+          "max": 4.3,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.stopping_protection",
+          "name": "Stability",
+          "min": 2.31,
+          "max": 2.8,
+          "positive": true,
+          "percentage": true
+        }
+      ]
+    },
+    "wglp": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.heal_efficiency",
+          "name": "Healing effectiveness",
+          "min": 3.05,
+          "max": 3.7,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.health_bonus",
+          "name": "Vitality",
+          "min": 0.425,
+          "max": 0.5,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.stamina_bonus",
+          "name": "Stamina",
+          "min": 13.77,
+          "max": 16.2,
+          "positive": true,
+          "percentage": true
+        }
+      ]
+    },
+    "wgr3": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.health_bonus",
+          "name": "Vitality",
+          "min": 0.33,
+          "max": 0.4,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.regeneration_bonus",
+          "name": "Health regeneration",
+          "min": 0.49,
+          "max": 0.6,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.stamina_regeneration_bonus",
+          "name": "Stamina regeneration",
+          "min": 0.66,
+          "max": 0.8,
+          "positive": true,
+          "percentage": true
+        }
+      ]
+    },
+    "wgvd": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.health_bonus",
+          "name": "Vitality",
+          "min": 0.34,
+          "max": 0.4,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.regeneration_bonus",
+          "name": "Health regeneration",
+          "min": 0.58,
+          "max": 0.7,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.tear_dmg_factor",
+          "name": "Laceration protection",
+          "min": 10.37,
+          "max": 12.2,
+          "positive": true,
+          "percentage": false
+        }
+      ]
+    },
+    "wgwz": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.bullet_dmg_factor",
+          "name": "Bullet resistance",
+          "min": 2.635,
+          "max": 3.1,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.regeneration_bonus",
+          "name": "Health regeneration",
+          "min": 1.02,
+          "max": 1.2,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.stamina_bonus",
+          "name": "Stamina",
+          "min": 2.88,
+          "max": 3.5,
+          "positive": true,
+          "percentage": true
+        }
+      ]
+    },
+    "wgzd": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.max_weight_bonus",
+          "name": "Carry weight",
+          "min": 2.635,
+          "max": 3.1,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.psycho_accumulation",
+          "name": "Psy-emissions",
+          "min": -25.6,
+          "max": -21.76,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.stamina_regeneration_bonus",
+          "name": "Stamina regeneration",
+          "min": 0.68,
+          "max": 0.8,
+          "positive": true,
+          "percentage": true
+        }
+      ]
+    },
+    "y54z": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.burn_dmg_factor",
+          "name": "Resistance to fire",
+          "min": 7.98,
+          "max": 9.7,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.speed_modifier",
+          "name": "Movement speed",
+          "min": 0.16,
+          "max": 0.2,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.thermal_protection",
+          "name": "Thermal protection",
+          "min": 17,
+          "max": 20,
+          "positive": true,
+          "percentage": false
+        }
+      ]
+    },
+    "y5jk": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.bullet_dmg_factor",
+          "name": "Bullet resistance",
+          "min": 1.615,
+          "max": 1.9,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.max_weight_bonus",
+          "name": "Carry weight",
+          "min": 2.465,
+          "max": 2.9,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.stamina_regeneration_bonus",
+          "name": "Stamina regeneration",
+          "min": 1.7,
+          "max": 2,
+          "positive": true,
+          "percentage": true
+        }
+      ]
+    },
+    "y5k0": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.combustion_accumulation",
+          "name": "Burning",
+          "min": -0.3,
+          "max": -0.24,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.electra_dmg_factor",
+          "name": "Resistance to electricity",
+          "min": 3.78,
+          "max": 4.6,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.speed_modifier",
+          "name": "Movement speed",
+          "min": 0.32,
+          "max": 0.4,
+          "positive": true,
+          "percentage": true
+        }
+      ]
+    },
+    "y5m3": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.bullet_dmg_factor",
+          "name": "Bullet resistance",
+          "min": 4.59,
+          "max": 5.4,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.max_weight_bonus",
+          "name": "Carry weight",
+          "min": 1.2,
+          "max": 2,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.stamina_regeneration_bonus",
+          "name": "Stamina regeneration",
+          "min": 0.765,
+          "max": 0.9,
+          "positive": true,
+          "percentage": true
+        }
+      ]
+    },
+    "y5nz": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.bullet_dmg_factor",
+          "name": "Bullet resistance",
+          "min": 3.485,
+          "max": 4.1,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.max_weight_bonus",
+          "name": "Carry weight",
+          "min": 1.275,
+          "max": 1.5,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.stamina_bonus",
+          "name": "Stamina",
+          "min": 2.55,
+          "max": 3.1,
+          "positive": true,
+          "percentage": true
+        }
+      ]
+    },
+    "y5ro": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.bleeding_protection",
+          "name": "Bleeding protection",
+          "min": 4.335,
+          "max": 5.1,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.max_weight_bonus",
+          "name": "Carry weight",
+          "min": 5.27,
+          "max": 6.2,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.stamina_bonus",
+          "name": "Stamina",
+          "min": 5.525,
+          "max": 6.5,
+          "positive": true,
+          "percentage": true
+        }
+      ]
+    },
+    "y5vw": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.bleeding_accumulation",
+          "name": "Bleeding",
+          "min": -6,
+          "max": -5.1,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.bleeding_protection",
+          "name": "Bleeding protection",
+          "min": 2.14,
+          "max": 2.6,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.regeneration_bonus",
+          "name": "Health regeneration",
+          "min": 0.425,
+          "max": 0.5,
+          "positive": true,
+          "percentage": true
+        }
+      ]
+    },
+    "y5w3": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.bullet_dmg_factor",
+          "name": "Bullet resistance",
+          "min": 4.165,
+          "max": 4.9,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.explosion_dmg_factor",
+          "name": "Explosion protection",
+          "min": 3.23,
+          "max": 3.8,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.stamina_regeneration_bonus",
+          "name": "Stamina regeneration",
+          "min": 3.06,
+          "max": 3.6,
+          "positive": true,
+          "percentage": true
+        }
+      ]
+    },
+    "y5yw": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.heal_efficiency",
+          "name": "Healing effectiveness",
+          "min": 2.805,
+          "max": 3.3,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.speed_modifier",
+          "name": "Movement speed",
+          "min": 0.62,
+          "max": 0.75,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.tear_dmg_factor",
+          "name": "Laceration protection",
+          "min": 3.79,
+          "max": 4.6,
+          "positive": true,
+          "percentage": false
+        }
+      ]
+    },
+    "yq3o": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.heal_efficiency",
+          "name": "Healing effectiveness",
+          "min": 2.39,
+          "max": 2.9,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.health_bonus",
+          "name": "Vitality",
+          "min": 0.99,
+          "max": 1.2,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.stamina_bonus",
+          "name": "Stamina",
+          "min": 3.62,
+          "max": 4.4,
+          "positive": true,
+          "percentage": true
+        }
+      ]
+    },
+    "zjzn": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.bullet_dmg_factor",
+          "name": "Bullet resistance",
+          "min": 2.22,
+          "max": 2.7,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.regeneration_bonus",
+          "name": "Health regeneration",
+          "min": 1.15,
+          "max": 1.4,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.stamina_regeneration_bonus",
+          "name": "Stamina regeneration",
+          "min": 1.15,
+          "max": 1.4,
+          "positive": true,
+          "percentage": true
+        }
+      ]
+    },
+    "zy32": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.electra_dmg_factor",
+          "name": "Resistance to electricity",
+          "min": 8.81,
+          "max": 10.7,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.speed_modifier",
+          "name": "Movement speed",
+          "min": 0.24,
+          "max": 0.3,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.stamina_bonus",
+          "name": "Stamina",
+          "min": 3.12,
+          "max": 3.8,
+          "positive": true,
+          "percentage": true
+        }
+      ]
+    },
+    "zy7y": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.radiation_protection",
+          "name": "Radiation protection",
+          "min": 17,
+          "max": 20,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.stamina_bonus",
+          "name": "Stamina",
+          "min": 2.975,
+          "max": 3.5,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.tear_dmg_factor",
+          "name": "Laceration protection",
+          "min": 7.98,
+          "max": 9.7,
+          "positive": true,
+          "percentage": false
+        }
+      ]
+    },
+    "zyly": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.bleeding_protection",
+          "name": "Bleeding protection",
+          "min": 1.72,
+          "max": 2.1,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.bullet_dmg_factor",
+          "name": "Bullet resistance",
+          "min": 1.4,
+          "max": 1.7,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.stamina_bonus",
+          "name": "Stamina",
+          "min": 3.05,
+          "max": 3.7,
+          "positive": true,
+          "percentage": true
+        }
+      ]
+    },
+    "zymn": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.explosion_dmg_factor",
+          "name": "Explosion protection",
+          "min": 6.12,
+          "max": 7.2,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.heal_efficiency",
+          "name": "Healing effectiveness",
+          "min": 2.465,
+          "max": 2.9,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.regeneration_bonus",
+          "name": "Health regeneration",
+          "min": 0.41,
+          "max": 0.5,
+          "positive": true,
+          "percentage": true
+        }
+      ]
+    },
+    "zyo9": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.biological_accumulation",
+          "name": "Biological infection",
+          "min": -17.6,
+          "max": -14.96,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.heal_efficiency",
+          "name": "Healing effectiveness",
+          "min": 1.02,
+          "max": 1.2,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.stamina_regeneration_bonus",
+          "name": "Stamina regeneration",
+          "min": 0.65,
+          "max": 0.8,
+          "positive": true,
+          "percentage": true
+        }
+      ]
+    },
+    "zypm": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.max_weight_bonus",
+          "name": "Carry weight",
+          "min": 3.57,
+          "max": 4.2,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.speed_modifier",
+          "name": "Movement speed",
+          "min": 0.2,
+          "max": 0.25,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.stamina_bonus",
+          "name": "Stamina",
+          "min": 11.05,
+          "max": 13,
+          "positive": true,
+          "percentage": true
+        }
+      ]
+    },
+    "zyqk": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.combustion_accumulation",
+          "name": "Burning",
+          "min": -0.1,
+          "max": -0.085,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.health_bonus",
+          "name": "Vitality",
+          "min": 0.51,
+          "max": 0.6,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.regeneration_bonus",
+          "name": "Health regeneration",
+          "min": 0.41,
+          "max": 0.4,
+          "positive": true,
+          "percentage": true
+        }
+      ]
+    },
+    "zyrm": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.psycho_protection",
+          "name": "Psy-Emission protection",
+          "min": 16.47,
+          "max": 20,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.radiation_protection",
+          "name": "Radiation protection",
+          "min": 16.47,
+          "max": 20,
+          "positive": true,
+          "percentage": false
+        },
+        {
+          "key": "stalker.artefact_properties.factor.speed_modifier",
+          "name": "Movement speed",
+          "min": 0.207,
+          "max": 0.252,
+          "positive": true,
+          "percentage": true
+        }
+      ]
+    },
+    "zyv9": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.health_bonus",
+          "name": "Vitality",
+          "min": 0.51,
+          "max": 0.6,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.stamina_regeneration_bonus",
+          "name": "Stamina regeneration",
+          "min": 0.595,
+          "max": 0.7,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.tear_dmg_factor",
+          "name": "Laceration protection",
+          "min": 1.72,
+          "max": 2.1,
+          "positive": true,
+          "percentage": false
+        }
+      ]
+    },
+    "zyw2": {
+      "mode": "fixed-three",
+      "properties": [
+        {
+          "key": "stalker.artefact_properties.factor.regeneration_bonus",
+          "name": "Health regeneration",
+          "min": 0.24,
+          "max": 0.3,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.stamina_regeneration_bonus",
+          "name": "Stamina regeneration",
+          "min": 0.68,
+          "max": 0.8,
+          "positive": true,
+          "percentage": true
+        },
+        {
+          "key": "stalker.artefact_properties.factor.thermal_accumulation",
+          "name": "Temperature",
+          "min": -17.6,
+          "max": -7,
+          "positive": true,
+          "percentage": false
+        }
+      ]
+    }
+  }
+}

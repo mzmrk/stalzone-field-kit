@@ -62,14 +62,8 @@ export type ArtifactData = {
   name: string;
   weight: number;
   stats: ParsedStat[];
-};
-
-export type BonusProperty = {
-  id: string;
-  key: string;
-  name: string;
-  value: number;
-  percentage: boolean;
+  additionalStats: ParsedStat[];
+  additionalPropertyMode: "fixed-three" | "selectable" | "none";
 };
 
 export type ArtifactConfig = ArtifactData & {
@@ -77,7 +71,7 @@ export type ArtifactConfig = ArtifactData & {
   level: number;
   quality: number;
   rarityIndex: number;
-  bonuses: BonusProperty[];
+  selectedAdditionalPropertyKeys: string[];
 };
 
 export type TotalStat = {
@@ -89,7 +83,7 @@ export type TotalStat = {
 };
 
 export type PersistedBuild = {
-  version: 1;
+  version: 2;
   container: ContainerData | null;
   artifacts: Array<ArtifactConfig | null>;
 };

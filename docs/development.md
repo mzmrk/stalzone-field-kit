@@ -101,6 +101,22 @@ GitHub. There is no bundled snapshot, application-managed browser persistence, s
 workflow, or fallback price source. Auction acquisition, raw history, estimator
 rules, and provenance are maintained exclusively by `stalzone-market-history`.
 
+## Artifact additional properties
+
+The manual calculator bundles normalized additional-property pools generated
+from the STALZONE Wiki calculator API and validated against the live EXBO Global
+listing. Refresh and validate the deterministic snapshot from the repository
+root with:
+
+```bash
+npm run artifact-properties:update
+npm run artifact-properties:check
+```
+
+The update requires no credentials and has no scheduled workflow. Review
+unexpected pool counts or item-ID differences instead of weakening the
+generator guards.
+
 ## Documentation workflow
 
 The repository-scoped

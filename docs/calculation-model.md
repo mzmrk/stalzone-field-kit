@@ -41,7 +41,8 @@ The order is an invariant because changing it changes exposure outcomes:
 
 1. Calculate every base artifact property using artifact quality, level, rarity,
    and container effectiveness.
-2. Add exact manually entered bonus-property values.
+2. Calculate every active additional property with the same quality, level,
+   rarity, and effectiveness rules.
 3. Sum all artifact contributions by EXBO stat key. Counter-artifacts therefore
    offset harmful exposure before protection.
 4. If the remaining radiation, biological, psy, or thermal exposure is positive,
@@ -74,17 +75,26 @@ mechanics, so live item values must not be divided back to the earlier scale.
 
 ## Additional properties and carry weight
 
-EXBO's public item repository does not expose each artifact's random additional
-property pool. At levels `+5`, `+10`, and `+15`, the UI unlocks one manual row in
-which the user selects a supported stat and enters the exact value shown in game.
-The entered value is added directly; quality, level, and effectiveness are not
-applied again. The supported manual stat list lives in
-[`STAT_OPTIONS`](../src/calculations.ts).
+EXBO's public item repository does not expose artifact additional-property
+pools. The checked-in
+[`artifact-additional-properties.json`](../src/generated/artifact-additional-properties.json)
+is generated from the STALZONE Wiki calculator API and matched to the current
+EXBO listing by opaque item ID. [`artifact-properties.ts`](../src/artifact-properties.ts)
+owns unlock and selection behavior.
+
+Normal artifacts unlock one explicitly selected property at `+5`, a second at
+`+10`, and all three predetermined properties automatically at `+15`. Their
+range endpoints pass through `calculateStat` like base properties; the editor
+previews them at `100%` effectiveness and build totals apply the selected
+carrier. Rubik is exceptional: it has a 24-property pool, unlocks selection
+slots at `+1`, `+5`, `+10`, and `+15`, and is never auto-filled. Additional
+properties remain outside optimizer candidates and optimizer result totals.
 
 Carry weight is the `max_weight_bonus` capacity stat, not physical equipment
 mass. A carrier's built-in value is shown with its slots, protection, and
 effectiveness as reference only. It is excluded from calculated totals, optimizer
-values, and constraints, so calculated carry weight always comes from artifacts.
+values, and constraints, so calculated carry weight always comes from artifacts,
+including an active artifact additional property.
 `calculateTotals` still returns the sum of selected artifact mass for domain use,
 but the UI does not display backpack/container or artifact mass.
 
@@ -95,8 +105,8 @@ selected objective and constrained-stat contributions with
 [`calculateStat`](../src/calculations.ts). At each complete combination it applies
 counter-effects before inner protection, then eligible carrier stats and the
 configured per-effect limits. Carrier carry weight is excluded at this stage as
-well as from manual totals. Random additional properties are not searched because
-EXBO does not publish their pools.
+well as from manual totals. Additional upgrade properties are deliberately
+not searched yet.
 
 Each enabled rarity creates a separately priced artifact variant at the midpoint
 of its unstudied range: `92.5`, `107.5`, `122.5`, `137.5`, `152.5`, `167.5`, or

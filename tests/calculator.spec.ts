@@ -77,6 +77,10 @@ test("creates and restores a live EXBO-backed artifact build", async ({ page }) 
   await page.getByLabel("Exact quality").fill("130");
   await page.getByRole("button", { name: "Rare", exact: true }).click();
   await page.getByRole("button", { name: "+10" }).click();
+  await expect(page.locator("#artifact").getByText("0 / 2")).toBeVisible();
+  await page.getByRole("button", { name: "Add unlocked property" }).click();
+  await page.getByRole("button", { name: "Add unlocked property" }).click();
+  await expect(page.locator("#artifact .bonus-row--calculated select")).toHaveCount(2);
   await expect(page.getByText("+10 · 130% · Rare")).toBeVisible();
 
   await reloadLoadedApp(page);
@@ -84,6 +88,11 @@ test("creates and restores a live EXBO-backed artifact build", async ({ page }) 
   await expect(page.getByText("Berloga-6 Container").first()).toBeVisible();
   await expect(page.getByText("Bracelet").first()).toBeVisible();
   await expect(page.getByRole("heading", { name: "Bracelet" })).toBeVisible();
+  await expect(page.locator("#artifact .bonus-row--calculated select")).toHaveCount(2);
+  await page.getByRole("button", { name: "+15" }).click();
+  await expect(page.getByText("All three predetermined properties are active at +15.")).toBeVisible();
+  await expect(page.locator("#artifact .bonus-row--automatic")).toHaveCount(3);
+  await expect(page.locator("#artifact .bonus-row select")).toHaveCount(0);
   await page.screenshot({ path: "test-results/calculator.png", fullPage: true });
 });
 

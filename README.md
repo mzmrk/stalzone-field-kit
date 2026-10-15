@@ -19,6 +19,8 @@ historical price estimates.
 - Exact artifact calculations across quality, rarity, upgrade level, container
   effectiveness, and inner protection.
 - Manual backpack and container loadouts with exposure warnings.
+- Predetermined artifact upgrade properties with explicit `+5`/`+10` choices
+  and automatic normal-artifact `+15` effects.
 - Weighted top-ten build search with minimum stat requirements and configurable
   negative-effect limits.
 - Automatic brute-force or MILP optimization depending on search size, including
@@ -56,9 +58,11 @@ The application loads current Global item data and icons directly from the
 [EXBO Studio STALZONE database](https://github.com/EXBO-Studio/stalzone-database).
 An internet connection to GitHub is therefore required when using the calculator.
 
-Optimizer searches use the midpoint of each selected rarity's unstudied stat
-range. Random additional artifact properties are not searched because their pools
-are not published; exact bonuses can be entered manually after loading a build.
+Manual additional-property pools are generated from the
+[STALZONE Wiki calculator](https://stalzone.wiki/builds-calculator), validated
+against EXBO artifact IDs, and bundled with the application. Optimizer searches
+use the midpoint of each selected rarity's unstudied stat range and do not yet
+search these upgrade properties.
 Regional EU, RU, NA, SEA, and NEA price estimates are loaded at runtime from the
 [STALZONE Market History price index](https://github.com/mzmrk/stalzone-market-history/blob/main/data/pricing-index.json).
 They are historical completed-sale medians, not current listings or guarantees.
