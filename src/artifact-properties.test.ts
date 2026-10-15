@@ -3,6 +3,7 @@ import manifest from "./generated/artifact-additional-properties.json";
 import {
   activeAdditionalProperties,
   artifactAdditionalPropertyDefinition,
+  optimizerStatsForArtifact,
   unlockedAdditionalPropertyCount,
   usesAutomaticAdditionalProperties,
 } from "./artifact-properties";
@@ -58,5 +59,19 @@ describe("artifact additional properties", () => {
     expect(unlockedAdditionalPropertyCount(rubik)).toBe(4);
     expect(usesAutomaticAdditionalProperties(rubik)).toBe(false);
     expect(activeAdditionalProperties(rubik)).toHaveLength(4);
+  });
+
+  it("gives the optimizer all three normal properties only at +15", () => {
+    const baseStat = { key: "base" } as ArtifactConfig["stats"][number];
+    const definition = artifactAdditionalPropertyDefinition("ljn2");
+    const atFive = { ...configuredArtifact("ljn2", 5), stats: [baseStat] };
+    const atTen = { ...configuredArtifact("ljn2", 10), stats: [baseStat] };
+    const atFifteen = { ...configuredArtifact("ljn2", 15), stats: [baseStat] };
+    const rubik = { ...configuredArtifact("9n7z", 15), stats: [baseStat] };
+
+    expect(optimizerStatsForArtifact(atFive)).toEqual([baseStat]);
+    expect(optimizerStatsForArtifact(atTen)).toEqual([baseStat]);
+    expect(optimizerStatsForArtifact(atFifteen)).toEqual([baseStat, ...definition.properties]);
+    expect(optimizerStatsForArtifact(rubik)).toEqual([baseStat]);
   });
 });

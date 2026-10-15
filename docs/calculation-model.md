@@ -88,7 +88,9 @@ range endpoints pass through `calculateStat` like base properties; the editor
 previews them at `100%` effectiveness and build totals apply the selected
 carrier. Rubik is exceptional: it has a 24-property pool, unlocks selection
 slots at `+1`, `+5`, `+10`, and `+15`, and is never auto-filled. Additional
-properties remain outside optimizer candidates and optimizer result totals.
+properties enter optimizer candidates only for normal artifacts at `+15`, when
+all three are deterministic. The optimizer offers `+0` and `+15`; intermediate
+levels and Rubik property selections remain available only in the manual calculator.
 
 Carry weight is the `max_weight_bonus` capacity stat, not physical equipment
 mass. A carrier's built-in value is shown with its slots, protection, and
@@ -105,8 +107,8 @@ selected objective and constrained-stat contributions with
 [`calculateStat`](../src/calculations.ts). At each complete combination it applies
 counter-effects before inner protection, then eligible carrier stats and the
 configured per-effect limits. Carrier carry weight is excluded at this stage as
-well as from manual totals. Additional upgrade properties are deliberately
-not searched yet.
+well as from manual totals. Normal `+15` candidates fold all three predetermined
+upgrade properties into the same vectors before either engine searches them.
 
 Each enabled rarity creates a separately priced artifact variant at the midpoint
 of its unstudied range: `92.5`, `107.5`, `122.5`, `137.5`, `152.5`, `167.5`, or

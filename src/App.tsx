@@ -46,6 +46,7 @@ import {
   statCategory,
 } from "./calculations";
 import {
+  optimizerStatsForArtifact,
   unlockedAdditionalPropertyCount,
   usesAutomaticAdditionalProperties,
 } from "./artifact-properties";
@@ -222,6 +223,8 @@ const DEFAULT_NEGATIVE_FILTERS: NegativeFilter[] = OPTIMIZER_HARMFUL_OPTIONS.map
   limit: "",
 }));
 
+const OPTIMIZER_LEVELS = [0, 15] as const;
+
 function defaultOptimizerSettings(): PersistedOptimizerSettings {
   return {
     version: 1,
@@ -278,9 +281,7 @@ function loadSavedOptimizerSettings(): PersistedOptimizerSettings {
 
     return {
       version: 1,
-      level: typeof parsed.level === "number" && Number.isFinite(parsed.level)
-        ? clamp(Math.round(parsed.level), 0, 15)
-        : defaults.level,
+      level: OPTIMIZER_LEVELS.includes(parsed.level as 0 | 15) ? parsed.level as 0 | 15 : defaults.level,
       selectedRarities,
       positiveFilters,
       negativeFilters,
@@ -1148,7 +1149,7 @@ function OptimizerPanel({
     const candidatePrices = candidateConfigs.map((artifact) => artifactPrice(artifact.entry, artifact.rarityIndex, pricingRegion)?.median ?? null);
     const optimizerCandidates = candidateConfigs.map((candidate, index) => ({
       name: candidate.name,
-      stats: candidate.stats,
+      stats: optimizerStatsForArtifact(candidate),
       price: candidatePrices[index],
       identity: candidate.entry.data,
       quality: candidate.quality,
@@ -1278,7 +1279,6 @@ function OptimizerPanel({
     onApply(result.indices.map((index) => ({
       ...structuredClone(run.candidates[index]),
       uid: makeId(),
-      selectedAdditionalPropertyKeys: [],
     })));
     window.requestAnimationFrame(() => {
       document.querySelector("#loadout")?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -1355,7 +1355,20 @@ function OptimizerPanel({
               <div className="section-label"><span>{t("Artifacts to search")}</span><span>{t("Applied to every artifact")}</span></div>
               <p className="field-note">{t("Each rarity uses the middle of its Not studied quality range.")}</p>
               <div className="optimizer-assumptions">
-                <label><span>{t("Artifact level")}</span><input aria-label={t("Optimizer level")} type="number" min="0" max="15" step="1" value={level} onChange={(event) => setLevel(clamp(Math.round(Number(event.target.value)), 0, 15))} /></label>
+                <div className="optimizer-level-control">
+                  <span>{t("Artifact level")}</span>
+                  <div className="optimizer-level-options" role="group" aria-label={t("Artifact level")}>
+                    {OPTIMIZER_LEVELS.map((option) => (
+                      <button
+                        type="button"
+                        key={option}
+                        className={level === option ? "active" : ""}
+                        aria-pressed={level === option}
+                        onClick={() => setLevel(option)}
+                      >+{option}</button>
+                    ))}
+                  </div>
+                </div>
               </div>
               <div className="optimizer-rarity-list" role="group" aria-label={t("Rarities to search")}>
                 {RARITY_NAMES.map((rarityName, candidateRarity) => (
@@ -1493,7 +1506,7 @@ function OptimizerPanel({
                 <div className="optimizer-result-list">
                   {run.search.results.map((result, resultIndex) => {
                     const selected = result.indices.map((index) => run.candidates[index]);
-                    const resultTotals = calculateTotals(container, selected, { includeAdditionalProperties: false });
+                    const resultTotals = calculateTotals(container, selected);
                     const objectiveKeys = new Set(run.objectives.map((objective) => objective.key));
                     const totalsByKey = new Map(resultTotals.totals.map((stat) => [stat.key, stat]));
                     const remainingGroups = CATEGORY_ORDER.map((category) => ({

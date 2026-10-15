@@ -21,8 +21,8 @@ historical price estimates.
 - Manual backpack and container loadouts with exposure warnings.
 - Predetermined artifact upgrade properties with explicit `+5`/`+10` choices
   and automatic normal-artifact `+15` effects.
-- Weighted top-ten build search with minimum stat requirements and configurable
-  negative-effect limits.
+- Weighted top-ten build search at `+0` or `+15`, including all three
+  predetermined properties for normal `+15` artifacts.
 - Automatic brute-force or MILP optimization depending on search size, including
   accuracy labels when a bounded solve cannot prove the optimum in time.
 - Multi-rarity and price-capped searches using regional historical estimates
@@ -61,8 +61,8 @@ An internet connection to GitHub is therefore required when using the calculator
 Manual additional-property pools are generated from the
 [STALZONE Wiki calculator](https://stalzone.wiki/builds-calculator), validated
 against EXBO artifact IDs, and bundled with the application. Optimizer searches
-use the midpoint of each selected rarity's unstudied stat range and do not yet
-search these upgrade properties.
+use the midpoint of each selected rarity's unstudied stat range; `+5` and `+10`
+property selections and Rubik rolls remain manual-calculator features.
 Regional EU, RU, NA, SEA, and NEA price estimates are loaded at runtime from the
 [STALZONE Market History price index](https://github.com/mzmrk/stalzone-market-history/blob/main/data/pricing-index.json).
 They are historical completed-sale medians, not current listings or guarantees.

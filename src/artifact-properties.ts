@@ -36,3 +36,9 @@ export function activeAdditionalProperties(artifact: ArtifactConfig) {
   const selected = new Set(artifact.selectedAdditionalPropertyKeys.slice(0, unlocked));
   return artifact.additionalStats.filter((stat) => selected.has(stat.key));
 }
+
+export function optimizerStatsForArtifact(artifact: ArtifactConfig) {
+  return usesAutomaticAdditionalProperties(artifact)
+    ? [...artifact.stats, ...artifact.additionalStats]
+    : artifact.stats;
+}

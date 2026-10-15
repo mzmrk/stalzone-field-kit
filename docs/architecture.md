@@ -195,9 +195,11 @@ Market estimates are historical regional data, not active-lot quotes or guarante
 ## Optimizer boundary
 
 The optimizer is a theoretical catalog search: every artifact receives one shared
-upgrade level and one candidate variant for each user-enabled rarity. Each variant
-uses the midpoint of that rarity's unstudied stat range; random additional
-properties are excluded. It fills every carrier slot, allows repeated artifact
+upgrade level, either `+0` or `+15`, and one candidate variant for each
+user-enabled rarity. Each variant uses the midpoint of that rarity's unstudied
+stat range. Normal `+15` candidates include all three predetermined additional
+properties; intermediate levels and Rubik property rolls remain manual-calculator
+concerns. It fills every carrier slot, allows repeated artifact
 types, exposes every supported positive stat and harmful property without
 add/remove controls, and applies independent numerical requirements before
 ranking. The positive list covers all 32 green property keys in the current EXBO

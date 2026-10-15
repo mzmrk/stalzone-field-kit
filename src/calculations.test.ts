@@ -184,7 +184,7 @@ describe("artifact calculations", () => {
     expect(result.mass).toBeCloseTo(0.4);
   });
 
-  it("can exclude additional properties from optimizer result calculations", () => {
+  it("includes all automatic +15 properties in build totals", () => {
     const container = { protection: 0, effectiveness: 100, stats: [] } as unknown as ContainerData;
     const artifact = {
       item: { id: "test" },
@@ -199,7 +199,6 @@ describe("artifact calculations", () => {
     } as unknown as ArtifactConfig;
 
     expect(calculateTotals(container, [artifact]).totals).toHaveLength(3);
-    expect(calculateTotals(container, [artifact], { includeAdditionalProperties: false }).totals).toHaveLength(0);
   });
 
   it("warns only after the published exposure threshold is exceeded", () => {

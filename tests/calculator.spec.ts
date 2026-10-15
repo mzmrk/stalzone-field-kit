@@ -287,6 +287,44 @@ test("reports an incomplete search when unavailable artifact files leave no matc
   await expect(page.getByText("No builds match your filters")).toHaveCount(0);
 });
 
+test("optimizes all predetermined properties at +15 and loads them into the calculator", async ({ page }) => {
+  test.setTimeout(60_000);
+  await page.route("**/global/listing.json", async (route) => {
+    const response = await route.fetch();
+    const listing = await response.json() as Array<{ data: string; name?: { lines?: Record<string, string> } }>;
+    await route.fulfill({
+      response,
+      json: listing.filter((entry) =>
+        entry.name?.lines?.en === "Errand Junior Backpack" || entry.data.endsWith("/5rpq.json")),
+    });
+  });
+  await gotoLoadedApp(page);
+  await page.getByRole("button", { name: /Select a backpack or container/i }).click();
+  await page.getByPlaceholder(/Search backpacks and containers/).fill("Errand Junior Backpack");
+  await page.getByRole("button", { name: /Errand Junior Backpack/ }).click();
+
+  const optimizer = page.locator("#optimizer");
+  const plusZero = optimizer.getByRole("button", { name: "+0", exact: true });
+  const plusFifteen = optimizer.getByRole("button", { name: "+15", exact: true });
+  await expect(plusZero).toHaveAttribute("aria-pressed", "true");
+  await expect(plusFifteen).toHaveAttribute("aria-pressed", "false");
+  await expect(page.getByLabel("Optimizer level")).toHaveCount(0);
+
+  await page.getByRole("button", { name: "Clear all optimizer filters" }).click();
+  await page.getByLabel("Optimize Movement speed").check();
+  await page.getByRole("button", { name: "Allow all" }).click();
+  await plusFifteen.click();
+  await expect(plusFifteen).toHaveAttribute("aria-pressed", "true");
+  await optimizer.locator(".optimizer-results-empty").getByRole("button", { name: "Find best builds" }).click();
+
+  await expect(page.getByRole("button", { name: "Load into calculator" }).first()).toBeVisible({ timeout: 30_000 });
+  await expect(page.locator(".optimizer-effect-group--searched").first()).toContainText("Movement speed");
+  await page.getByRole("button", { name: "Load into calculator" }).first().click();
+  await expect(page.getByRole("heading", { name: "Amberite" })).toBeVisible();
+  await expect(page.locator("#artifact .bonus-row--automatic")).toHaveCount(3);
+  await expect(page.getByText("All three predetermined properties are active at +15.")).toBeVisible();
+});
+
 test("exhaustively ranks and loads a four-slot weighted build", async ({ page }) => {
   test.setTimeout(90_000);
   await gotoLoadedApp(page);

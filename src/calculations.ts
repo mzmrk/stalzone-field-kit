@@ -110,7 +110,6 @@ export function calculateStat(
 export function calculateTotals(
   container: ContainerData | null,
   artifacts: Array<ArtifactConfig | null>,
-  options: { includeAdditionalProperties?: boolean } = {},
 ) {
   if (!container) return { totals: [] as TotalStat[], warnings: [] as TotalStat[], mass: 0 };
 
@@ -148,7 +147,7 @@ export function calculateTotals(
         !stat.positive,
       );
     }
-    if (options.includeAdditionalProperties !== false) for (const stat of activeAdditionalProperties(artifact)) {
+    for (const stat of activeAdditionalProperties(artifact)) {
       add(
         stat.key,
         stat.name,
