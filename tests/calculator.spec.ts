@@ -66,8 +66,9 @@ test("creates and restores a live EXBO-backed artifact build", async ({ page }) 
   await expect(braceletResult).toContainText("₽");
   const braceletPrice = braceletResult.locator(".price-display");
   await expect(braceletPrice).toHaveClass(/price-display--market/);
-  await expect(braceletPrice).toHaveAttribute("aria-label", /^Market price:/);
-  await expect(braceletPrice).toHaveAttribute("title", /eligible completed sales.*EU data through/);
+  await expect(braceletPrice).toHaveAttribute("aria-label", /^Market \+0 artifact price:/);
+  await expect(braceletPrice).toContainText("+0");
+  await expect(braceletPrice).toHaveAttribute("title", /^\+0 artifact price.*eligible completed sales.*EU data through/);
   await page.getByRole("button", { name: /^Bracelet/ }).click();
 
   await expect(page.getByRole("heading", { name: "Bracelet" })).toBeVisible();
@@ -396,6 +397,7 @@ test("exhaustively ranks and loads a four-slot weighted build", async ({ page })
   await page.getByLabel("Maximum total price").fill("0");
   await expect(searchButton).toBeDisabled();
   await expect(page.getByText("Maximum total price must be greater than zero.")).toBeVisible();
+  await expect(page.getByText(/Prices represent \+0 artifacts.*Upgrade levels and additional-property rolls are not priced/)).toBeVisible();
   await page.getByLabel("Maximum total price").fill("999999999999");
   await expect(searchButton).toBeEnabled();
   await expect.poll(() => page.evaluate(() => localStorage.getItem("field-kit-optimizer-v1"))).toContain("999999999999");
@@ -410,6 +412,8 @@ test("exhaustively ranks and loads a four-slot weighted build", async ({ page })
   await expect(page.getByRole("button", { name: "Load into calculator" }).first()).toBeVisible();
   await expect.poll(() => page.locator(".optimizer-result").first().evaluate((element) => Math.round(element.getBoundingClientRect().top))).toBeLessThan(150);
   await expect(page.locator(".optimizer-result__price").first()).toContainText("₽");
+  await expect(page.locator(".optimizer-result__price").first()).toContainText("+0");
+  await expect(page.locator(".optimizer-result__price").first()).toHaveAttribute("aria-label", /^Estimated \+0 build price:/);
   await expect(page.locator(".optimizer-effect-group--searched").first()).toContainText("Your priorities");
   await expect(page.locator(".optimizer-effect-group").filter({ hasText: "Exposure" }).first()).toBeVisible();
   const resultCards = page.locator(".optimizer-result");

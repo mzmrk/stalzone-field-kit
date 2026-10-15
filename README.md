@@ -66,6 +66,8 @@ property selections and Rubik rolls remain manual-calculator features.
 Regional EU, RU, NA, SEA, and NEA price estimates are loaded at runtime from the
 [STALZONE Market History price index](https://github.com/mzmrk/stalzone-market-history/blob/main/data/pricing-index.json).
 They are historical completed-sale medians, not current listings or guarantees.
+All estimates represent `+0` artifacts and exclude premiums for upgrades or
+additional-property rolls.
 
 ## Development
 

@@ -86,6 +86,8 @@ EU, RU, NA, SEA, or NEA from one generated bundle; EU is the persisted default.
 Direct completed-sale prices are lime, adjacent-rarity estimates amber, and
 unknowns gray. Source details include samples, method, date, and region. Unknown
 tiers are excluded by an active price cap. Raw caches are not shipped.
+Every displayed estimate and optimizer budget total represents a `+0` artifact;
+upgrade levels and additional-property rolls do not change the pricing input.
 
 ## Source ownership
 

@@ -162,9 +162,9 @@ describe("auction pricing", () => {
       "Estimated",
       "Unknown",
     ]);
-    expect(priceSourceDetails(market)).toContain("recency-weighted median from 12 eligible completed sales");
-    expect(priceSourceDetails(estimated)).toContain("Ordinary price using 1.88× multiplier");
-    expect(priceSourceDetails(null)).toContain("No eligible completed-sale estimate");
+    expect(priceSourceDetails(market)).toContain("+0 artifact price · Market recency-weighted median from 12 eligible completed sales");
+    expect(priceSourceDetails(estimated)).toContain("+0 artifact price · Estimated from this artifact's Ordinary price using 1.88× multiplier");
+    expect(priceSourceDetails(null)).toContain("+0 artifact price · No eligible completed-sale estimate");
     expect(priceSourceDetails(null, "ru")).toContain("RU");
   });
 
@@ -180,6 +180,7 @@ describe("auction pricing", () => {
     };
     expect(formatPrice(market.median)).toBe("12 346 ₽");
     expect(priceSourceLabel(market)).toBe("Рыночная");
+    expect(priceSourceDetails(market)).toContain("Цена артефакта +0 · Рыночная");
     expect(priceSourceDetails(market)).toContain("подходящих завершённых продаж");
     expect(pricingMetadata("eu").asOfLabel).toMatch(/[а-я]/i);
   });

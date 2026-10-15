@@ -148,20 +148,21 @@ export function priceSourceDetails(estimate: PriceEstimate | null, region: Prici
   const suffix = metadata.available
     ? i18n.t("{{region}} data through {{date}}", { region: metadata.region, date: metadata.asOfLabel })
     : i18n.t("{{region}} live price data unavailable", { region: metadata.region });
-  if (!estimate) return i18n.t("No eligible completed-sale estimate or same-artifact rarity anchor · {{suffix}}", { suffix });
+  const level = i18n.t("+0 artifact price");
+  if (!estimate) return `${level} · ${i18n.t("No eligible completed-sale estimate or same-artifact rarity anchor · {{suffix}}", { suffix })}`;
   if (estimate.condition === "adjacent-extrapolated") {
     const anchor = estimate.anchorRarityName ? i18n.t(estimate.anchorRarityName) : i18n.t("another rarity");
     const multiplier = estimate.multiplier === undefined
       ? i18n.t("an adjacent-rarity")
       : `${new Intl.NumberFormat(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(estimate.multiplier)}×`;
-    return i18n.t("Estimated from this artifact's {{anchor}} price using {{multiplier}} multiplier · no direct eligible sales · {{suffix}}", { anchor, multiplier, suffix });
+    return `${level} · ${i18n.t("Estimated from this artifact's {{anchor}} price using {{multiplier}} multiplier · no direct eligible sales · {{suffix}}", { anchor, multiplier, suffix })}`;
   }
   const method = estimate.weighted ? i18n.t("recency-weighted median") : i18n.t("{{days}}-day median", { days: estimate.windowDays });
-  return i18n.t("Market {{method}} from {{sales}} · {{suffix}}", {
+  return `${level} · ${i18n.t("Market {{method}} from {{sales}} · {{suffix}}", {
     method,
     sales: i18n.t("completedSale", { count: estimate.samples }),
     suffix,
-  });
+  })}`;
 }
 
 function formatDate(value: string) {

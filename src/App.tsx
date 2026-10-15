@@ -461,11 +461,12 @@ function PriceDisplay({ estimate, region, className = "" }: { estimate: PriceEst
   const formattedPrice = estimate ? formatPrice(estimate.median) : t("Price unavailable");
   return (
     <span
-      aria-label={estimate ? t("{{source}} price: {{price}}", { source: priceSourceLabel(estimate), price: formattedPrice }) : formattedPrice}
+      aria-label={estimate ? t("{{source}} +0 artifact price: {{price}}", { source: priceSourceLabel(estimate), price: formattedPrice }) : formattedPrice}
       className={`price-display price-display--${source} ${className}`.trim()}
       title={priceSourceDetails(estimate, region)}
     >
       <strong>{formattedPrice}</strong>
+      {estimate && <small aria-hidden="true">+0</small>}
     </span>
   );
 }
@@ -1457,7 +1458,7 @@ function OptimizerPanel({
               <label className="optimizer-budget">
                 <span>{t("Maximum total price")}</span>
                 <input aria-label={t("Maximum total price")} type="number" min="1" step="1000" placeholder={t("No limit")} value={maxTotalPrice} onChange={(event) => setMaxTotalPrice(event.target.value)} />
-                <small>{t("Prices are based on completed {{region}} sales as of {{date}}. Estimated prices are marked. Builds with unknown prices are excluded when a budget is set.", { region: pricingMetadata(pricingRegion).region, date: pricingMetadata(pricingRegion).asOfLabel })}</small>
+                <small>{t("Prices represent +0 artifacts based on completed {{region}} sales as of {{date}}. Upgrade levels and additional-property rolls are not priced. Estimated prices are marked. Builds with unknown prices are excluded when a budget is set.", { region: pricingMetadata(pricingRegion).region, date: pricingMetadata(pricingRegion).asOfLabel })}</small>
               </label>
               <div className="search-estimate">
                 <span>{t("POSSIBLE BUILDS")}</span><strong>{formatInteger(estimatedCombinations)}</strong><small>{t("Search method: {{engine}}", { engine: displayedEngine === "milp" ? t("MILP (Mixed-Integer Linear Programming)") : t("Brute force") })}</small>
@@ -1520,7 +1521,7 @@ function OptimizerPanel({
                     };
                     return (
                       <article className="optimizer-result" ref={resultIndex === 0 ? firstResultRef : undefined} key={result.indices.join("-")}>
-                        <div className="optimizer-result__top"><span>#{resultIndex + 1}</span><strong>{t("{{score}} match score", { score: formatAccuracy(result.score * 100) })}</strong><span className="optimizer-result__price">{formatPrice(result.totalPrice)}</span><small className={resultTotals.warnings.length ? "unsafe" : "safe"}>{resultTotals.warnings.length ? t("Exposure damage") : t("No exposure damage")}</small></div>
+                        <div className="optimizer-result__top"><span>#{resultIndex + 1}</span><strong>{t("{{score}} match score", { score: formatAccuracy(result.score * 100) })}</strong><span className="optimizer-result__price" aria-label={t("Estimated +0 build price: {{price}}", { price: formatPrice(result.totalPrice) })}>{formatPrice(result.totalPrice)} <small aria-hidden="true">+0</small></span><small className={resultTotals.warnings.length ? "unsafe" : "safe"}>{resultTotals.warnings.length ? t("Exposure damage") : t("No exposure damage")}</small></div>
                         {result.approximate && <p className="optimizer-result__accuracy approximate">
                           {result.solveSeconds === undefined
                             ? result.errorPercent === undefined
